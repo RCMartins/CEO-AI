@@ -8,6 +8,7 @@ import java.nio.file.StandardCopyOption.REPLACE_EXISTING
 import javax.imageio.ImageIO
 
 import scala.collection.mutable
+import scala.util.control.NonFatal
 
 object Main {
 
@@ -37,16 +38,15 @@ object Main {
     if (SIZE == 0) {
       println("Invalid Image")
     } else {
+      Thread.sleep(200)
       for (y <- 1 to 8; x <- 1 to 8) {
         val piece: Piece = getPieceFromBlack(black, x, y)
         field.put(Coordinate(x, y), piece)
-        if (piece != null && piece != Piece.BLANK_SQUARE && piece.pieceType.isEmpty) {
+        if (piece != Piece.BLANK_SQUARE && piece.pieceType.isEmpty) {
           //			String str = "UnknownPieces/" + UUID.randomUUID().toString() + ".png";
-          val str: String = "UnknownPieces/%02d.png".format {
-            COUNT_UNKNOWN += 1
-            COUNT_UNKNOWN - 1
-          }
-          copyImage("SQUARES/" + x + "-" + y + ".png", str)
+          val path: String = "UnknownPieces/%02d.png".format(COUNT_UNKNOWN)
+          COUNT_UNKNOWN += 1
+          copyImage("SQUARES/" + x + "-" + y + ".png", path)
         }
       }
     }
@@ -73,10 +73,10 @@ object Main {
           case None =>
             knownPieces(file.getName) = piece
           case Some(oldPiece) =>
-            System.out.println("Duplicate Known Pieces: " + file.getName + " and " + oldPiece.pieceType)
+            println("Duplicate Known Pieces: " + file.getName + " and " + oldPiece.pieceType)
         }
       } else if (file.isDirectory) {
-        //				System.out.println("Directory " + listOfFiles[i].getName());
+        //				println("Directory " + listOfFiles[i].getName());
       }
     }
   }
@@ -119,7 +119,7 @@ object Main {
 
     findEnd()
 
-    System.out.println(CORNER_X + " " + CORNER_Y)
+    //println(CORNER_X + " " + CORNER_Y)
     CORNER_X += 6
     CORNER_Y += 5
     SIZE = 0
@@ -165,6 +165,7 @@ object Main {
     imageOut.setRGB(0, 0, sqWidth, sqHeight, imageOutPixels, 0, sqWidth)
     val piece = buildPiece(imageOutPixels, sqWidth, i, j)
     writeImage(imageOut, "SQUARES/" + i + "-" + j + ".png")
+    Thread.sleep(500)
     piece
   }
 
@@ -188,21 +189,21 @@ object Main {
         blackCount += 1
       }
       //			if ((i + 1) % sqWidth == 0)
-      //				System.out.println();
+      //				println();
     }
     if (blackCount > 0) {
-      if (knownPieces == null) return null
       var trueCount = 0
-      val piece = new Piece(black)
+      val piece = new Piece(Some(black))
       for ((key, value) <- knownPieces) {
         val knownPiece = value
         if (knownPiece.comparePerc(piece, 0.9)) {
           piece.pieceType = key
-          piece.setWhite(key.contains("white"))
+          piece.setWhite(key.endsWith("_white"))
           trueCount += 1
         }
       }
-      if (trueCount > 1) System.out.println("Multiple matches!: " + x + " " + y)
+      if (trueCount > 1)
+        println("Multiple matches!: " + x + " " + y)
       piece
     }
     else Piece.BLANK_SQUARE
@@ -291,14 +292,7 @@ object Main {
   private def printScreenCurrent: BufferedImage = {
     val toolkit = Toolkit.getDefaultToolkit
     val screenRect = new Rectangle(toolkit.getScreenSize)
-    var robot: Robot = null
-    try
-      robot = new Robot
-    catch {
-      case e: AWTException =>
-        e.printStackTrace()
-        return null
-    }
+    val robot = new Robot
     val image = robot.createScreenCapture(screenRect)
     val filePath = "PRINTS/print%03d.png".format {
       COUNT += 1
@@ -313,7 +307,9 @@ object Main {
       ImageIO.write(image, "png", new File(filePath))
     catch {
       case e: IOException =>
-        e.printStackTrace()
+        println("Error: " + e.getMessage)
+        Thread.sleep(10)
+        writeImage(image, filePath)
     }
   }
 
@@ -326,7 +322,7 @@ object Main {
   //		//				checkPixels(pixels, bufferedImage.getWidth());
   //		//			}
   //		//			final long time = System.currentTimeMillis() - currentTimeMillis;
-  //		//			System.out.println("Check image time: " + time + "ms");
+  //		//			println("Check image time: " + time + "ms");
   //
   //		int[] pixels = ((DataBufferInt) bufferedImage.getRaster().getDataBuffer()).getData();
   //		return pixels;
@@ -349,17 +345,17 @@ object Main {
   //					//					System.out.printf("%3d, ", value);
   //					median[i] = Math.max(median[i], value);
   //				}
-  //				//				System.out.println();
+  //				//				println();
   //			}
-  //			//			System.out.println();
+  //			//			println();
   //			//median[i] /= (SIZEX * SIZEY);
   //		}
 
-  //		System.out.println();
+  //		println();
   //		for (int i = 0; i < median.length; i++) {
   //			System.out.printf("%6.2f ", median[i]);
   //			if (i == 4)
-  //				System.out.println();
+  //				println();
 
 
   //	/**

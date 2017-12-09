@@ -2,32 +2,31 @@ package ceo
 
 object Piece {
 
-  val BLANK_SQUARE: Piece = new Piece(null)
+  val BLANK_SQUARE: Piece = new Piece(None)
 
 }
 
-class Piece(val black: Array[Boolean], var isWhite: Boolean) {
+class Piece(val blackOpt: Option[Array[Boolean]], var isWhite: Boolean) {
 
   var pieceType: String = ""
 
   private var blackOccupied: Int = 0
 
-  if (black != null) {
+  blackOpt.foreach(black =>
     for (i <- black.indices if black(i)) {
       blackOccupied += 1
     }
-  }
+  )
 
-  def this(black: Array[Boolean]) = this(black, false)
+  def this(black: Option[Array[Boolean]]) = this(black, false)
 
   def compareWS(other: Piece, maximumWrongPixels: Int): Boolean = {
-    var count: Int = 0
-    for (i <- black.indices if black(i) ^ other.black(i)) {
-       count += 1
-      if (count > maximumWrongPixels)
-       return false
+    (blackOpt, other.blackOpt) match {
+      case (Some(black), Some(blackOther)) =>
+        black.zip(blackOther).count{ case (b1, b2) => b1 ^ b2 } <= maximumWrongPixels
+      case _ =>
+        false
     }
-    true
   }
 
   def comparePerc(other: Piece, percent: Double): Boolean = {
