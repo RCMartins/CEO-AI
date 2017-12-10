@@ -95,7 +95,7 @@ object FillKnownPieces {
     var k: Int = 0
 
     for (y <- 1 to 8; x <- 1 to 8) {
-      val piece: Piece = Main.getPieceFromBlack(black, x, y)
+      val piece: PieceImage = Main.getPieceFromBlack(black, x, y)
       if (piece.blackOpt.isDefined) {
         val name: String = names(k)
         k += 1

@@ -18,8 +18,8 @@ object Main {
   private var COUNT: Int = 0
   private var COUNT_UNKNOWN: Int = 0
   //  private var thread: Thread = _
-  private val knownPieces: mutable.Map[String, Piece] = mutable.Map[String, Piece]()
-  private val field: mutable.Map[Coordinate, Piece] = mutable.Map[Coordinate, Piece]()
+  private val knownPieces: mutable.Map[String, PieceImage] = mutable.Map[String, PieceImage]()
+  private val field: mutable.Map[Coordinate, PieceImage] = mutable.Map[Coordinate, PieceImage]()
   private val fieldAmount: Array[Array[Array[Int]]] = Array.ofDim[Int](9, 9, 4)
   private val fieldLevel: Array[Array[Int]] = Array.ofDim[Int](9, 9)
 
@@ -40,9 +40,9 @@ object Main {
     } else {
       Thread.sleep(200)
       for (y <- 1 to 8; x <- 1 to 8) {
-        val piece: Piece = getPieceFromBlack(black, x, y)
+        val piece: PieceImage = getPieceFromBlack(black, x, y)
         field.put(Coordinate(x, y), piece)
-        if (piece != Piece.BLANK_SQUARE && piece.pieceType.isEmpty) {
+        if (piece != PieceImage.BLANK_SQUARE && piece.pieceType.isEmpty) {
           //			String str = "UnknownPieces/" + UUID.randomUUID().toString() + ".png";
           val path: String = "UnknownPieces/%02d.png".format(COUNT_UNKNOWN)
           COUNT_UNKNOWN += 1
@@ -68,7 +68,7 @@ object Main {
       if (file.isFile) {
         val imageIn: BufferedImage = ImageIO.read(file)
         val imageInPixels: Array[Int] = imageIn.getRGB(0, 0, imageIn.getWidth, imageIn.getHeight, null, 0, imageIn.getWidth)
-        val piece: Piece = buildPiece(imageInPixels, imageIn.getWidth, -1, -1)
+        val piece: PieceImage = buildPiece(imageInPixels, imageIn.getWidth, -1, -1)
         knownPieces.get(piece.pieceType) match {
           case None =>
             knownPieces(file.getName) = piece
@@ -147,7 +147,7 @@ object Main {
     new Square(x, y, x + SIZE - 1, y + SIZE - 1)
   }
 
-  def getPieceFromBlack(imageIn: BufferedImage, i: Int, j: Int): Piece = {
+  def getPieceFromBlack(imageIn: BufferedImage, i: Int, j: Int): PieceImage = {
     val square = getSquare(i, j)
     val imageInWidth = imageIn.getWidth
     val imageInPixels = imageIn.getRGB(0, 0, imageInWidth, imageIn.getHeight, null, 0, imageInWidth)
@@ -175,7 +175,7 @@ object Main {
   //		int[] imageInPixels = imageIn.getRGB(0, 0, imageInWidth, imageInHeight, null, 0, imageInWidth);
   //	}
 
-  private def buildPiece(imageOutPixels: Array[Int], sqWidth: Int, x: Int, y: Int): Piece = {
+  private def buildPiece(imageOutPixels: Array[Int], sqWidth: Int, x: Int, y: Int): PieceImage = {
     val black = new Array[Boolean](imageOutPixels.length)
     var blackCount = 0
     for (i <- imageOutPixels.indices) {
@@ -193,7 +193,7 @@ object Main {
     }
     if (blackCount > 0) {
       var trueCount = 0
-      val piece = new Piece(Some(black))
+      val piece = new PieceImage(Some(black))
       for ((key, value) <- knownPieces) {
         val knownPiece = value
         if (knownPiece.comparePerc(piece, 0.9)) {
@@ -206,7 +206,7 @@ object Main {
         println("Multiple matches!: " + x + " " + y)
       piece
     }
-    else Piece.BLANK_SQUARE
+    else PieceImage.BLANK_SQUARE
   }
 
   def findSquareBorders(imageIn: BufferedImage): BufferedImage = {

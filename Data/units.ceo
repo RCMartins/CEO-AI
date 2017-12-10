@@ -1,0 +1,92 @@
+
+
+King 0
+---
+NNN
+N@N
+NNN
+---
+KingCastling
+--------------------
+Pawn1 0
+---
+ m
+AMA
+ @
+---
+Promotes Bishop1
+--------------------
+Knight1 6
+---
+ J J
+J   J
+  @
+J   J
+ J J
+---
+--------------------
+Bishop1 9
+---
+N             N
+ N           N
+  N         N
+   N       N
+    N     N
+     N   N
+      N N
+       @
+      N N
+     N   N
+    N     N
+   N       N
+  N         N
+ N           N
+N             N
+---
+--------------------
+Rook1 12
+---
+       N
+       N
+       N
+       N
+       N
+       N
+       N
+NNNNNNN@NNNNNNN
+       N
+       N
+       N
+       N
+       N
+       N
+       N
+---
+--------------------
+Queen1 21
+---
+N      N      N
+ N     N     N
+  N    N    N
+   N   N   N
+    N  N  N
+     N N N
+      NNN
+NNNNNNN@NNNNNNN
+      NNN
+     N N N
+    N  N  N
+   N   N   N
+  N    N    N
+ N     N     N
+N      N      N
+---
+--------------------
+Militia1 1
+---
+NNN
+ @
+---
+Promotes Knight1
+DeathMoraleLost 3
+--------------------

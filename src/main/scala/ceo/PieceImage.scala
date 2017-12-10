@@ -1,12 +1,12 @@
 package ceo
 
-object Piece {
+object PieceImage {
 
-  val BLANK_SQUARE: Piece = new Piece(None)
+  val BLANK_SQUARE: PieceImage = new PieceImage(None)
 
 }
 
-class Piece(val blackOpt: Option[Array[Boolean]], var isWhite: Boolean) {
+class PieceImage(val blackOpt: Option[Array[Boolean]], var isWhite: Boolean) {
 
   var pieceType: String = ""
 
@@ -20,7 +20,7 @@ class Piece(val blackOpt: Option[Array[Boolean]], var isWhite: Boolean) {
 
   def this(black: Option[Array[Boolean]]) = this(black, false)
 
-  def compareWS(other: Piece, maximumWrongPixels: Int): Boolean = {
+  def compareWS(other: PieceImage, maximumWrongPixels: Int): Boolean = {
     (blackOpt, other.blackOpt) match {
       case (Some(black), Some(blackOther)) =>
         black.zip(blackOther).count{ case (b1, b2) => b1 ^ b2 } <= maximumWrongPixels
@@ -29,7 +29,7 @@ class Piece(val blackOpt: Option[Array[Boolean]], var isWhite: Boolean) {
     }
   }
 
-  def comparePerc(other: Piece, percent: Double): Boolean = {
+  def comparePerc(other: PieceImage, percent: Double): Boolean = {
     val maximumWrongPixels: Int = (blackOccupied * (1.0 - percent)).toInt
     compareWS(other, maximumWrongPixels)
   }
