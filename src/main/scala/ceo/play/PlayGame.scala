@@ -1,36 +1,38 @@
 package ceo.play
 
-import ceo.play.GameState.Board
 import ceo.play.Player.{PlayerBlack, PlayerWhite}
-import ceo.play.PlayerColor.{Black, White}
 
 object PlayGame {
-  val emptyBoard: Board = Vector.fill(8, 8)(None)
-  val emptyGameState: GameState = GameState(emptyBoard, PlayerWhite(0), PlayerBlack(0), 1)
+
+  val emptyGameState: GameState = GameState(EmptyBoard, PlayerWhite(0), PlayerBlack(0), 1)
 
   def main(args: Array[String]): Unit = {
-    val startingBoard = DataLoader.initialize()
-    println(startingBoard)
+    val startingState = DataLoader.initialize()
+    println(startingState)
 
-    val movesPlayerWhite = startingBoard.getCurrentPlayerMoves
+    val movesPlayerWhite = startingState.getCurrentPlayerMoves
     println("movesPlayerWhite:")
     println(movesPlayerWhite.mkString("\n"))
     println()
 
+    val (bestMove, after) = playBestMove(startingState)
+    println(bestMove)
+    println(after)
+
     println("movesPlayerBlack:")
-    val movesPlayerBlack = startingBoard.nextTurn.getCurrentPlayerMoves
+    val movesPlayerBlack = after.nextTurn.getCurrentPlayerMoves
     println(movesPlayerBlack.mkString("\n"))
   }
 
-  def loadStartingBoard(): GameState = {
-    import DataLoader.getPieceData
+  def playBestMove(startingState: GameState): (PlayerMove, GameState) = {
+    val currentPlayer = startingState.getCurrentPlayer
+    val moves = startingState.getCurrentPlayerMoves
+    val nextStates =
+      moves.map(move => startingState.playPlayerMove(move))
 
-    val state1 =
-      emptyGameState
-        .placeUnit(Piece(getPieceData("Pawn1", White), BoardPos(2, 3)))
-        .placeUnit(Piece(getPieceData("Pawn1", Black), BoardPos(1, 3)))
-        .placeUnit(Piece(getPieceData("Pawn1", Black), BoardPos(1, 4)))
-    state1
+   nextStates.maxBy(after => GameState.compare(startingState, after, currentPlayer.team))
+
+    ???
   }
 
 }

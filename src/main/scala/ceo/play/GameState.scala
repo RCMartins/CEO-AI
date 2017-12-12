@@ -1,10 +1,10 @@
 package ceo.play
 
-import ceo.play.GameState.Board
 import ceo.play.Player.{PlayerBlack, PlayerWhite}
 import ceo.play.PlayerColor.{Black, White}
 
 case class GameState(board: Board, playerWhite: PlayerWhite, playerBlack: PlayerBlack, currentTurn: Double) {
+
   def nextTurn: GameState = copy(currentTurn = currentTurn + 0.5)
 
   override def toString: String = {
@@ -18,7 +18,7 @@ case class GameState(board: Board, playerWhite: PlayerWhite, playerBlack: Player
       s"${"-" * firstHalf} $textInLine ${"-" * secondHalf}\n"
     }
 
-    board.map(line => line.map { pieceOpt =>
+    board.getRows.map(line => line.map { pieceOpt =>
       val formatStr = s"%${nameSize}s"
       formatStr.format(
         pieceOpt.map(
@@ -28,28 +28,25 @@ case class GameState(board: Board, playerWhite: PlayerWhite, playerBlack: Player
   }
 
   def placeUnit(piece: Piece): GameState = {
-    val withNewPiece =
-      copy(
-        board = board.updated(piece.pos.row, board(piece.pos.row).updated(piece.pos.column, Some(piece)))
-      )
+    val withNewPiece = copy(board = board.place(piece))
 
     if (piece.team == White) {
-      val updatedPlayerWhite =
+      withNewPiece.copy(playerWhite =
         withNewPiece.playerWhite
           .increaseMorale(piece.data.initialMorale)
-          .copy(pieces = piece :: withNewPiece.playerWhite.pieces)
-      withNewPiece.copy(playerWhite = updatedPlayerWhite)
+          .placePiece(piece)
+      )
     } else {
-      val updatedPlayerBlack =
+      withNewPiece.copy(playerBlack =
         withNewPiece.playerBlack
           .increaseMorale(piece.data.initialMorale)
-          .copy(pieces = piece :: withNewPiece.playerBlack.pieces)
-      withNewPiece.copy(playerBlack = updatedPlayerBlack)
+          .placePiece(piece)
+      )
     }
   }
 
   def getCurrentPlayerMoves: List[PlayerMove] = {
-    val currentPlayer: Player = if (currentTurn == currentTurn.toInt) playerWhite else playerBlack
+    val currentPlayer: Player = getCurrentPlayer
 
     currentPlayer.pieces.flatMap { piece =>
       val moves: Seq[Moves] = piece.data.moves
@@ -67,11 +64,33 @@ case class GameState(board: Board, playerWhite: PlayerWhite, playerBlack: Player
       None
     }
   }
+
+  def playPlayerMove(move: PlayerMove): GameState = {
+    import PlayerMove._
+    move match {
+      case Move(piece, target) =>
+        val pieceNewPos = piece.moveTo(target)
+
+        val newBoard = board
+          .remove(piece.pos)
+          .place(pieceNewPos)
+
+        copy(board = newBoard).pieceUpdated(piece, pieceNewPos)
+    }
+  }
+
+  def getCurrentPlayer: Player = if (currentTurn == currentTurn.toInt) playerWhite else playerBlack
+
+  def pieceUpdated(piece: Piece, pieceNewPos: Piece): GameState = {
+    if (piece.team == White)
+      copy(playerWhite = playerWhite.removePiece(piece).placePiece(piece))
+    else
+      copy(playerBlack = playerBlack.removePiece(piece).placePiece(piece))
+  }
+
 }
 
 object GameState {
-
-  type Board = Vector[Vector[Option[Piece]]]
 
   def compare(before: GameState, after: GameState, team: PlayerColor): Int = {
     after.isGameOver match {

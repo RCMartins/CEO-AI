@@ -26,29 +26,37 @@ object PlayerColor {
 }
 
 trait Player {
-  val color: PlayerColor
+  val team: PlayerColor
   val morale: Int
   val pieces: List[Piece]
 
-  def enemyColor: PlayerColor = if (color == White) Black else White
+  def enemyColor: PlayerColor = if (team == White) Black else White
 }
 
 object Player {
 
   case class PlayerWhite(morale: Int, pieces: List[Piece] = List.empty) extends Player {
-    val color: PlayerColor = PlayerColor.White
+    val team: PlayerColor = PlayerColor.White
 
     def increaseMorale(amount: Int): PlayerWhite = copy(morale = morale + amount)
 
     def decreaseMorale(amount: Int): PlayerWhite = copy(morale = morale - amount)
+
+    def removePiece(piece: Piece): PlayerWhite = copy(pieces = pieces.filterNot(_ == piece))
+
+    def placePiece(piece: Piece): PlayerWhite = copy(pieces = piece :: pieces)
   }
 
   case class PlayerBlack(morale: Int, pieces: List[Piece] = List.empty) extends Player {
-    val color: PlayerColor = PlayerColor.Black
+    val team: PlayerColor = PlayerColor.Black
 
     def increaseMorale(amount: Int): PlayerBlack = copy(morale = morale + amount)
 
     def decreaseMorale(amount: Int): PlayerBlack = copy(morale = morale - amount)
+
+    def removePiece(piece: Piece): PlayerBlack = copy(pieces = pieces.filterNot(_ == piece))
+
+    def placePiece(piece: Piece): PlayerBlack = copy(pieces = piece :: pieces)
   }
 
 }

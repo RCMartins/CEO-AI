@@ -1,8 +1,8 @@
-e              e e          King_Black
-Fireball_Black e Pawn_Black Pawn_Black Pawn_Black
+e              e e           King_Black
+Fireball_Black e Pawn+_Black Pawn+_Black Pawn+_Black
 
 
 
-e              e e          Pawn_Black
-Fireball_White e Pawn_White Pawn_White Pawn_White
-e              e e          King_White
+e              e e           Pawn+_Black
+Fireball_White e Pawn+_White Pawn+_White Pawn+_White
+e              e e           King_White

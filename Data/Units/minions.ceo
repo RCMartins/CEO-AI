@@ -3,7 +3,7 @@ Militia 1
 NNN
  @
 ---
-Promotes Knight1
+Promotes Knight
 DeathMoraleLost 3
 --------------------
 Fireball 2
@@ -16,4 +16,13 @@ R
 SuicideOnKill
 Immune Poison Petrify
 DestroyedBy Freeze
+--------------------
+Pawn+ 1
+---
+ m
+ m
+AMA
+ @
+---
+Promotes Bishop+
 --------------------

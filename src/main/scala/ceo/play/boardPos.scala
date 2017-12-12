@@ -1,7 +1,5 @@
 package ceo.play
 
-import ceo.play.GameState.Board
-
 import scala.language.implicitConversions
 
 case class BoardPos(row: Int, column: Int) {
@@ -10,7 +8,7 @@ case class BoardPos(row: Int, column: Int) {
 
   def isValid: Boolean = row >= 0 && row < 8 && column >= 0 && column < 8
 
-  def getPiece(board: Board): Option[Piece] = if (isValid) board(row)(column) else None
+  def getPiece(board: Board): Option[Piece] = if (isValid) board(row, column) else None
 
   def isEmpty(board: Board): Boolean = isValid && getPiece(board).isEmpty
 
@@ -32,9 +30,12 @@ object BoardPos {
 }
 
 case class Piece(data: PieceData, pos: BoardPos, currentMorale: Int, hasMoved: Boolean) {
-  def team: PlayerColor = data.team
 
   override def toString: String = s"${data.name}$pos"
+
+  def team: PlayerColor = data.team
+
+  def moveTo(target: BoardPos): Piece = copy(pos = target)
 }
 
 object Piece {

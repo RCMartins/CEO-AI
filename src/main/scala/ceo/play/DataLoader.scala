@@ -10,6 +10,7 @@ import scala.io.Source
 object DataLoader {
 
   private val units: mutable.Map[String, PieceData] = mutable.Map[String, PieceData]()
+  private var piecesToCheck: List[String] = List[String]()
 
   def getPieceData(name: String, team: PlayerColor): PieceData = units(name.head.toUpper + name.tail.toLowerCase + "_" + team)
 
@@ -28,6 +29,7 @@ object DataLoader {
     else
       new RuntimeException(s"Not a directory: $file")
   }
+
   def loadFile(file: File): Unit = {
     val br = new BufferedReader(new StringReader(Source.fromFile(file).getLines.mkString("\n")))
 
@@ -39,6 +41,11 @@ object DataLoader {
       }
       if (gamePieces.nonEmpty)
         loadUnits()
+
+      for(piece <- piecesToCheck) {
+        getPieceData(piece, White)
+        getPieceData(piece, Black)
+      }
     }
 
     loadUnits()
@@ -103,7 +110,9 @@ object DataLoader {
   def loadPowers(powersStr: List[String]): List[Powers] = {
     powersStr.map {
       case str if str.startsWith("Promotes ") =>
-        Powers.PromoteTo(str.drop("Promotes ".length))
+        val pieceToCkeck = str.drop("Promotes ".length)
+        piecesToCheck = pieceToCkeck :: piecesToCheck
+        Powers.PromoteTo(pieceToCkeck)
       case str if str.startsWith("DeathMoraleLost ") =>
         Powers.DeathMoraleLost(str.drop("DeathMoraleLost ".length).toInt)
       case str if str.startsWith("Immune ") =>

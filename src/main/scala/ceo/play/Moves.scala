@@ -51,7 +51,7 @@ object Moves {
 
   private def canSwap(piece: Piece, target: BoardPos, state: GameState, currentPlayer: Player): Option[PlayerMove] = {
     target.getPiece(state.board) match {
-      case Some(targetPiece) if targetPiece.team == currentPlayer.color =>
+      case Some(targetPiece) if targetPiece.team == currentPlayer.team =>
         Some(PlayerMove.Attack(piece, target.getPiece(state.board).get))
       case _ =>
         None
