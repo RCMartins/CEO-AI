@@ -8,11 +8,13 @@ import scala.language.implicitConversions
 
 case class BoardPos(row: Int, column: Int) {
 
+  def isValid: Boolean = row >= 0 && row < 8 && column >= 0 && column < 8
+
   override def toString: String = s"[$row-$column]"
 
-  def getPiece(board: Board): Option[Piece] = board(row)(column)
+  def getPiece(board: Board): Option[Piece] = if (isValid) board(row)(column) else None
 
-  def isEmpty(board: Board): Boolean = getPiece(board).isEmpty
+  def isEmpty(board: Board): Boolean = isValid && getPiece(board).isEmpty
 
   def translate(dx: Int, dy: Int): BoardPos = BoardPos(row + dy, column + dx)
 
@@ -31,12 +33,14 @@ object BoardPos {
   implicit def convert(tuple2: (Int, Int)): BoardPos = BoardPos(tuple2._1, tuple2._2)
 }
 
-case class Piece(data: PieceData, pos: BoardPos, currentMorale: Int, hasMoved: Boolean, team: PlayerColor) {
+case class Piece(data: PieceData, pos: BoardPos, currentMorale: Int, hasMoved: Boolean) {
+  val team: PlayerColor = data.team
+
   override def toString: String = s"${data.name}$pos"
 }
 
 object Piece {
-  def apply(data: PieceData, pos: BoardPos, team: PlayerColor): Piece = Piece(data, pos, data.initialMorale, hasMoved = false, team)
+  def apply(data: PieceData, pos: BoardPos): Piece = Piece(data, pos, data.initialMorale, hasMoved = false)
 }
 
 case class GameState(board: Board, playerWhite: PlayerWhite, playerBlack: PlayerBlack, currentTurn: Double) {

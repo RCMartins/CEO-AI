@@ -16,12 +16,15 @@ object PlayerColor {
     val letter = 'B'
   }
 
+  def apply(str: String): PlayerColor = if (str == "White") White else Black
+
 }
 
 trait Player {
   val color: PlayerColor
   val morale: Int
   val pieces: List[Piece]
+
   def enemyColor: PlayerColor = if (color == White) Black else White
 }
 
@@ -35,7 +38,7 @@ object Player {
     def decreaseMorale(amount: Int): PlayerWhite = copy(morale = morale - amount)
   }
 
-  case class PlayerBlack(morale: Int, pieces: List[Piece]= List.empty) extends Player {
+  case class PlayerBlack(morale: Int, pieces: List[Piece] = List.empty) extends Player {
     val color: PlayerColor = PlayerColor.Black
 
     def increaseMorale(amount: Int): PlayerBlack = copy(morale = morale + amount)

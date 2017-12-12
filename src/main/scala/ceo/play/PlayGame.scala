@@ -9,26 +9,27 @@ object PlayGame {
   val emptyGameState: GameState = GameState(emptyBoard, PlayerWhite(0), PlayerBlack(0), 1)
 
   def main(args: Array[String]): Unit = {
-    DataLoader.main(Array.empty)
-    val startingBoard = loadStartingBoard()
+    val startingBoard = DataLoader.initialize()
     println(startingBoard)
 
     val movesPlayerWhite = startingBoard.getCurrentPlayerMoves
+    println("movesPlayerWhite:")
     println(movesPlayerWhite.mkString("\n"))
     println()
 
+    println("movesPlayerBlack:")
     val movesPlayerBlack = startingBoard.nextTurn.getCurrentPlayerMoves
     println(movesPlayerBlack.mkString("\n"))
   }
 
   def loadStartingBoard(): GameState = {
-    import DataLoader.getUnit
+    import DataLoader.getPieceData
 
     val state1 =
       emptyGameState
-        .placeUnit(Piece(getUnit("Pawn1", White), BoardPos(2, 3), White))
-        .placeUnit(Piece(getUnit("Pawn1", Black), BoardPos(1, 3), Black))
-        .placeUnit(Piece(getUnit("Pawn1", Black), BoardPos(1, 4), Black))
+        .placeUnit(Piece(getPieceData("Pawn1", White), BoardPos(2, 3)))
+        .placeUnit(Piece(getPieceData("Pawn1", Black), BoardPos(1, 3)))
+        .placeUnit(Piece(getPieceData("Pawn1", Black), BoardPos(1, 4)))
     state1
   }
 

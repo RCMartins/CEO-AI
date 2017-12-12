@@ -2,7 +2,7 @@ package ceo.play
 
 import java.io.{BufferedReader, File, StringReader}
 
-import ceo.play
+import ceo.play.GameState.Board
 import ceo.play.PlayerColor.{Black, White}
 
 import scala.collection.mutable
@@ -12,10 +12,15 @@ object DataLoader {
 
   private val units: mutable.Map[String, PieceData] = mutable.Map[String, PieceData]()
 
-  def getUnit(name: String, team: PlayerColor): PieceData = units(name.head.toUpper + name.tail.toLowerCase + "_" + team)
+  def getPieceData(name: String, team: PlayerColor): PieceData = units(name.head.toUpper + name.tail.toLowerCase + "_" + team)
 
   def main(args: Array[String]): Unit = {
+    println(initialize())
+  }
+
+  def initialize(): GameState = {
     loadFile(new File("Data/units.ceo"))
+    loadBoard(new File("Data/board1.ceo"))
   }
 
   def loadFile(file: File): Unit = {
@@ -102,4 +107,24 @@ object DataLoader {
     }
   }
 
+  def loadBoard(file: File): GameState = {
+    val lines = Source.fromFile(file).getLines.toVector
+    if (lines.length < 8)
+      throw new Exception("Board has less than 8 lines...")
+
+    var gameState = PlayGame.emptyGameState
+    for (row <- 0 until 8) {
+      val line = lines(row)
+      val unitNames = line.split(" ")
+      for ((unitName, column) <- unitNames.zipWithIndex) {
+        if (unitName.contains("_")) {
+          val List(name, team) = unitName.split("_").toList
+          val pieceData = getPieceData(name, PlayerColor(team))
+          gameState = gameState.placeUnit(Piece(pieceData, BoardPos(row, column)))
+        }
+      }
+    }
+
+    gameState
+  }
 }
