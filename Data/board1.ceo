@@ -1,8 +1,8 @@
-empty empty empty empty King_Black empty empty empty
-Pawn1_Black Pawn1_Black Pawn1_Black Pawn1_Black Pawn1_Black Pawn1_Black Pawn1_Black Pawn1_Black
+e          e          e          e          King_Black e          e          e
+Pawn_Black Pawn_Black Pawn_Black Pawn_Black Pawn_Black Pawn_Black Pawn_Black Pawn_Black
 
 
 
 
-Pawn1_White Pawn1_White Pawn1_White Pawn1_White Pawn1_White Pawn1_White Pawn1_White Pawn1_White
-empty empty empty empty King_White empty empty empty
+Pawn_White Pawn_White Pawn_White Pawn_White Pawn_White Pawn_White Pawn_White Pawn_White
+e          e          e          e          King_White e          e          e

@@ -1,0 +1,19 @@
+Militia 1
+---
+NNN
+ @
+---
+Promotes Knight1
+DeathMoraleLost 3
+--------------------
+Fireball 2
+---
+R
+R
+R
+@
+---
+SuicideOnKill
+Immune Poison Petrify
+DestroyedBy Freeze
+--------------------

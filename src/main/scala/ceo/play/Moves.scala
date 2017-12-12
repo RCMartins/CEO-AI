@@ -1,15 +1,5 @@
 package ceo.play
 
-case class PieceData(
-    name: String,
-    initialMorale: Int,
-    moves: List[Moves],
-    powers: List[Powers] = List.empty,
-    team: PlayerColor
-) {
-  override def toString: String = s"$name"
-}
-
 sealed trait Moves {
   def getValidMove(piece: Piece, state: GameState, currentPlayer: Player): Option[PlayerMove]
 
@@ -68,6 +58,15 @@ object Moves {
     }
   }
 
+  private def canRangedDestroy(piece: Piece, target: BoardPos, state: GameState, currentPlayer: Player): Option[PlayerMove] = {
+    (piece.pos.posUntil(target).forall(_.isEmpty(state.board)), target.getPiece(state.board)) match {
+      case (true, Some(targetPiece)) if targetPiece.team == currentPlayer.enemyColor =>
+        Some(PlayerMove.RangedDestroy(piece, target.getPiece(state.board).get))
+      case _ =>
+        None
+    }
+  }
+
   case class MoveOrAttack(dx: Int, dy: Int) extends Moves {
     def getValidMove(piece: Piece, state: GameState, currentPlayer: Player): Option[PlayerMove] = {
       Seq(
@@ -118,22 +117,16 @@ object Moves {
 
   //  case class AttackUnblockable(dx: Int, dy: Int) extends Moves
   //
-  //  case class RangedDestroy(dx: Int, dy: Int) extends Moves
+
+  case class RangedDestroy(dx: Int, dy: Int) extends Moves {
+    def getValidMove(piece: Piece, state: GameState, currentPlayer: Player): Option[PlayerMove] = {
+      canRangedDestroy(piece, piece.pos.translate(dx, dy), state, currentPlayer)
+    }
+  }
+
   //
   //  case class MagicDestroy(dx: Int, dy: Int) extends Moves
   //
   //  case class Teleport(dx: Int, dy: Int) extends Moves
-
-}
-
-sealed trait Powers
-
-object Powers {
-
-  case class PromoteTo(unitName: String) extends Powers
-
-  case class DeathMoraleLost(moraleAmount: Int) extends Powers
-
-  case object KingCastling extends Powers
 
 }

@@ -3,7 +3,12 @@ package ceo.play
 import ceo.play.PlayerColor.{Black, White}
 
 sealed trait PlayerColor {
+
   val letter: Char
+
+  def enemy: PlayerColor = if (this == White) Black else White
+
+  def chooseWhiteBlack[A](whiteBranch: A, blackBranch: A): A = if (this == White) whiteBranch else blackBranch
 }
 
 object PlayerColor {
@@ -55,5 +60,7 @@ object PlayerMove {
   case class Move(piece: Piece, to: BoardPos) extends PlayerMove
 
   case class Attack(piece: Piece, pieceToKill: Piece) extends PlayerMove
+
+  case class RangedDestroy(piece: Piece, pieceToDestroy: Piece) extends PlayerMove
 
 }

@@ -1,5 +1,3 @@
-
-
 King 0
 ---
 NNN
@@ -8,15 +6,15 @@ NNN
 ---
 KingCastling
 --------------------
-Pawn1 0
+Pawn 0
 ---
  m
 AMA
  @
 ---
-Promotes Bishop1
+Promotes Bishop
 --------------------
-Knight1 6
+Knight 6
 ---
  J J
 J   J
@@ -25,7 +23,7 @@ J   J
  J J
 ---
 --------------------
-Bishop1 9
+Bishop 9
 ---
 N             N
  N           N
@@ -44,7 +42,7 @@ N             N
 N             N
 ---
 --------------------
-Rook1 12
+Rook 12
 ---
        N
        N
@@ -63,7 +61,7 @@ NNNNNNN@NNNNNNN
        N
 ---
 --------------------
-Queen1 21
+Queen 21
 ---
 N      N      N
  N     N     N
@@ -81,12 +79,4 @@ NNNNNNN@NNNNNNN
  N     N     N
 N      N      N
 ---
---------------------
-Militia1 1
----
-NNN
- @
----
-Promotes Knight1
-DeathMoraleLost 3
 --------------------

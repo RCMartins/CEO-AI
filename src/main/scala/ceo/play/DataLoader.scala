@@ -1,8 +1,7 @@
 package ceo.play
 
-import java.io.{BufferedReader, File, StringReader}
+import java.io.{BufferedReader, File, FileFilter, StringReader}
 
-import ceo.play.GameState.Board
 import ceo.play.PlayerColor.{Black, White}
 
 import scala.collection.mutable
@@ -19,10 +18,16 @@ object DataLoader {
   }
 
   def initialize(): GameState = {
-    loadFile(new File("Data/units.ceo"))
-    loadBoard(new File("Data/board1.ceo"))
+    loadFiles(new File("Data/Units"))
+    loadBoard(new File("Data/boardTest.ceo"))
   }
 
+  def loadFiles(file: File): Unit = {
+    if (file.isDirectory)
+      file.listFiles().filter(_.getName.endsWith(".ceo")).foreach(loadFile)
+    else
+      new RuntimeException(s"Not a directory: $file")
+  }
   def loadFile(file: File): Unit = {
     val br = new BufferedReader(new StringReader(Source.fromFile(file).getLines.mkString("\n")))
 
@@ -91,6 +96,7 @@ object DataLoader {
       case 'A' => Moves.Attack(posX, posY)
       case 'J' => Moves.MoveOrAttackUnblockable(posX, posY)
       case 'S' => Moves.MoveOrAttackOrSwapAlly(posX, posY)
+      case 'R' => Moves.RangedDestroy(posX, posY)
     }
   }
 
@@ -98,10 +104,16 @@ object DataLoader {
     powersStr.map {
       case str if str.startsWith("Promotes ") =>
         Powers.PromoteTo(str.drop("Promotes ".length))
-      case "KingCastling" =>
-        Powers.KingCastling
       case str if str.startsWith("DeathMoraleLost ") =>
         Powers.DeathMoraleLost(str.drop("DeathMoraleLost ".length).toInt)
+      case str if str.startsWith("Immune ") =>
+        Powers.Immune(str.drop("Immune ".length).split(" ").toList)
+      case str if str.startsWith("DestroyedBy ") =>
+        Powers.DestroyedBy(str.drop("DestroyedBy ".length).split(" ").toList)
+      case "KingCastling" =>
+        Powers.KingCastling
+      case "SuicideOnKill" =>
+        Powers.SuicideOnKill
       case str =>
         throw new Exception("Unknown Power: " + str)
     }
@@ -114,7 +126,7 @@ object DataLoader {
 
     var gameState = PlayGame.emptyGameState
     for (row <- 0 until 8) {
-      val line = lines(row)
+      val line = lines(row).replaceAll("""\s+""", " ")
       val unitNames = line.split(" ")
       for ((unitName, column) <- unitNames.zipWithIndex) {
         if (unitName.contains("_")) {

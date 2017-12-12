@@ -1,0 +1,15 @@
+// Lowercase: From starting position
+
+@: Unit Position
+
+A: Attack
+
+M: Move
+J: Move Unblockable
+
+N: Attack or Move
+
+S: Attack or Move or Swap
+
+R: (Ranged) Destroy Target
+M: (Magic) Destroy Target
