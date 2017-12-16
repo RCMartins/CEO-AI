@@ -3,8 +3,8 @@ Militia 1
 NNN
  @
 ---
-Promotes Knight
-DeathMoraleLost 3
+PromotesTo Knight
+LoseMoraleOnDeath 3
 --------------------
 Fireball 2
 ---
@@ -24,5 +24,5 @@ Pawn+ 1
 AMA
  @
 ---
-Promotes Bishop+
+PromotesTo Bishop+
 --------------------

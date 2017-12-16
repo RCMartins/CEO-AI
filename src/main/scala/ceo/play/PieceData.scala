@@ -5,7 +5,7 @@ case class PieceData(
     initialMorale: Int,
     moves: List[Moves],
     powers: List[Powers] = List.empty,
-    team: PlayerColor
+    team: PlayerTeam
 ) {
   override def toString: String = s"$name"
 }

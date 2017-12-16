@@ -1,48 +1,90 @@
 package ceo.play
 
 import ceo.play.Player.{PlayerBlack, PlayerWhite}
-import ceo.play.PlayerColor.{Black, White}
+import ceo.play.PlayerTeam.{Black, White}
 
-case class GameState(board: Board, playerWhite: PlayerWhite, playerBlack: PlayerBlack, currentTurn: Double) {
+case class GameState(board: Board, playerWhite: PlayerWhite, playerBlack: PlayerBlack, currentTurn: Double, movesHistory: List[PlayerMove]) {
+
+  def getPlayer(team: PlayerTeam): Player = if (team == White) playerWhite else playerBlack
 
   def nextTurn: GameState = copy(currentTurn = currentTurn + 0.5)
 
   override def toString: String = {
     val nameSize = 14
-    val normalDashLine = "-" * ((nameSize + 1) * 8 + 1)
+    val normalDashLine = " " + "-" * ((nameSize + 1) * 8 + 1)
 
     def moraleDashLine(morale: Int) = {
-      val textInLine = s"morale: ${morale.toString}"
+      val textInLine = s" morale: ${morale.toString} "
       val firstHalf = normalDashLine.length / 2 - textInLine.length / 2 - 1
-      val secondHalf = normalDashLine.length - firstHalf - textInLine.length - 2
-      s"${"-" * firstHalf} $textInLine ${"-" * secondHalf}\n"
+      val secondHalf = normalDashLine.length - firstHalf - textInLine.length - 1
+      s" ${"-" * firstHalf}$textInLine${"-" * secondHalf}\n"
     }
 
-    board.getRows.map(line => line.map { pieceOpt =>
+    board.getRows.zipWithIndex.map { case (line, rowN) => line.map { pieceOpt =>
       val formatStr = s"%${nameSize}s"
       formatStr.format(
         pieceOpt.map(
           piece => piece.data.name).getOrElse(""))
-    }.mkString("|", "|", "|"))
+    }.mkString(s"$rowN|", "|", "|")
+    }
       .mkString(moraleDashLine(playerBlack.morale), "\n" + normalDashLine + "\n", "\n" + moraleDashLine(playerWhite.morale))
   }
 
-  def placeUnit(piece: Piece): GameState = {
+  /**
+    * Removes piece and adds another piece and updates morale/player pieces
+    * updatePiece(piece1, piece2) === removePiece(piece1).placePiece(piece2)
+    */
+  def updatePiece(piece: Piece, pieceNewPos: Piece): GameState = {
+    removePiece(piece).placePiece(pieceNewPos)
+  }
+
+  /**
+    * Places piece and updates morale/player pieces
+    */
+  def placePiece(piece: Piece): GameState = {
     val withNewPiece = copy(board = board.place(piece))
 
     if (piece.team == White) {
       withNewPiece.copy(playerWhite =
         withNewPiece.playerWhite
-          .increaseMorale(piece.data.initialMorale)
+          .changeMorale(piece.currentMorale)
           .placePiece(piece)
       )
     } else {
       withNewPiece.copy(playerBlack =
         withNewPiece.playerBlack
-          .increaseMorale(piece.data.initialMorale)
+          .changeMorale(piece.currentMorale)
           .placePiece(piece)
       )
     }
+  }
+
+  /**
+    * Removes piece and updates morale/player pieces
+    */
+  def removePiece(piece: Piece): GameState = {
+    val withoutPiece = copy(board = board.remove(piece.pos))
+
+    if (piece.team == White) {
+      withoutPiece.copy(playerWhite =
+        withoutPiece.playerWhite
+          .changeMorale(-piece.currentMorale)
+          .removePiece(piece)
+      )
+    } else {
+      withoutPiece.copy(playerBlack =
+        withoutPiece.playerBlack
+          .changeMorale(-piece.currentMorale)
+          .removePiece(piece)
+      )
+    }
+  }
+
+  def changeMorale(playerTeam: PlayerTeam, moraleDiff: Int): GameState = {
+    if (playerTeam == White)
+      copy(playerWhite = playerWhite.copy(morale = playerWhite.morale + moraleDiff))
+    else
+      copy(playerBlack = playerBlack.copy(morale = playerBlack.morale + moraleDiff))
   }
 
   def getCurrentPlayerMoves: List[PlayerMove] = {
@@ -55,11 +97,11 @@ case class GameState(board: Board, playerWhite: PlayerWhite, playerBlack: Player
     }
   }
 
-  def isGameOver: Option[PlayerColor] = {
+  def winner: Option[PlayerTeam] = {
     if (playerWhite.morale == 0) {
-      Some(White)
-    } else if (playerBlack.morale == 0) {
       Some(Black)
+    } else if (playerBlack.morale == 0) {
+      Some(White)
     } else {
       None
     }
@@ -67,33 +109,36 @@ case class GameState(board: Board, playerWhite: PlayerWhite, playerBlack: Player
 
   def playPlayerMove(move: PlayerMove): GameState = {
     import PlayerMove._
-    move match {
+
+    val newState = move match {
       case Move(piece, target) =>
-        val pieceNewPos = piece.moveTo(target)
+        val pieceNewPos = piece.moveTo(target, this).copy(hasMoved = true)
+        updatePiece(piece, pieceNewPos)
+      case Attack(piece, pieceToKill) =>
+        val pieceNewPos = piece.moveTo(pieceToKill.pos, this).copy(hasMoved = true)
 
-        val newBoard = board
-          .remove(piece.pos)
-          .place(pieceNewPos)
-
-        copy(board = newBoard).pieceUpdated(piece, pieceNewPos)
+        this
+          .removePiece(piece)
+          .removePiece(pieceToKill)
+          .placePiece(pieceNewPos)
+      case RangedDestroy(_, pieceToKill) =>
+        this.removePiece(pieceToKill)
     }
+
+    newState.copy(
+      currentTurn = newState.currentTurn + 0.5,
+      movesHistory = move :: newState.movesHistory
+    )
   }
 
   def getCurrentPlayer: Player = if (currentTurn == currentTurn.toInt) playerWhite else playerBlack
-
-  def pieceUpdated(piece: Piece, pieceNewPos: Piece): GameState = {
-    if (piece.team == White)
-      copy(playerWhite = playerWhite.removePiece(piece).placePiece(piece))
-    else
-      copy(playerBlack = playerBlack.removePiece(piece).placePiece(piece))
-  }
 
 }
 
 object GameState {
 
-  def compare(before: GameState, after: GameState, team: PlayerColor): Int = {
-    after.isGameOver match {
+  def compare(before: GameState, after: GameState, team: PlayerTeam): Int = {
+    after.winner match {
       case Some(playerTeam) if playerTeam == team => Int.MaxValue
       case Some(playerTeam) if playerTeam == team.enemy => Int.MinValue
       case None =>

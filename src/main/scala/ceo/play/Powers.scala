@@ -6,7 +6,7 @@ object Powers {
 
   case class PromoteTo(unitName: String) extends Powers
 
-  case class DeathMoraleLost(moraleAmount: Int) extends Powers
+  case class LoseMoraleOnDeath(moraleAmount: Int) extends Powers
 
   case class Immune(immuneList: List[String]) extends Powers
 

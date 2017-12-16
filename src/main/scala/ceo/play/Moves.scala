@@ -33,7 +33,7 @@ object Moves {
 
   private def canAttack(piece: Piece, target: BoardPos, state: GameState, currentPlayer: Player): Option[PlayerMove] = {
     (piece.pos.posUntil(target).forall(_.isEmpty(state.board)), target.getPiece(state.board)) match {
-      case (true, Some(targetPiece)) if targetPiece.team == currentPlayer.enemyColor =>
+      case (true, Some(targetPiece)) if targetPiece.team == currentPlayer.team.enemy =>
         Some(PlayerMove.Attack(piece, target.getPiece(state.board).get))
       case _ =>
         None
@@ -42,7 +42,7 @@ object Moves {
 
   private def canAttackUnblockable(piece: Piece, target: BoardPos, state: GameState, currentPlayer: Player): Option[PlayerMove] = {
     target.getPiece(state.board) match {
-      case Some(targetPiece) if targetPiece.team == currentPlayer.enemyColor =>
+      case Some(targetPiece) if targetPiece.team == currentPlayer.team.enemy =>
         Some(PlayerMove.Attack(piece, target.getPiece(state.board).get))
       case _ =>
         None
@@ -60,7 +60,7 @@ object Moves {
 
   private def canRangedDestroy(piece: Piece, target: BoardPos, state: GameState, currentPlayer: Player): Option[PlayerMove] = {
     (piece.pos.posUntil(target).forall(_.isEmpty(state.board)), target.getPiece(state.board)) match {
-      case (true, Some(targetPiece)) if targetPiece.team == currentPlayer.enemyColor =>
+      case (true, Some(targetPiece)) if targetPiece.team == currentPlayer.team.enemy =>
         Some(PlayerMove.RangedDestroy(piece, target.getPiece(state.board).get))
       case _ =>
         None

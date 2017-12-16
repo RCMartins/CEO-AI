@@ -2,7 +2,7 @@ package ceo.play
 
 import java.io.{BufferedReader, File, FileFilter, StringReader}
 
-import ceo.play.PlayerColor.{Black, White}
+import ceo.play.PlayerTeam.{Black, White}
 
 import scala.collection.mutable
 import scala.io.Source
@@ -12,15 +12,15 @@ object DataLoader {
   private val units: mutable.Map[String, PieceData] = mutable.Map[String, PieceData]()
   private var piecesToCheck: List[String] = List[String]()
 
-  def getPieceData(name: String, team: PlayerColor): PieceData = units(name.head.toUpper + name.tail.toLowerCase + "_" + team)
+  def getPieceData(name: String, team: PlayerTeam): PieceData = units(name.head.toUpper + name.tail.toLowerCase + "_" + team)
 
   def main(args: Array[String]): Unit = {
     println(initialize())
   }
 
-  def initialize(): GameState = {
+  def initialize(boardToStart: String ="Data/boardTest.ceo" ): GameState = {
     loadFiles(new File("Data/Units"))
-    loadBoard(new File("Data/boardTest.ceo"))
+    loadBoard(new File(boardToStart))
   }
 
   def loadFiles(file: File): Unit = {
@@ -109,12 +109,12 @@ object DataLoader {
 
   def loadPowers(powersStr: List[String]): List[Powers] = {
     powersStr.map {
-      case str if str.startsWith("Promotes ") =>
-        val pieceToCkeck = str.drop("Promotes ".length)
+      case str if str.startsWith("PromotesTo ") =>
+        val pieceToCkeck = str.drop("PromotesTo ".length)
         piecesToCheck = pieceToCkeck :: piecesToCheck
         Powers.PromoteTo(pieceToCkeck)
-      case str if str.startsWith("DeathMoraleLost ") =>
-        Powers.DeathMoraleLost(str.drop("DeathMoraleLost ".length).toInt)
+      case str if str.startsWith("LoseMoraleOnDeath ") =>
+        Powers.LoseMoraleOnDeath(str.drop("LoseMoraleOnDeath ".length).toInt)
       case str if str.startsWith("Immune ") =>
         Powers.Immune(str.drop("Immune ".length).split(" ").toList)
       case str if str.startsWith("DestroyedBy ") =>
@@ -140,8 +140,8 @@ object DataLoader {
       for ((unitName, column) <- unitNames.zipWithIndex) {
         if (unitName.contains("_")) {
           val List(name, team) = unitName.split("_").toList
-          val pieceData = getPieceData(name, PlayerColor(team))
-          gameState = gameState.placeUnit(Piece(pieceData, BoardPos(row, column)))
+          val pieceData = getPieceData(name, PlayerTeam(team))
+          gameState = gameState.placePiece(Piece(pieceData, BoardPos(row, column)))
         }
       }
     }

@@ -1,5 +1,7 @@
 package ceo.play
 
+import ceo.play.Powers.PromoteTo
+
 import scala.language.implicitConversions
 
 case class BoardPos(row: Int, column: Int) {
@@ -33,9 +35,21 @@ case class Piece(data: PieceData, pos: BoardPos, currentMorale: Int, hasMoved: B
 
   override def toString: String = s"${data.name}$pos"
 
-  def team: PlayerColor = data.team
+  def team: PlayerTeam = data.team
 
-  def moveTo(target: BoardPos): Piece = copy(pos = target)
+  def moveTo(target: BoardPos, gameState: GameState): Piece = {
+    if (gameState.getPlayer(data.team.enemy).inBaseRow(target)) {
+      data.powers.collectFirst { case PromoteTo(pieceUpgradeName) => pieceUpgradeName } match {
+        case None =>
+          copy(pos = target)
+        case Some(pieceUpgradeName) =>
+          val pieceData = DataLoader.getPieceData(pieceUpgradeName, data.team)
+          Piece(pieceData, target)
+      }
+    } else {
+      copy(pos = target)
+    }
+  }
 }
 
 object Piece {

@@ -4,6 +4,7 @@ NNN
 N@N
 NNN
 ---
+LoseMoraleOnDeath 25
 KingCastling
 --------------------
 Pawn 0
@@ -12,7 +13,7 @@ Pawn 0
 AMA
  @
 ---
-Promotes Bishop
+PromotesTo Bishop
 --------------------
 Knight 6
 ---

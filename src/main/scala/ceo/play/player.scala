@@ -1,62 +1,62 @@
 package ceo.play
 
-import ceo.play.PlayerColor.{Black, White}
+import ceo.play.PlayerTeam.{Black, White}
 
-sealed trait PlayerColor {
+sealed trait PlayerTeam {
 
   val letter: Char
 
-  def enemy: PlayerColor = if (this == White) Black else White
+  def enemy: PlayerTeam = if (this == White) Black else White
 
   def chooseWhiteBlack[A](whiteBranch: A, blackBranch: A): A = if (this == White) whiteBranch else blackBranch
 }
 
-object PlayerColor {
+object PlayerTeam {
 
-  case object White extends PlayerColor {
+  case object White extends PlayerTeam {
     val letter = 'W'
   }
 
-  case object Black extends PlayerColor {
+  case object Black extends PlayerTeam {
     val letter = 'B'
   }
 
-  def apply(str: String): PlayerColor = if (str == "White") White else Black
+  def apply(str: String): PlayerTeam = if (str == "White") White else Black
 
 }
 
 trait Player {
-  val team: PlayerColor
+  val team: PlayerTeam
   val morale: Int
   val pieces: List[Piece]
 
-  def enemyColor: PlayerColor = if (team == White) Black else White
+  def inBaseRow(target: BoardPos): Boolean
 }
 
 object Player {
 
   case class PlayerWhite(morale: Int, pieces: List[Piece] = List.empty) extends Player {
-    val team: PlayerColor = PlayerColor.White
+    val team: PlayerTeam = PlayerTeam.White
 
-    def increaseMorale(amount: Int): PlayerWhite = copy(morale = morale + amount)
-
-    def decreaseMorale(amount: Int): PlayerWhite = copy(morale = morale - amount)
+    def changeMorale(diff: Int): PlayerWhite = copy(morale = Math.max(0, morale + diff))
 
     def removePiece(piece: Piece): PlayerWhite = copy(pieces = pieces.filterNot(_ == piece))
 
     def placePiece(piece: Piece): PlayerWhite = copy(pieces = piece :: pieces)
+
+    override def inBaseRow(pos: BoardPos): Boolean = pos.row == 7
   }
 
   case class PlayerBlack(morale: Int, pieces: List[Piece] = List.empty) extends Player {
-    val team: PlayerColor = PlayerColor.Black
+    val team: PlayerTeam = PlayerTeam.Black
 
-    def increaseMorale(amount: Int): PlayerBlack = copy(morale = morale + amount)
-
-    def decreaseMorale(amount: Int): PlayerBlack = copy(morale = morale - amount)
+    def changeMorale(diff: Int): PlayerBlack = copy(morale = Math.max(0, morale + diff))
 
     def removePiece(piece: Piece): PlayerBlack = copy(pieces = pieces.filterNot(_ == piece))
 
     def placePiece(piece: Piece): PlayerBlack = copy(pieces = piece :: pieces)
+
+    override def inBaseRow(pos: BoardPos): Boolean = pos.row == 0
   }
 
 }
