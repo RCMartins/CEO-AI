@@ -82,9 +82,9 @@ case class GameState(board: Board, playerWhite: PlayerWhite, playerBlack: Player
 
   def changeMorale(playerTeam: PlayerTeam, moraleDiff: Int): GameState = {
     if (playerTeam == White)
-      copy(playerWhite = playerWhite.copy(morale = playerWhite.morale + moraleDiff))
+      copy(playerWhite = playerWhite.changeMorale(moraleDiff))
     else
-      copy(playerBlack = playerBlack.copy(morale = playerBlack.morale + moraleDiff))
+      copy(playerBlack = playerBlack.changeMorale(moraleDiff))
   }
 
   def getCurrentPlayerMoves: List[PlayerMove] = {
@@ -115,12 +115,13 @@ case class GameState(board: Board, playerWhite: PlayerWhite, playerBlack: Player
         val pieceNewPos = piece.moveTo(target, this).copy(hasMoved = true)
         updatePiece(piece, pieceNewPos)
       case Attack(piece, pieceToKill) =>
-        val pieceNewPos = piece.moveTo(pieceToKill.pos, this).copy(hasMoved = true)
+        val (pieceNewPos, updatedState) = piece.killed(pieceToKill, this)
+        val pieceUpdated = pieceNewPos.copy(hasMoved = true)
 
-        this
+        updatedState
           .removePiece(piece)
           .removePiece(pieceToKill)
-          .placePiece(pieceNewPos)
+          .placePiece(pieceUpdated)
       case RangedDestroy(_, pieceToKill) =>
         this.removePiece(pieceToKill)
     }

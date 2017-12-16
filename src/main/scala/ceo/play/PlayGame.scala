@@ -9,7 +9,7 @@ object PlayGame {
   val emptyGameState: GameState = GameState(EmptyBoard, PlayerWhite(0), PlayerBlack(0), 1, Nil)
 
   def main(args: Array[String]): Unit = {
-    val startingState = DataLoader.initialize("Data/boardTest.ceo")
+    val startingState = DataLoader.initialize("Data/boardStandard.ceo")
     //    println(startingState)
 
     //    val movesPlayerWhite = startingState.getCurrentPlayerMoves
