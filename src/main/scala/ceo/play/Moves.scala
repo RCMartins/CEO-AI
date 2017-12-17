@@ -10,67 +10,74 @@ sealed trait Moves {
 
 object Moves {
 
+  private def hasNoFreezeTypeEffect(piece: Piece): Boolean = {
+    piece.effectStatus.forall {
+      case _: EffectStatus.Petrified => false
+      case _ => true
+    }
+  }
+
   private def canMove(piece: Piece, target: BoardPos, state: GameState, currentPlayer: Player): Option[PlayerMove] = {
-    if (piece.pos.posTo(target).forall(_.isEmpty(state.board)))
+    if (hasNoFreezeTypeEffect(piece) && piece.pos.posTo(target).forall(_.isEmpty(state.board)))
       Some(PlayerMove.Move(piece, target))
     else
       None
   }
 
   private def canMoveUnblockable(piece: Piece, target: BoardPos, state: GameState, currentPlayer: Player): Option[PlayerMove] = {
-    if (target.isEmpty(state.board))
+    if (hasNoFreezeTypeEffect(piece) && target.isEmpty(state.board))
       Some(PlayerMove.Move(piece, target))
     else
       None
   }
 
   private def canMoveFromStart(piece: Piece, target: BoardPos, state: GameState, currentPlayer: Player): Option[PlayerMove] = {
-    if (!piece.hasMoved)
+    if (hasNoFreezeTypeEffect(piece) && !piece.hasMoved)
       canMove(piece, target, state, currentPlayer)
     else
       None
   }
 
   private def canAttack(piece: Piece, target: BoardPos, state: GameState, currentPlayer: Player): Option[PlayerMove] = {
-    (piece.pos.posUntil(target).forall(_.isEmpty(state.board)), target.getPiece(state.board)) match {
+    (hasNoFreezeTypeEffect(piece) && piece.pos.posUntil(target).forall(_.isEmpty(state.board)), target.getPiece(state.board)) match {
       case (true, Some(targetPiece)) if targetPiece.team == currentPlayer.team.enemy =>
-        Some(PlayerMove.Attack(piece, target.getPiece(state.board).get))
+        Some(PlayerMove.Attack(piece, targetPiece))
       case _ =>
         None
     }
   }
 
   private def canAttackUnblockable(piece: Piece, target: BoardPos, state: GameState, currentPlayer: Player): Option[PlayerMove] = {
-    target.getPiece(state.board) match {
-      case Some(targetPiece) if targetPiece.team == currentPlayer.team.enemy =>
-        Some(PlayerMove.Attack(piece, target.getPiece(state.board).get))
+    (hasNoFreezeTypeEffect(piece), target.getPiece(state.board)) match {
+      case (true, Some(targetPiece)) if targetPiece.team == currentPlayer.team.enemy =>
+        Some(PlayerMove.Attack(piece, targetPiece))
       case _ =>
         None
     }
   }
 
   private def canSwap(piece: Piece, target: BoardPos, state: GameState, currentPlayer: Player): Option[PlayerMove] = {
-    target.getPiece(state.board) match {
-      case Some(targetPiece) if targetPiece.team == currentPlayer.team =>
-        Some(PlayerMove.Attack(piece, target.getPiece(state.board).get))
+    (hasNoFreezeTypeEffect(piece), target.getPiece(state.board)) match {
+      case (true, Some(targetPiece)) if targetPiece.team == currentPlayer.team =>
+        Some(PlayerMove.Swap(piece, targetPiece))
       case _ =>
         None
     }
   }
 
   private def canRangedDestroy(piece: Piece, target: BoardPos, state: GameState, currentPlayer: Player): Option[PlayerMove] = {
-    (piece.pos.posUntil(target).forall(_.isEmpty(state.board)), target.getPiece(state.board)) match {
+    (hasNoFreezeTypeEffect(piece) && piece.pos.posUntil(target).forall(_.isEmpty(state.board)), target.getPiece(state.board)) match {
       case (true, Some(targetPiece)) if targetPiece.team == currentPlayer.team.enemy =>
-        Some(PlayerMove.RangedDestroy(piece, target.getPiece(state.board).get))
+        Some(PlayerMove.RangedDestroy(piece, targetPiece))
       case _ =>
         None
     }
   }
 
   private def canMagicDestroy(piece: Piece, target: BoardPos, state: GameState, currentPlayer: Player): Option[PlayerMove] = {
-    target.getPiece(state.board) match {
-      case Some(targetPiece) if targetPiece.team == currentPlayer.team.enemy =>
-        Some(PlayerMove.MagicDestroy(piece, target.getPiece(state.board).get))
+    (hasNoFreezeTypeEffect(piece), target.getPiece(state.board)) match {
+      case (true, Some(targetPiece)) if targetPiece.team == currentPlayer.team.enemy =>
+        Some(PlayerMove.MagicDestroy(piece, targetPiece))
       case _ =>
         None
     }
@@ -83,9 +90,9 @@ object Moves {
     state: GameState,
     currentPlayer: Player
   ): Option[PlayerMove] = {
-    (piece.pos.posUntil(target).forall(_.isEmpty(state.board)), target.getPiece(state.board)) match {
+    (hasNoFreezeTypeEffect(piece) && piece.pos.posUntil(target).forall(_.isEmpty(state.board)), target.getPiece(state.board)) match {
       case (true, Some(targetPiece)) if targetPiece.team == currentPlayer.team.enemy =>
-        Some(PlayerMove.RangedPetrify(piece, target.getPiece(state.board).get))
+        Some(PlayerMove.RangedPetrify(piece, targetPiece, durationTurns))
       case _ =>
         None
     }
@@ -97,9 +104,9 @@ object Moves {
     state: GameState,
     currentPlayer: Player
   ): Option[PlayerMove] = {
-    (piece.pos.posUntil(target).forall(_.isEmpty(state.board)), target.getPiece(state.board)) match {
+    (hasNoFreezeTypeEffect(piece) && piece.pos.posUntil(target).forall(_.isEmpty(state.board)), target.getPiece(state.board)) match {
       case (true, Some(targetPiece)) if targetPiece.team == currentPlayer.team.enemy =>
-        Some(PlayerMove.TaurusRush(piece, target.getPiece(state.board).get, maxDistance))
+        Some(PlayerMove.TaurusRush(piece, targetPiece, maxDistance))
       case _ =>
         None
     }
@@ -113,9 +120,9 @@ object Moves {
     state: GameState,
     currentPlayer: Player
   ): Option[PlayerMove] = {
-    target.getPiece(state.board) match {
-      case Some(targetPiece) if targetPiece.team == currentPlayer.team.enemy =>
-        Some(PlayerMove.TransformEnemyIntoAllyUnit(piece, target.getPiece(state.board).get, moraleCost, AllyPieceData))
+    (hasNoFreezeTypeEffect(piece), target.getPiece(state.board)) match {
+      case (true, Some(targetPiece)) if targetPiece.team == currentPlayer.team.enemy =>
+        Some(PlayerMove.TransformEnemyIntoAllyUnit(piece, targetPiece, moraleCost, AllyPieceData))
       case _ =>
         None
     }
@@ -203,6 +210,15 @@ object Moves {
     def getValidMove(piece: Piece, state: GameState, currentPlayer: Player): Option[PlayerMove] = {
       val allyUnitPieceData = DataLoader.getPieceData(allyUnitName, piece.data.team)
       canTransformEnemyIntoAllyUnit(piece, piece.pos.translate(dx, dy), moraleCost, allyUnitPieceData, state, currentPlayer)
+    }
+  }
+
+  case object DummyMove extends Moves {
+    val dx = 0
+    val dy = 0
+
+    def getValidMove(piece: Piece, state: GameState, currentPlayer: Player): Option[PlayerMove] = {
+      Some(PlayerMove.DummyMove(piece))
     }
   }
 

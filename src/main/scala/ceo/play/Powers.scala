@@ -30,6 +30,10 @@ object Powers {
 
   case object GhostMovement extends Powers
 
+  case class DummyNothingPower(letterOfMove: Char) extends MovePower {
+    override def createMove(dx: Int, dy: Int): Moves = DummyMove
+  }
+
   case class MagicDestroyMovePower(letterOfMove: Char) extends MovePower {
     override def createMove(dx: Int, dy: Int): Moves = MagicDestroy(dx, dy)
   }

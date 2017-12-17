@@ -1,6 +1,14 @@
 package ceo.play
 
-case class Piece(data: PieceData, pos: BoardPos, currentMorale: Int, hasMoved: Boolean) {
+import ceo.play.EffectStatus._
+
+case class Piece(
+  data: PieceData,
+  pos: BoardPos,
+  currentMorale: Int,
+  hasMoved: Boolean,
+  effectStatus: List[EffectStatus]
+) {
 
   import ceo.play.Powers._
 
@@ -41,8 +49,14 @@ case class Piece(data: PieceData, pos: BoardPos, currentMorale: Int, hasMoved: B
   def destroyed(currentState: GameState): GameState = {
     loseMoraleOnDeath(currentState)
   }
+
+  def petrify(currentState: GameState, turnsPetrified: Int): Piece = {
+    copy(effectStatus = Petrified(currentState.currentTurn + turnsPetrified) :: effectStatus)
+  }
+
 }
 
 object Piece {
-  def apply(data: PieceData, pos: BoardPos): Piece = Piece(data, pos, data.initialMorale, hasMoved = false)
+  def apply(data: PieceData, pos: BoardPos): Piece =
+    Piece(data, pos, data.initialMorale, hasMoved = false, effectStatus = Nil)
 }

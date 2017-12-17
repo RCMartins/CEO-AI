@@ -9,14 +9,14 @@ object PlayGame {
 
   def main(args: Array[String]): Unit = {
     val time = System.currentTimeMillis()
-//    val startingState = DataLoader.initialize("Data/boardStandard.ceo")
-    val startingState = DataLoader.initialize("PRINTS/challenge-17-12-2017.ceo")
+    val startingState = DataLoader.initialize("Data/boardTest5.ceo")
+    //    val startingState = DataLoader.initialize("PRINTS/challenge-17-12-2017.ceo")
     //    playSomeMatches(startingState, Strategy.oneMoveStrategy, Strategy.oneMoveStrategy)
     //        playSomeMatches(startingState, Strategy.MinMaxStrategy(3), Strategy.oneMoveStrategy)
     //    playSomeMatches(startingState, Strategy.MinMaxStrategyPar(3), Strategy.MinMaxStrategyPar(2))
     //    playSomeMatches(startingState, Strategy.MinMaxStrategy(3), Strategy.oneMoveStrategy)
-        play(startingState, Strategy.MinMaxStrategy(3),Strategy.MinMaxStrategy(3))
-//    playAgainstExternalInput(startingState, Strategy.MinMaxStrategy(3))
+    play(startingState, Strategy.MinMaxStrategy(4), Strategy.MinMaxStrategy(4))
+    //    playAgainstExternalInput(startingState, Strategy.MinMaxStrategy(4))
     println(s"Total time: ${System.currentTimeMillis() - time}")
   }
 
@@ -42,10 +42,30 @@ object PlayGame {
     //    println(minWinState.movesHistory.reverse.scanLeft(startingState)((state, move) => state.playPlayerMove(move)).mkString("\n"))
   }
 
+  private def showStateWithMoves(state: GameState): Unit = {
+    println(state)
+    println(state.movesHistory.reverse.zipWithIndex.reverse.map { case (move, index) =>
+      val turn: Double = index / 2.0 + 1
+      f"$turn%.1f ( - ) ${move.betterHumanString}"
+    }.mkString("\n"))
+  }
+
+  private def showAllGameStates(startingState: GameState, movesHistory: List[PlayerMove]): Unit = {
+    def show(state: GameState): Unit = {
+      println(state)
+      if (state.movesHistory.nonEmpty)
+        println(s"${state.currentTurn - 0.5} " +
+          s"(${state.playerWhite.morale} - ${state.playerBlack.morale}) " +
+          s"${state.movesHistory.head.betterHumanString}")
+    }
+
+    movesHistory.reverse.scanLeft(startingState)((state, move) => state.playPlayerMove(move)).foreach(show)
+  }
+
   def play(startingState: GameState, playerWhiteStrategy: Strategy, playerBlackStrategy: Strategy): Unit = {
     val finalState = playFullGame(startingState, playerWhiteStrategy, playerBlackStrategy)
-    println(finalState)
-    println(finalState.movesHistory.mkString("\n"))
+    showStateWithMoves(finalState)
+    showAllGameStates(startingState, finalState.movesHistory)
   }
 
   def playFullGame(startingState: GameState, playerWhiteStrategy: Strategy, playerBlackStrategy: Strategy): GameState = {
@@ -54,8 +74,7 @@ object PlayGame {
     val strategy = startingState.getCurrentPlayer.team.chooseWhiteBlack(playerWhiteStrategy, playerBlackStrategy)
     strategy.chooseMove(startingState) match {
       case None =>
-        println(startingState)
-        println(startingState.movesHistory.mkString("\n"))
+        showStateWithMoves(startingState)
         ???
       case Some(stateAfter) =>
         //        if (stateAfter.currentTurn > 50) {
@@ -64,6 +83,7 @@ object PlayGame {
         //        } else
         print(stateAfter.currentTurn + " ")
         if (stateAfter.winner.isDefined) {
+          println()
           stateAfter
         } else
           playFullGame(stateAfter, playerWhiteStrategy, playerBlackStrategy)
@@ -74,8 +94,7 @@ object PlayGame {
     def machineMove(state: GameState, history: List[GameState]): GameState = {
       strategy.chooseMove(state) match {
         case None =>
-          println(state)
-          println(state.movesHistory.mkString("\n"))
+          showStateWithMoves(state)
           ???
         case Some(stateAfter) =>
           println(stateAfter)

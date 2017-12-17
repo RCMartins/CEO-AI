@@ -9,5 +9,5 @@ case class PieceData(
 ) {
   override def toString: String = s"$name"
 
-  val isKing: Boolean = name.startsWith("King_")
+  val isKing: Boolean = name.startsWith("King")
 }

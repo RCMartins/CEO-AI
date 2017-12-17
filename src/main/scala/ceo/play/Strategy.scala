@@ -52,6 +52,9 @@ object Strategy {
           val subTrees = moves
             .map(move => createTree(state.playPlayerMove(move), depth - 1, !maximize))
 
+          if (subTrees.isEmpty) {
+            println(state)
+          }
           val finalValue = if (maximize) subTrees.maxBy(_.value).value else subTrees.minBy(_.value).value
           Node(state, subTrees, finalValue)
         }

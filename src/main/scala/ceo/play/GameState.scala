@@ -122,6 +122,7 @@ case class GameState(board: Board, playerWhite: PlayerWhite, playerBlack: Player
     import PlayerMove._
 
     val newState = move match {
+      case DummyMove(_) => this
       case Move(piece, target) =>
         val pieceNewPos = piece.moveTo(target, this).copy(hasMoved = true)
         updatePiece(piece, pieceNewPos)
@@ -130,9 +131,17 @@ case class GameState(board: Board, playerWhite: PlayerWhite, playerBlack: Player
         val pieceUpdated = pieceNewPos.copy(hasMoved = true)
 
         updatedState
-          .removePiece(piece)
           .removePiece(pieceToKill)
+          .updatePiece(piece, pieceUpdated)
+      case Swap(piece, pieceToSwap) =>
+        val updatedState = this.removePiece(piece).removePiece(pieceToSwap)
+
+        val pieceToSwapUpdated = pieceToSwap.moveTo(piece.pos, updatedState).copy(hasMoved = true)
+        val pieceUpdated = piece.moveTo(pieceToSwap.pos, updatedState).copy(hasMoved = true)
+
+        updatedState
           .placePiece(pieceUpdated)
+          .placePiece(pieceToSwapUpdated)
       case RangedDestroy(piece, pieceToKill) =>
         val updatedState = pieceToKill.destroyed(this)
         val pieceUpdated = piece.copy(hasMoved = true)
@@ -145,12 +154,26 @@ case class GameState(board: Board, playerWhite: PlayerWhite, playerBlack: Player
         updatedState
           .removePiece(pieceToKill)
           .updatePiece(piece, pieceUpdated)
+      case RangedPetrify(piece, pieceToPetrify, turnsPetrified) =>
+        val pieceToPetrifyUpdated = pieceToPetrify.petrify(this, turnsPetrified)
+        val pieceUpdated = piece.copy(hasMoved = true)
+        this
+          .updatePiece(pieceToPetrify, pieceToPetrifyUpdated)
+          .updatePiece(piece, pieceUpdated)
+      case TransformEnemyIntoAllyUnit(piece, pieceToTransform, moraleCost, allyPieceData) =>
+        val updatedState = pieceToTransform.destroyed(this)
+        val pieceUpdated = piece.copy(hasMoved = true)
+        val newPiece = Piece(allyPieceData, pieceToTransform.pos)
+        updatedState
+          .changeMorale(piece.team, -moraleCost)
+          .updatePiece(pieceToTransform, newPiece)
+          .updatePiece(piece, pieceUpdated)
       case TaurusRush(piece, pieceToKill, maxDistance) =>
         val dir = (pieceToKill.pos - piece.pos).normalize
         val positions = pieceToKill.pos.posTo(pieceToKill.pos + dir * maxDistance).filter(_.isValid).toList
         if (positions.lengthCompare(maxDistance) < 0) {
           // Enemy piece is destroyed, taurus stay at edge of board
-          val taurusPos = positions.last
+          val taurusPos = if (positions.isEmpty) pieceToKill.pos else positions.last
           val updatedState = pieceToKill.destroyed(this)
           val pieceUpdated = piece.copy(
             pos = taurusPos,
@@ -163,8 +186,8 @@ case class GameState(board: Board, playerWhite: PlayerWhite, playerBlack: Player
         } else if (positions.forall(_.isEmpty(board))) {
           // Enemy piece is moved, taurus stay one space before enemy piece
           val pieceToKillUpdated = pieceToKill.copy(
-            pos = positions.last
-            // TODO: does this count towards 'hasMoved' ???
+            pos = positions.last,
+            hasMoved = true
           )
           val pieceUpdated = piece.copy(
             pos = positions.init.last,

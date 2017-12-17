@@ -4,11 +4,11 @@ import scala.language.implicitConversions
 
 case class BoardPos(row: Int, column: Int) {
 
-  def +(other: BoardPos): BoardPos = BoardPos(row + other.row, column + other.column)
+  @inline def +(other: BoardPos): BoardPos = BoardPos(row + other.row, column + other.column)
 
-  def -(other: BoardPos): BoardPos = BoardPos(row - other.row, column - other.column)
+  @inline def -(other: BoardPos): BoardPos = BoardPos(row - other.row, column - other.column)
 
-  def *(multiplier: Int): BoardPos = BoardPos(row * multiplier, column * multiplier)
+  @inline def *(multiplier: Int): BoardPos = BoardPos(row * multiplier, column * multiplier)
 
   def normalize: BoardPos = {
     val normalizedRow = if (row > 0) 1 else if (row < 0) -1 else 0
@@ -18,15 +18,15 @@ case class BoardPos(row: Int, column: Int) {
 
   override def toString: String = s"($row, $column)"
 
-  def isValid: Boolean = row >= 0 && row < 8 && column >= 0 && column < 8
+  @inline def isValid: Boolean = row >= 0 && row < 8 && column >= 0 && column < 8
 
-  def getPiece(board: Board): Option[Piece] = if (isValid) board(row, column) else None
+  @inline def getPiece(board: Board): Option[Piece] = if (isValid) board(row, column) else None
 
-  def isEmpty(board: Board): Boolean = isValid && getPiece(board).isEmpty
+  @inline def isEmpty(board: Board): Boolean = isValid && getPiece(board).isEmpty
 
-  def nonEmpty(board: Board): Boolean = !isValid || getPiece(board).nonEmpty
+  @inline def nonEmpty(board: Board): Boolean = !isValid || getPiece(board).nonEmpty
 
-  def translate(dx: Int, dy: Int): BoardPos = BoardPos(row + dy, column + dx)
+  @inline def translate(dx: Int, dy: Int): BoardPos = BoardPos(row + dy, column + dx)
 
   def posTo(target: BoardPos): Stream[BoardPos] = {
     val rowDiff = target.row - row
@@ -46,5 +46,5 @@ case class BoardPos(row: Int, column: Int) {
 }
 
 object BoardPos {
-  implicit def convert(tuple2: (Int, Int)): BoardPos = BoardPos(tuple2._1, tuple2._2)
+  @inline implicit def convert(tuple2: (Int, Int)): BoardPos = BoardPos(tuple2._1, tuple2._2)
 }

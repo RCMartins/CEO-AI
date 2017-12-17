@@ -39,6 +39,8 @@ object Player {
   case class PlayerWhite(morale: Int, pieces: List[Piece] = List.empty, hasKing: Boolean = false) extends Player {
     val team: PlayerTeam = PlayerTeam.White
 
+    override def toString: String = s"PlayerWhite($morale)"
+
     def changeMorale(diff: Int): PlayerWhite = copy(morale = morale + diff)
 
     def removePiece(piece: Piece): PlayerWhite = {
@@ -60,6 +62,8 @@ object Player {
 
   case class PlayerBlack(morale: Int, pieces: List[Piece] = List.empty, hasKing: Boolean = false) extends Player {
     val team: PlayerTeam = PlayerTeam.Black
+
+    override def toString: String = s"PlayerBlack($morale)"
 
     def changeMorale(diff: Int): PlayerBlack = copy(morale = morale + diff)
 
@@ -91,23 +95,27 @@ sealed trait PlayerMove {
 object PlayerMove {
 
   case class Move(piece: Piece, to: BoardPos) extends PlayerMove {
-    def betterHumanString: String = s"Move $piece to $to ${to - piece.pos}"
+    def betterHumanString: String = s"$piece moves to $to   ${to - piece.pos}"
   }
 
   case class Attack(piece: Piece, pieceToKill: Piece) extends PlayerMove {
-    def betterHumanString: String = s"$piece Attacks $pieceToKill ${pieceToKill.pos - piece.pos}"
+    def betterHumanString: String = s"$piece attacks $pieceToKill   ${pieceToKill.pos - piece.pos}"
+  }
+
+  case class Swap(piece: Piece, pieceToSwap: Piece) extends PlayerMove {
+    def betterHumanString: String = s"$piece swaps with $pieceToSwap   ${pieceToSwap.pos - piece.pos}"
   }
 
   case class RangedDestroy(piece: Piece, pieceToDestroy: Piece) extends PlayerMove {
-    def betterHumanString: String = s"$piece RangedDestroy $pieceToDestroy ${pieceToDestroy.pos - piece.pos}"
+    def betterHumanString: String = s"$piece ranged-destroys $pieceToDestroy   ${pieceToDestroy.pos - piece.pos}"
   }
 
   case class MagicDestroy(piece: Piece, pieceToDestroy: Piece) extends PlayerMove {
-    def betterHumanString: String = s"$piece MagicDestroy $pieceToDestroy ${pieceToDestroy.pos - piece.pos}"
+    def betterHumanString: String = s"$piece magic-destroys $pieceToDestroy   ${pieceToDestroy.pos - piece.pos}"
   }
 
-  case class RangedPetrify(piece: Piece, pieceToPetrify: Piece) extends PlayerMove {
-    def betterHumanString: String = s"$piece RangedPetrify $pieceToPetrify ${pieceToPetrify.pos - piece.pos}"
+  case class RangedPetrify(piece: Piece, pieceToPetrify: Piece, turnsPetrified: Int) extends PlayerMove {
+    def betterHumanString: String = s"$piece ranged-petrifies $pieceToPetrify   ${pieceToPetrify.pos - piece.pos}"
   }
 
   case class TransformEnemyIntoAllyUnit(
@@ -117,11 +125,15 @@ object PlayerMove {
     allyPieceData: PieceData
   ) extends PlayerMove {
     def betterHumanString: String =
-      s"$piece TranformEnemyInto[cost $moraleCost] an ally ${allyPieceData.name} at $pieceToTransform ${pieceToTransform.pos - piece.pos}"
+      s"$piece transforms[$moraleCost cost] $pieceToTransform into ${allyPieceData.name}   ${pieceToTransform.pos - piece.pos}"
   }
 
   case class TaurusRush(piece: Piece, pieceToRush: Piece, maxDistance: Int) extends PlayerMove {
-    def betterHumanString: String = s"$piece RushEnemy $pieceToRush ${pieceToRush.pos - piece.pos}"
+    def betterHumanString: String = s"$piece RushEnemy $pieceToRush   ${pieceToRush.pos - piece.pos}"
+  }
+
+  case class DummyMove(piece: Piece) extends PlayerMove {
+    def betterHumanString: String = s"$piece does nothing special"
   }
 
 }

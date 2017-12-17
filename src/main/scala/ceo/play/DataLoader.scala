@@ -123,6 +123,8 @@ object DataLoader {
         Powers.SuicideOnKill
       case "GhostMovement" =>
         Powers.GhostMovement
+      case str if str.startsWith("DummyNothingPower ") =>
+        Powers.DummyNothingPower(str.drop("DummyNothingPower ".length).head)
       case str if str.startsWith("PromotesTo ") =>
         val pieceToCkeck = str.drop("PromotesTo ".length)
         piecesToCheck = pieceToCkeck :: piecesToCheck
