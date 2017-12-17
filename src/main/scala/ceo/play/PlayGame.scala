@@ -1,63 +1,69 @@
 package ceo.play
 
 import ceo.play.Player.{PlayerBlack, PlayerWhite}
-
-import scala.util.Random
+import ceo.play.PlayerTeam.{Black, White}
 
 object PlayGame {
 
   val emptyGameState: GameState = GameState(EmptyBoard, PlayerWhite(0), PlayerBlack(0), 1, Nil)
 
   def main(args: Array[String]): Unit = {
+    val time = System.currentTimeMillis()
     val startingState = DataLoader.initialize("Data/boardStandard.ceo")
-    //    println(startingState)
-
-    //    val movesPlayerWhite = startingState.getCurrentPlayerMoves
-    //    println("movesPlayerWhite:")
-    //    println(movesPlayerWhite.mkString("\n"))
-    //    println()
-    //
-    //    val (bestMove, after) = playBestMove(startingState)
-    //    println(bestMove)
-    //    println(after)
-    //
-    //    println("movesPlayerBlack:")
-    //    val movesPlayerBlack = after.nextTurn.getCurrentPlayerMoves
-    //    println(movesPlayerBlack.mkString("\n"))
-
-    println(playFullGame(startingState))
+    //    playSomeMatches(startingState, Strategy.oneMoveStrategy, Strategy.oneMoveStrategy)
+//        playSomeMatches(startingState, Strategy.MinMaxStrategy(3), Strategy.oneMoveStrategy)
+        playSomeMatches(startingState, Strategy.MinMaxStrategy(3), Strategy.MinMaxStrategy(3))
+//    playSomeMatches(startingState, Strategy.MinMaxStrategy(3), Strategy.oneMoveStrategy)
+//    play(startingState, Strategy.MinMaxStrategy(3), Strategy.oneMoveStrategy)
+    //        play(startingState, Strategy.MinMaxStrategy(1), Strategy.oneMoveStrategy)
+    println(s"Total time: ${System.currentTimeMillis() - time}")
   }
 
-  def playBestMove(startingState: GameState): Option[GameState] = {
-    val currentPlayer = startingState.getCurrentPlayer
-    val moves = startingState.getCurrentPlayerMoves
-    val nextStates =
-      moves.map(move => startingState.playPlayerMove(move))
-
-    val statesSorted =
-      nextStates
-        .map(after => (after, GameState.compare(startingState, after, currentPlayer.team)))
-        .sortBy(-_._2)
-
-    if (statesSorted.isEmpty)
-      None
-    else {
-      val bestMoves =
-        statesSorted.takeWhile(_._2 == statesSorted.head._2)
-      Some(bestMoves(Random.nextInt(bestMoves.length))._1)
-    }
-  }
-
-  def playFullGame(startingState: GameState): GameState = {
+  def playSomeMatches(startingState: GameState, playerWhiteStrategy: Strategy, playerBlackStrategy: Strategy): Unit = {
     println(startingState)
-    println(startingState.movesHistory.mkString("\n"))
-    playBestMove(startingState) match {
-      case None => ???
+    val playSomeMatches: Seq[(GameState, PlayerTeam)] =
+      (1 to 10)
+        .map(index => {
+          if (index % 1 == 0) println(index + "...")
+          playFullGame(startingState, playerWhiteStrategy, playerBlackStrategy)
+        })
+        .map(finalState => (finalState, finalState.winner.get))
+
+    val minWinState = playSomeMatches.minBy(_._1.currentTurn)._1
+    val maxWinState = playSomeMatches.maxBy(_._1.currentTurn)._1
+    val whiteWins = playSomeMatches.count(_._2 == White)
+    val blackWins = playSomeMatches.count(_._2 == Black)
+    println(s"White: $whiteWins, Black: $blackWins")
+    println(s"Min turn game: ${minWinState.currentTurn}\n$minWinState\n${minWinState.movesHistory.mkString("\n")}\n")
+    println(s"Max turn game: ${maxWinState.currentTurn}\n$maxWinState\n${maxWinState.movesHistory.mkString("\n")}")
+  }
+
+  def play(startingState: GameState, playerWhiteStrategy: Strategy, playerBlackStrategy: Strategy): Unit = {
+    val finalState = playFullGame(startingState, playerWhiteStrategy, playerBlackStrategy)
+    println(finalState)
+    println(finalState.movesHistory.mkString("\n"))
+  }
+
+  def playFullGame(startingState: GameState, playerWhiteStrategy: Strategy, playerBlackStrategy: Strategy): GameState = {
+    //    println(startingState)
+    //    println(startingState.movesHistory.mkString("\n"))
+    val strategy = startingState.getCurrentPlayer.team.chooseWhiteBlack(playerWhiteStrategy, playerBlackStrategy)
+    strategy.chooseMove(startingState) match {
+      case None =>
+        println(startingState)
+        println(startingState.movesHistory.mkString("\n"))
+        ???
       case Some(stateAfter) =>
-        if (stateAfter.winner.isDefined)
+        if (stateAfter.currentTurn > 50) {
+          println(stateAfter)
+          println(stateAfter.movesHistory.mkString("\n"))
+        } else
+          print(stateAfter.currentTurn + " ")
+        if (stateAfter.winner.isDefined) {
+          println()
           stateAfter
-        else
-          playFullGame(stateAfter)
+        } else
+          playFullGame(stateAfter, playerWhiteStrategy, playerBlackStrategy)
     }
   }
 

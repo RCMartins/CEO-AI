@@ -130,11 +130,9 @@ object DataLoader {
 
   def loadBoard(file: File): GameState = {
     val lines = Source.fromFile(file).getLines.toVector
-    if (lines.length < 8)
-      throw new Exception("Board has less than 8 lines...")
 
     var gameState = PlayGame.emptyGameState
-    for (row <- 0 until 8) {
+    for (row <- lines.indices) {
       val line = lines(row).replaceAll("""\s+""", " ")
       val unitNames = line.split(" ")
       for ((unitName, column) <- unitNames.zipWithIndex) {

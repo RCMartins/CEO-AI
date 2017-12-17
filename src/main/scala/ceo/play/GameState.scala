@@ -14,10 +14,11 @@ case class GameState(board: Board, playerWhite: PlayerWhite, playerBlack: Player
     val normalDashLine = " " + "-" * ((nameSize + 1) * 8 + 1)
 
     def moraleDashLine(morale: Int) = {
+      val turnText = s"----- turn: $currentTurn "
       val textInLine = s" morale: ${morale.toString} "
-      val firstHalf = normalDashLine.length / 2 - textInLine.length / 2 - 1
-      val secondHalf = normalDashLine.length - firstHalf - textInLine.length - 1
-      s" ${"-" * firstHalf}$textInLine${"-" * secondHalf}\n"
+      val firstHalf = normalDashLine.length / 2 - turnText.length - textInLine.length / 2 - 1
+      val secondHalf = normalDashLine.length - firstHalf - turnText.length - textInLine.length - 1
+      s" $turnText${"-" * firstHalf}$textInLine${"-" * secondHalf}\n"
     }
 
     board.getRows.zipWithIndex.map { case (line, rowN) => line.map { pieceOpt =>
@@ -91,9 +92,8 @@ case class GameState(board: Board, playerWhite: PlayerWhite, playerBlack: Player
     val currentPlayer: Player = getCurrentPlayer
 
     currentPlayer.pieces.flatMap { piece =>
-      val moves: Seq[Moves] = piece.data.moves
-
-      moves.flatMap(_.getValidMove(piece, this, currentPlayer))
+      piece.data.moves
+        .flatMap(_.getValidMove(piece, this, currentPlayer))
     }
   }
 
@@ -122,8 +122,12 @@ case class GameState(board: Board, playerWhite: PlayerWhite, playerBlack: Player
           .removePiece(piece)
           .removePiece(pieceToKill)
           .placePiece(pieceUpdated)
-      case RangedDestroy(_, pieceToKill) =>
-        this.removePiece(pieceToKill)
+      case RangedDestroy(piece, pieceToKill) =>
+        val updatedState = pieceToKill.destroyed(this)
+        val pieceUpdated = piece.copy(hasMoved = true)
+        updatedState
+          .removePiece(pieceToKill)
+          .updatePiece(piece, pieceUpdated)
     }
 
     newState.copy(
@@ -134,20 +138,25 @@ case class GameState(board: Board, playerWhite: PlayerWhite, playerBlack: Player
 
   def getCurrentPlayer: Player = if (currentTurn == currentTurn.toInt) playerWhite else playerBlack
 
+  def valueOfState(team: PlayerTeam): Int = {
+    val MaxValue = 1e9.toInt
+
+    winner match {
+      case Some(winningTeam) if winningTeam == team => MaxValue
+      case Some(winningTeam) if winningTeam == team.enemy => -MaxValue
+      case None =>
+        val whitePoints = playerWhite.morale
+        val blackPoints = playerBlack.morale
+
+        team.chooseWhiteBlack(whitePoints - blackPoints, blackPoints - whitePoints)
+    }
+  }
+
 }
 
 object GameState {
 
-  def compare(before: GameState, after: GameState, team: PlayerTeam): Int = {
-    after.winner match {
-      case Some(playerTeam) if playerTeam == team => Int.MaxValue
-      case Some(playerTeam) if playerTeam == team.enemy => Int.MinValue
-      case None =>
-        val whiteDiff = after.playerWhite.morale - before.playerWhite.morale
-        val blackDiff = after.playerBlack.morale - before.playerBlack.morale
-
-        team.chooseWhiteBlack(whiteDiff - blackDiff, blackDiff - whiteDiff)
-    }
-  }
+  def compare(before: GameState, after: GameState, team: PlayerTeam): Int =
+    after.valueOfState(team)
 
 }

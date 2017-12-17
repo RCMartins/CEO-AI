@@ -22,17 +22,24 @@ case class Piece(data: PieceData, pos: BoardPos, currentMorale: Int, hasMoved: B
     }
   }
 
-  def moveTo(target: BoardPos, gameState: GameState): Piece = {
-    copy(pos = target).promoteIfPossible(gameState)
+  private def loseMoraleOnDeath(currentState: GameState): GameState = {
+    data.powers.collectFirst { case LoseMoraleOnDeath(amount) => amount } match {
+      case None => currentState
+      case Some(amount) => currentState.changeMorale(team, -amount)
+    }
+  }
+
+  def moveTo(target: BoardPos, currentState: GameState): Piece = {
+    copy(pos = target).promoteIfPossible(currentState)
   }
 
   def killed(pieceToKill: Piece, currentState: GameState): (Piece, GameState) = {
-    val updatedState =
-      pieceToKill.data.powers.collectFirst { case LoseMoraleOnDeath(amount) => amount } match {
-        case None => currentState
-        case Some(amount) => currentState.changeMorale(pieceToKill.team, -amount)
-      }
+    val updatedState = pieceToKill.loseMoraleOnDeath(currentState)
     (copy(pos = pieceToKill.pos).promoteIfPossible(updatedState), updatedState)
+  }
+
+  def destroyed(currentState: GameState): GameState = {
+    loseMoraleOnDeath(currentState)
   }
 }
 
