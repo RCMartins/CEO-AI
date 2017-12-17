@@ -67,6 +67,60 @@ object Moves {
     }
   }
 
+  private def canMagicDestroy(piece: Piece, target: BoardPos, state: GameState, currentPlayer: Player): Option[PlayerMove] = {
+    target.getPiece(state.board) match {
+      case Some(targetPiece) if targetPiece.team == currentPlayer.team.enemy =>
+        Some(PlayerMove.MagicDestroy(piece, target.getPiece(state.board).get))
+      case _ =>
+        None
+    }
+  }
+
+  private def canRangedPetrify(
+    piece: Piece,
+    target: BoardPos,
+    durationTurns: Int,
+    state: GameState,
+    currentPlayer: Player
+  ): Option[PlayerMove] = {
+    (piece.pos.posUntil(target).forall(_.isEmpty(state.board)), target.getPiece(state.board)) match {
+      case (true, Some(targetPiece)) if targetPiece.team == currentPlayer.team.enemy =>
+        Some(PlayerMove.RangedPetrify(piece, target.getPiece(state.board).get))
+      case _ =>
+        None
+    }
+  }
+
+  private def canTaurusRush(piece: Piece,
+    target: BoardPos,
+    maxDistance: Int,
+    state: GameState,
+    currentPlayer: Player
+  ): Option[PlayerMove] = {
+    (piece.pos.posUntil(target).forall(_.isEmpty(state.board)), target.getPiece(state.board)) match {
+      case (true, Some(targetPiece)) if targetPiece.team == currentPlayer.team.enemy =>
+        Some(PlayerMove.TaurusRush(piece, target.getPiece(state.board).get, maxDistance))
+      case _ =>
+        None
+    }
+  }
+
+  private def canTransformEnemyIntoAllyUnit(
+    piece: Piece,
+    target: BoardPos,
+    moraleCost: Int,
+    AllyPieceData: PieceData,
+    state: GameState,
+    currentPlayer: Player
+  ): Option[PlayerMove] = {
+    target.getPiece(state.board) match {
+      case Some(targetPiece) if targetPiece.team == currentPlayer.team.enemy =>
+        Some(PlayerMove.TransformEnemyIntoAllyUnit(piece, target.getPiece(state.board).get, moraleCost, AllyPieceData))
+      case _ =>
+        None
+    }
+  }
+
   case class MoveOrAttack(dx: Int, dy: Int) extends Moves {
     def getValidMove(piece: Piece, state: GameState, currentPlayer: Player): Option[PlayerMove] = {
       Seq(
@@ -109,14 +163,17 @@ object Moves {
     }
   }
 
+  case class MoveUnblockable(dx: Int, dy: Int) extends Moves {
+    def getValidMove(piece: Piece, state: GameState, currentPlayer: Player): Option[PlayerMove] = {
+      canMoveUnblockable(piece, piece.pos.translate(dx, dy), state, currentPlayer)
+    }
+  }
+
   case class Attack(dx: Int, dy: Int) extends Moves {
     def getValidMove(piece: Piece, state: GameState, currentPlayer: Player): Option[PlayerMove] = {
       canAttack(piece, piece.pos.translate(dx, dy), state, currentPlayer)
     }
   }
-
-  //  case class AttackUnblockable(dx: Int, dy: Int) extends Moves
-  //
 
   case class RangedDestroy(dx: Int, dy: Int) extends Moves {
     def getValidMove(piece: Piece, state: GameState, currentPlayer: Player): Option[PlayerMove] = {
@@ -124,9 +181,29 @@ object Moves {
     }
   }
 
-  //
-  //  case class MagicDestroy(dx: Int, dy: Int) extends Moves
-  //
-  //  case class Teleport(dx: Int, dy: Int) extends Moves
+  case class MagicDestroy(dx: Int, dy: Int) extends Moves {
+    def getValidMove(piece: Piece, state: GameState, currentPlayer: Player): Option[PlayerMove] = {
+      canMagicDestroy(piece, piece.pos.translate(dx, dy), state, currentPlayer)
+    }
+  }
+
+  case class RangedPetrify(dx: Int, dy: Int, durationTurns: Int) extends Moves {
+    def getValidMove(piece: Piece, state: GameState, currentPlayer: Player): Option[PlayerMove] = {
+      canRangedPetrify(piece, piece.pos.translate(dx, dy), durationTurns, state, currentPlayer)
+    }
+  }
+
+  case class TaurusRush(dx: Int, dy: Int, maxDistance: Int) extends Moves {
+    def getValidMove(piece: Piece, state: GameState, currentPlayer: Player): Option[PlayerMove] = {
+      canTaurusRush(piece, piece.pos.translate(dx, dy), maxDistance, state, currentPlayer)
+    }
+  }
+
+  case class TransformEnemyIntoAllyUnit(dx: Int, dy: Int, moraleCost: Int, allyUnitName: String) extends Moves {
+    def getValidMove(piece: Piece, state: GameState, currentPlayer: Player): Option[PlayerMove] = {
+      val allyUnitPieceData = DataLoader.getPieceData(allyUnitName, piece.data.team)
+      canTransformEnemyIntoAllyUnit(piece, piece.pos.translate(dx, dy), moraleCost, allyUnitPieceData, state, currentPlayer)
+    }
+  }
 
 }

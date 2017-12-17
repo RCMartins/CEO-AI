@@ -1,0 +1,31 @@
+SoulKeeper 13
+---
+TS ST
+S 1 S
+ 1@1
+S 1 S
+TS ST
+---
+MagicTransformIntoAllyUnit 1 1 Ghost
+--------------------
+Taurus+++ 12
+---
+   1
+ 1 N 1
+  NNN
+1NN@NN1
+  NNN
+ 1 N 1
+   1
+---
+TaurusRush 1 3
+--------------------
+Warrior 7
+---
+  N
+ NNN
+NN@NN
+ NNN
+  N
+---
+--------------------

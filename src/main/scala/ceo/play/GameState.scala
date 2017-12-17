@@ -21,7 +21,7 @@ case class GameState(board: Board, playerWhite: PlayerWhite, playerBlack: Player
   def nextTurn: GameState = copy(currentTurn = currentTurn + 0.5)
 
   override def toString: String = {
-    val nameSize = 14
+    val nameSize = 18
     val normalDashLine = " " + "-" * ((nameSize + 1) * 8 + 1)
 
     def moraleDashLine(morale: Int) = {
@@ -139,6 +139,55 @@ case class GameState(board: Board, playerWhite: PlayerWhite, playerBlack: Player
         updatedState
           .removePiece(pieceToKill)
           .updatePiece(piece, pieceUpdated)
+      case MagicDestroy(piece, pieceToKill) =>
+        val updatedState = pieceToKill.destroyed(this)
+        val pieceUpdated = piece.copy(hasMoved = true)
+        updatedState
+          .removePiece(pieceToKill)
+          .updatePiece(piece, pieceUpdated)
+      case TaurusRush(piece, pieceToKill, maxDistance) =>
+        val dir = (pieceToKill.pos - piece.pos).normalize
+        val positions = pieceToKill.pos.posTo(pieceToKill.pos + dir * maxDistance).filter(_.isValid).toList
+        if (positions.lengthCompare(maxDistance) < 0) {
+          // Enemy piece is destroyed, taurus stay at edge of board
+          val taurusPos = positions.last
+          val updatedState = pieceToKill.destroyed(this)
+          val pieceUpdated = piece.copy(
+            pos = taurusPos,
+            hasMoved = true
+          )
+          updatedState
+            .removePiece(piece)
+            .removePiece(pieceToKill)
+            .placePiece(pieceUpdated)
+        } else if (positions.forall(_.isEmpty(board))) {
+          // Enemy piece is moved, taurus stay one space before enemy piece
+          val pieceToKillUpdated = pieceToKill.copy(
+            pos = positions.last
+            // TODO: does this count towards 'hasMoved' ???
+          )
+          val pieceUpdated = piece.copy(
+            pos = positions.init.last,
+            hasMoved = true
+          )
+          this
+            .removePiece(piece)
+            .removePiece(pieceToKill)
+            .placePiece(pieceUpdated)
+            .placePiece(pieceToKillUpdated)
+        } else {
+          // Enemy piece is crushed, taurus stays on the last empty space
+          val taurusPos = positions.find(_.nonEmpty(board)).get - dir
+          val updatedState = pieceToKill.destroyed(this)
+          val pieceUpdated = piece.copy(
+            pos = taurusPos,
+            hasMoved = true
+          )
+          updatedState
+            .removePiece(piece)
+            .removePiece(pieceToKill)
+            .placePiece(pieceUpdated)
+        }
     }
 
     val stateWithPenalties = {

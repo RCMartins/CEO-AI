@@ -4,13 +4,27 @@ import scala.language.implicitConversions
 
 case class BoardPos(row: Int, column: Int) {
 
-  override def toString: String = s"[$row-$column]"
+  def +(other: BoardPos): BoardPos = BoardPos(row + other.row, column + other.column)
+
+  def -(other: BoardPos): BoardPos = BoardPos(row - other.row, column - other.column)
+
+  def *(multiplier: Int): BoardPos = BoardPos(row * multiplier, column * multiplier)
+
+  def normalize: BoardPos = {
+    val normalizedRow = if (row > 0) 1 else if (row < 0) -1 else 0
+    val normalizedColumn = if (column > 0) 1 else if (column < 0) -1 else 0
+    BoardPos(normalizedRow, normalizedColumn)
+  }
+
+  override def toString: String = s"($row, $column)"
 
   def isValid: Boolean = row >= 0 && row < 8 && column >= 0 && column < 8
 
   def getPiece(board: Board): Option[Piece] = if (isValid) board(row, column) else None
 
   def isEmpty(board: Board): Boolean = isValid && getPiece(board).isEmpty
+
+  def nonEmpty(board: Board): Boolean = !isValid || getPiece(board).nonEmpty
 
   def translate(dx: Int, dy: Int): BoardPos = BoardPos(row + dy, column + dx)
 

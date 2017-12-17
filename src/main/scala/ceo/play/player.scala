@@ -82,14 +82,46 @@ object Player {
 
 }
 
-sealed trait PlayerMove
+sealed trait PlayerMove {
+
+  def betterHumanString: String
+
+}
 
 object PlayerMove {
 
-  case class Move(piece: Piece, to: BoardPos) extends PlayerMove
+  case class Move(piece: Piece, to: BoardPos) extends PlayerMove {
+    def betterHumanString: String = s"Move $piece to $to ${to - piece.pos}"
+  }
 
-  case class Attack(piece: Piece, pieceToKill: Piece) extends PlayerMove
+  case class Attack(piece: Piece, pieceToKill: Piece) extends PlayerMove {
+    def betterHumanString: String = s"$piece Attacks $pieceToKill ${pieceToKill.pos - piece.pos}"
+  }
 
-  case class RangedDestroy(piece: Piece, pieceToDestroy: Piece) extends PlayerMove
+  case class RangedDestroy(piece: Piece, pieceToDestroy: Piece) extends PlayerMove {
+    def betterHumanString: String = s"$piece RangedDestroy $pieceToDestroy ${pieceToDestroy.pos - piece.pos}"
+  }
+
+  case class MagicDestroy(piece: Piece, pieceToDestroy: Piece) extends PlayerMove {
+    def betterHumanString: String = s"$piece MagicDestroy $pieceToDestroy ${pieceToDestroy.pos - piece.pos}"
+  }
+
+  case class RangedPetrify(piece: Piece, pieceToPetrify: Piece) extends PlayerMove {
+    def betterHumanString: String = s"$piece RangedPetrify $pieceToPetrify ${pieceToPetrify.pos - piece.pos}"
+  }
+
+  case class TransformEnemyIntoAllyUnit(
+    piece: Piece,
+    pieceToTransform: Piece,
+    moraleCost: Int,
+    allyPieceData: PieceData
+  ) extends PlayerMove {
+    def betterHumanString: String =
+      s"$piece TranformEnemyInto[cost $moraleCost] an ally ${allyPieceData.name} at $pieceToTransform ${pieceToTransform.pos - piece.pos}"
+  }
+
+  case class TaurusRush(piece: Piece, pieceToRush: Piece, maxDistance: Int) extends PlayerMove {
+    def betterHumanString: String = s"$piece RushEnemy $pieceToRush ${pieceToRush.pos - piece.pos}"
+  }
 
 }

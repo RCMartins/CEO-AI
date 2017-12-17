@@ -1,10 +1,29 @@
-Militia 1
+Basilisk 2
 ---
-NNN
+N1N
  @
 ---
-PromotesTo Knight
-LoseMoraleOnDeath 3
+RangedPetrify 1 5
+PromotesTo Dragon
+--------------------
+Basilisk+ 3
+---
+N1N
+ @
+ M
+---
+RangedPetrify 1 5
+PromotesTo Dragon+
+--------------------
+Basilisk++ 4
+---
+M   M
+ N1N
+  @
+  M
+---
+RangedPetrify 1 5
+PromotesTo Dragon++
 --------------------
 Fireball 2
 ---
@@ -17,12 +36,35 @@ SuicideOnKill
 Immune Poison Petrify
 DestroyedBy Freeze
 --------------------
-Pawn+ 1
+Ghost 3
 ---
- m
- m
-AMA
+ S
+S@S
+ S
+---
+GhostMovement
+--------------------
+Militia 1
+---
+NNN
  @
 ---
-PromotesTo Bishop+
+PromotesTo Knight
+LoseMoraleOnDeath 3
+--------------------
+Salamander++ 3
+---
+M   M
+ N1N
+  @
+---
+MagicDestroy 1
+PromotesTo FireElemental++
+--------------------
+Swordsman 1
+---
+ N
+A@A
+---
+PromotesTo Warrior
 --------------------

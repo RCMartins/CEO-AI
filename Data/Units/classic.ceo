@@ -81,3 +81,34 @@ NNNNNNN@NNNNNNN
 N      N      N
 ---
 --------------------
+// ##############################
+// ##### Classic units +++ #######
+// ##############################
+Pawn+ 1
+---
+ m
+ m
+AMA
+ @
+---
+PromotesTo Bishop+
+--------------------
+Bishop+ 11
+---
+N             N
+ N           N
+  N         N
+   N       N
+    N     N
+     N   N
+      NMN
+      M@M
+      NMN
+     N   N
+    N     N
+   N       N
+  N         N
+ N           N
+N             N
+---
+--------------------

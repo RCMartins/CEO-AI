@@ -1,0 +1,39 @@
+Dragon 16
+---
+ JNJ
+JNNNJ
+NN@NN
+JNNNJ
+ JNJ
+---
+--------------------
+Dragon+ 19
+---
+NJNJN
+JNNNJ
+NN@NN
+JNNNJ
+NJNJN
+---
+--------------------
+Dragon++ 22
+---
+JJJJJ
+JNNNJ
+JN@NJ
+JNNNJ
+JJJJJ
+---
+--------------------
+FireElemental++ 20
+---
+1T1T1
+TNNNT
+1N@N1
+TNNNT
+1T1T1
+---
+MagicDestroy 1
+GainMoraleOnKill 5
+DecayAfterTurn 25 1
+--------------------

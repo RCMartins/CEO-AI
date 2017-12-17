@@ -5,11 +5,11 @@
 A: Attack
 
 M: Move
-J: Move Unblockable
+T: Move [Unblockable]
 
 N: Attack or Move
+J: Attack or Move [Unblockable]
 
 S: Attack or Move or Swap
 
-R: (Ranged) Destroy Target
-M: (Magic) Destroy Target
+R: Destroy Target [Ranged]
