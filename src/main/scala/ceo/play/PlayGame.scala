@@ -11,10 +11,10 @@ object PlayGame {
     val time = System.currentTimeMillis()
     val startingState = DataLoader.initialize("Data/boardStandard.ceo")
     //    playSomeMatches(startingState, Strategy.oneMoveStrategy, Strategy.oneMoveStrategy)
-//        playSomeMatches(startingState, Strategy.MinMaxStrategy(3), Strategy.oneMoveStrategy)
-        playSomeMatches(startingState, Strategy.MinMaxStrategy(3), Strategy.MinMaxStrategy(3))
-//    playSomeMatches(startingState, Strategy.MinMaxStrategy(3), Strategy.oneMoveStrategy)
-//    play(startingState, Strategy.MinMaxStrategy(3), Strategy.oneMoveStrategy)
+    //        playSomeMatches(startingState, Strategy.MinMaxStrategy(3), Strategy.oneMoveStrategy)
+    playSomeMatches(startingState, Strategy.MinMaxStrategyPar(3), Strategy.MinMaxStrategyPar(2))
+    //    playSomeMatches(startingState, Strategy.MinMaxStrategy(3), Strategy.oneMoveStrategy)
+    //    play(startingState, Strategy.MinMaxStrategy(3), Strategy.oneMoveStrategy)
     //        play(startingState, Strategy.MinMaxStrategy(1), Strategy.oneMoveStrategy)
     println(s"Total time: ${System.currentTimeMillis() - time}")
   }
@@ -22,7 +22,7 @@ object PlayGame {
   def playSomeMatches(startingState: GameState, playerWhiteStrategy: Strategy, playerBlackStrategy: Strategy): Unit = {
     println(startingState)
     val playSomeMatches: Seq[(GameState, PlayerTeam)] =
-      (1 to 10)
+      (1 to 15)
         .map(index => {
           if (index % 1 == 0) println(index + "...")
           playFullGame(startingState, playerWhiteStrategy, playerBlackStrategy)
@@ -36,6 +36,9 @@ object PlayGame {
     println(s"White: $whiteWins, Black: $blackWins")
     println(s"Min turn game: ${minWinState.currentTurn}\n$minWinState\n${minWinState.movesHistory.mkString("\n")}\n")
     println(s"Max turn game: ${maxWinState.currentTurn}\n$maxWinState\n${maxWinState.movesHistory.mkString("\n")}")
+
+//    println()
+//    println(minWinState.movesHistory.reverse.scanLeft(startingState)((state, move) => state.playPlayerMove(move)).mkString("\n"))
   }
 
   def play(startingState: GameState, playerWhiteStrategy: Strategy, playerBlackStrategy: Strategy): Unit = {
@@ -54,10 +57,10 @@ object PlayGame {
         println(startingState.movesHistory.mkString("\n"))
         ???
       case Some(stateAfter) =>
-        if (stateAfter.currentTurn > 50) {
-          println(stateAfter)
-          println(stateAfter.movesHistory.mkString("\n"))
-        } else
+//        if (stateAfter.currentTurn > 50) {
+//          println(stateAfter)
+//          println(stateAfter.movesHistory.mkString("\n"))
+//        } else
           print(stateAfter.currentTurn + " ")
         if (stateAfter.winner.isDefined) {
           println()

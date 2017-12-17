@@ -29,32 +29,53 @@ trait Player {
   val team: PlayerTeam
   val morale: Int
   val pieces: List[Piece]
+  val hasKing: Boolean
 
   def inBaseRow(target: BoardPos): Boolean
 }
 
 object Player {
 
-  case class PlayerWhite(morale: Int, pieces: List[Piece] = List.empty) extends Player {
+  case class PlayerWhite(morale: Int, pieces: List[Piece] = List.empty, hasKing: Boolean = false) extends Player {
     val team: PlayerTeam = PlayerTeam.White
 
-    def changeMorale(diff: Int): PlayerWhite = copy(morale = Math.max(0, morale + diff))
+    def changeMorale(diff: Int): PlayerWhite = copy(morale = morale + diff)
 
-    def removePiece(piece: Piece): PlayerWhite = copy(pieces = pieces.filterNot(_ == piece))
+    def removePiece(piece: Piece): PlayerWhite = {
+      if (piece.data.isKing)
+        copy(pieces = pieces.filterNot(_ == piece), hasKing = false)
+      else
+        copy(pieces = pieces.filterNot(_ == piece))
+    }
 
-    def placePiece(piece: Piece): PlayerWhite = copy(pieces = piece :: pieces)
+    def placePiece(piece: Piece): PlayerWhite = {
+      if (piece.data.isKing)
+        copy(pieces = piece :: pieces, hasKing = true)
+      else
+        copy(pieces = piece :: pieces)
+    }
 
     override def inBaseRow(pos: BoardPos): Boolean = pos.row == 7
   }
 
-  case class PlayerBlack(morale: Int, pieces: List[Piece] = List.empty) extends Player {
+  case class PlayerBlack(morale: Int, pieces: List[Piece] = List.empty, hasKing: Boolean = false) extends Player {
     val team: PlayerTeam = PlayerTeam.Black
 
-    def changeMorale(diff: Int): PlayerBlack = copy(morale = Math.max(0, morale + diff))
+    def changeMorale(diff: Int): PlayerBlack = copy(morale = morale + diff)
 
-    def removePiece(piece: Piece): PlayerBlack = copy(pieces = pieces.filterNot(_ == piece))
+    def removePiece(piece: Piece): PlayerBlack = {
+      if (piece.data.isKing)
+        copy(pieces = pieces.filterNot(_ == piece), hasKing = false)
+      else
+        copy(pieces = pieces.filterNot(_ == piece))
+    }
 
-    def placePiece(piece: Piece): PlayerBlack = copy(pieces = piece :: pieces)
+    def placePiece(piece: Piece): PlayerBlack = {
+      if (piece.data.isKing)
+        copy(pieces = piece :: pieces, hasKing = true)
+      else
+        copy(pieces = piece :: pieces)
+    }
 
     override def inBaseRow(pos: BoardPos): Boolean = pos.row == 0
   }

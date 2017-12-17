@@ -22,7 +22,13 @@ case class BoardPos(row: Int, column: Int) {
     Stream.from(1).map(distance => this.translate(dx * distance, dy * distance)).takeWhile(_ != target) :+ target
   }
 
-  def posUntil(target: BoardPos): Stream[BoardPos] = posTo(target).dropRight(1)
+  def posUntil(target: BoardPos): Stream[BoardPos] = {
+    val rowDiff = target.row - row
+    val colDiff = target.column - column
+    val dx = if (colDiff == 0) 0 else if (colDiff < 0) -1 else 1
+    val dy = if (rowDiff == 0) 0 else if (rowDiff < 0) -1 else 1
+    Stream.from(1).map(distance => this.translate(dx * distance, dy * distance)).takeWhile(_ != target)
+  }
 }
 
 object BoardPos {

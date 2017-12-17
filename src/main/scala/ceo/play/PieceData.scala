@@ -8,4 +8,6 @@ case class PieceData(
     team: PlayerTeam
 ) {
   override def toString: String = s"$name"
+
+  val isKing: Boolean = name.startsWith("King_")
 }

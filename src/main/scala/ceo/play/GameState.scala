@@ -5,6 +5,17 @@ import ceo.play.PlayerTeam.{Black, White}
 
 case class GameState(board: Board, playerWhite: PlayerWhite, playerBlack: PlayerBlack, currentTurn: Double, movesHistory: List[PlayerMove]) {
 
+  def trimMorale: GameState = {
+    if (playerWhite.morale < 0 || playerBlack.morale < 0) {
+      copy(
+        playerWhite = playerWhite.copy(morale = Math.max(0, playerWhite.morale)),
+        playerBlack = playerBlack.copy(morale = Math.max(0, playerBlack.morale))
+      )
+    } else {
+      this
+    }
+  }
+
   def getPlayer(team: PlayerTeam): Player = if (team == White) playerWhite else playerBlack
 
   def nextTurn: GameState = copy(currentTurn = currentTurn + 0.5)
@@ -130,13 +141,26 @@ case class GameState(board: Board, playerWhite: PlayerWhite, playerBlack: Player
           .updatePiece(piece, pieceUpdated)
     }
 
-    newState.copy(
-      currentTurn = newState.currentTurn + 0.5,
-      movesHistory = move :: newState.movesHistory
+    val stateWithPenalties = {
+      val decayPenalty =
+        if (currentTurn >= 50)
+          newState.changeMorale(getNextPlayer.team, -1)
+        else
+          newState
+      if (getNextPlayer.hasKing)
+        decayPenalty
+      else
+        decayPenalty.changeMorale(getNextPlayer.team, -3)
+    }
+    stateWithPenalties.trimMorale.copy(
+      currentTurn = stateWithPenalties.currentTurn + 0.5,
+      movesHistory = move :: stateWithPenalties.movesHistory
     )
   }
 
   def getCurrentPlayer: Player = if (currentTurn == currentTurn.toInt) playerWhite else playerBlack
+
+  def getNextPlayer: Player = if (currentTurn == currentTurn.toInt) playerBlack else playerWhite
 
   def valueOfState(team: PlayerTeam): Int = {
     val MaxValue = 1e9.toInt
