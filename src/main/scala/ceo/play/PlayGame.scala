@@ -9,14 +9,14 @@ object PlayGame {
 
   def main(args: Array[String]): Unit = {
     val time = System.currentTimeMillis()
-    val startingState = DataLoader.initialize("Data/boardTest5.ceo")
-    //    val startingState = DataLoader.initialize("PRINTS/challenge-17-12-2017.ceo")
+    //    val startingState = DataLoader.initialize("Data/boardTest5.ceo")
+    val startingState = DataLoader.initialize("PRINTS/challenge-17-12-2017.ceo")
     //    playSomeMatches(startingState, Strategy.oneMoveStrategy, Strategy.oneMoveStrategy)
     //        playSomeMatches(startingState, Strategy.MinMaxStrategy(3), Strategy.oneMoveStrategy)
     //    playSomeMatches(startingState, Strategy.MinMaxStrategyPar(3), Strategy.MinMaxStrategyPar(2))
     //    playSomeMatches(startingState, Strategy.MinMaxStrategy(3), Strategy.oneMoveStrategy)
-    play(startingState, Strategy.MinMaxStrategy(4), Strategy.MinMaxStrategy(4))
-    //    playAgainstExternalInput(startingState, Strategy.MinMaxStrategy(4))
+//    play(startingState, Strategy.MinMaxStrategy(4), Strategy.MinMaxStrategy(3))
+        playAgainstExternalInput(startingState, Strategy.MinMaxStrategy(5))
     println(s"Total time: ${System.currentTimeMillis() - time}")
   }
 
@@ -46,7 +46,7 @@ object PlayGame {
     println(state)
     println(state.movesHistory.reverse.zipWithIndex.reverse.map { case (move, index) =>
       val turn: Double = index / 2.0 + 1
-      f"$turn%.1f ( - ) ${move.betterHumanString}"
+      f"$turn%3.1f | ${move.betterHumanString}"
     }.mkString("\n"))
   }
 
@@ -125,7 +125,7 @@ object PlayGame {
     val AInt = Char.char2int('A')
 
     def indexToRep(index: Int): String = {
-      if (index > 26) {
+      if (index >= 26) {
         (AInt + (index / 26)).toChar.toString + (AInt + (index % 26)).toChar.toString
       } else {
         (AInt + index).toChar.toString

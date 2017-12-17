@@ -122,7 +122,6 @@ case class GameState(board: Board, playerWhite: PlayerWhite, playerBlack: Player
     import PlayerMove._
 
     val newState = move match {
-      case DummyMove(_) => this
       case Move(piece, target) =>
         val pieceNewPos = piece.moveTo(target, this).copy(hasMoved = true)
         updatePiece(piece, pieceNewPos)
@@ -169,8 +168,15 @@ case class GameState(board: Board, playerWhite: PlayerWhite, playerBlack: Player
           .updatePiece(pieceToTransform, newPiece)
           .updatePiece(piece, pieceUpdated)
       case TaurusRush(piece, pieceToKill, maxDistance) =>
-        val dir = (pieceToKill.pos - piece.pos).normalize
-        val positions = pieceToKill.pos.posTo(pieceToKill.pos + dir * maxDistance).filter(_.isValid).toList
+
+        val pieceToKillPos = pieceToKill.pos
+        val rowDiff = pieceToKillPos.row - piece.pos.row
+        val colDiff = pieceToKillPos.column - piece.pos.column
+        val dx = if (colDiff == 0) 0 else if (colDiff < 0) -1 else 1
+        val dy = if (rowDiff == 0) 0 else if (rowDiff < 0) -1 else 1
+        val positions = BoardPos.List1to8.view(0, maxDistance)
+          .map(distance => BoardPos(pieceToKillPos.row + dy * distance, pieceToKillPos.column + dx * distance))
+          .takeWhile(_.isEmpty(board))
         if (positions.lengthCompare(maxDistance) < 0) {
           // Enemy piece is destroyed, taurus stay at edge of board
           val taurusPos = if (positions.isEmpty) pieceToKill.pos else positions.last
@@ -200,7 +206,7 @@ case class GameState(board: Board, playerWhite: PlayerWhite, playerBlack: Player
             .placePiece(pieceToKillUpdated)
         } else {
           // Enemy piece is crushed, taurus stays on the last empty space
-          val taurusPos = positions.find(_.nonEmpty(board)).get - dir
+          val taurusPos = positions.find(_.nonEmpty(board)).get - (dy, dx)
           val updatedState = pieceToKill.destroyed(this)
           val pieceUpdated = piece.copy(
             pos = taurusPos,
@@ -211,6 +217,7 @@ case class GameState(board: Board, playerWhite: PlayerWhite, playerBlack: Player
             .removePiece(pieceToKill)
             .placePiece(pieceUpdated)
         }
+      case DummyMove(_) => this
     }
 
     val stateWithPenalties = {

@@ -10,15 +10,22 @@ sealed trait Moves {
 
 object Moves {
 
-  private def hasNoFreezeTypeEffect(piece: Piece): Boolean = {
+  @inline private def hasNoFreezeTypeEffect(piece: Piece): Boolean = {
     piece.effectStatus.forall {
       case _: EffectStatus.Petrified => false
       case _ => true
     }
   }
 
+  @inline private def canMoveAndSeeEnemy(piece: Piece, target: BoardPos, state: GameState, currentPlayer: Player): Option[Piece] = {
+    if (hasNoFreezeTypeEffect(piece) && piece.pos.allPosUntilAreEmpty(target, state.board))
+      target.getPiece(state.board).filter(_.team == currentPlayer.team.enemy)
+    else
+      None
+  }
+
   private def canMove(piece: Piece, target: BoardPos, state: GameState, currentPlayer: Player): Option[PlayerMove] = {
-    if (hasNoFreezeTypeEffect(piece) && piece.pos.posTo(target).forall(_.isEmpty(state.board)))
+    if (hasNoFreezeTypeEffect(piece) && piece.pos.allPosToAreEmpty(target, state.board))
       Some(PlayerMove.Move(piece, target))
     else
       None
@@ -39,8 +46,8 @@ object Moves {
   }
 
   private def canAttack(piece: Piece, target: BoardPos, state: GameState, currentPlayer: Player): Option[PlayerMove] = {
-    (hasNoFreezeTypeEffect(piece) && piece.pos.posUntil(target).forall(_.isEmpty(state.board)), target.getPiece(state.board)) match {
-      case (true, Some(targetPiece)) if targetPiece.team == currentPlayer.team.enemy =>
+    canMoveAndSeeEnemy(piece, target, state, currentPlayer) match {
+      case Some(targetPiece) =>
         Some(PlayerMove.Attack(piece, targetPiece))
       case _ =>
         None
@@ -66,8 +73,8 @@ object Moves {
   }
 
   private def canRangedDestroy(piece: Piece, target: BoardPos, state: GameState, currentPlayer: Player): Option[PlayerMove] = {
-    (hasNoFreezeTypeEffect(piece) && piece.pos.posUntil(target).forall(_.isEmpty(state.board)), target.getPiece(state.board)) match {
-      case (true, Some(targetPiece)) if targetPiece.team == currentPlayer.team.enemy =>
+    canMoveAndSeeEnemy(piece, target, state, currentPlayer) match {
+      case Some(targetPiece) =>
         Some(PlayerMove.RangedDestroy(piece, targetPiece))
       case _ =>
         None
@@ -90,8 +97,8 @@ object Moves {
     state: GameState,
     currentPlayer: Player
   ): Option[PlayerMove] = {
-    (hasNoFreezeTypeEffect(piece) && piece.pos.posUntil(target).forall(_.isEmpty(state.board)), target.getPiece(state.board)) match {
-      case (true, Some(targetPiece)) if targetPiece.team == currentPlayer.team.enemy =>
+    canMoveAndSeeEnemy(piece, target, state, currentPlayer) match {
+      case Some(targetPiece) =>
         Some(PlayerMove.RangedPetrify(piece, targetPiece, durationTurns))
       case _ =>
         None
@@ -104,8 +111,8 @@ object Moves {
     state: GameState,
     currentPlayer: Player
   ): Option[PlayerMove] = {
-    (hasNoFreezeTypeEffect(piece) && piece.pos.posUntil(target).forall(_.isEmpty(state.board)), target.getPiece(state.board)) match {
-      case (true, Some(targetPiece)) if targetPiece.team == currentPlayer.team.enemy =>
+    canMoveAndSeeEnemy(piece, target, state, currentPlayer) match {
+      case Some(targetPiece) =>
         Some(PlayerMove.TaurusRush(piece, targetPiece, maxDistance))
       case _ =>
         None

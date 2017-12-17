@@ -166,7 +166,7 @@ object DataLoader {
       val line = lines(row).replaceAll("""\s+""", " ")
       val unitNames = line.split(" ")
       for ((unitName, column) <- unitNames.zipWithIndex) {
-        if (unitName.contains("_")) {
+        if (unitName.length > 1) {
           val List(name, team) = unitName.split("_").toList
           Try(getPieceData(name, PlayerTeam(team))) match {
             case Failure(_) =>
