@@ -35,7 +35,7 @@ object Strategy {
   case class MinMaxStrategy(movesToLookAhead: Int) extends Strategy {
     private val MaxValue = 1e9.toInt
 
-    case class Node(state: GameState, nextStates: Seq[Node], value: Int)
+    case class Node(state: GameState, nextStates: List[(Int, GameState)], value: Int)
 
     //    var countNodes = 0
     //    var countBranches = 0
@@ -43,54 +43,43 @@ object Strategy {
     override def chooseMove(startingState: GameState): Option[GameState] = {
       val currentPlayer = startingState.getCurrentPlayer.team
 
-      var levelsCount = Array.ofDim[Int](movesToLookAhead + 1)
-      var hit = 0
+//      val levelsCount = Array.ofDim[Int](movesToLookAhead + 1)
+//      var hit = 0
 
       def createTree(state: GameState, depth: Int, maximize: Boolean): Node = {
-        //        countNodes += 1
-        //        if (countNodes % 20000 == 0)
-        //          println(countNodes.toDouble / countBranches)
-
-        levelsCount(depth) += 1
+//        levelsCount(depth) += 1
 
         if (depth == 0 || state.winner.isDefined) {
           val value = state.valueOfState(currentPlayer)
           if (value == MaxValue)
-            Node(state, Seq.empty, value + depth)
+            Node(state, Nil, value + depth)
           else if (value == -MaxValue)
-            Node(state, Seq.empty, value - depth)
+            Node(state, Nil, value - depth)
           else
-            Node(state, Seq.empty, value)
+            Node(state, Nil, value)
         } else {
-          val moves = state.getCurrentPlayerMoves
-
-          if (depth == movesToLookAhead)
-            println("total: " + moves.length)
-
-          val subTrees = moves
-            .map(move => createTree(state.playPlayerMove(move), depth - 1, !maximize))
-
-          hit += 1
-          if (hit % 10000 == 0)
-            println(levelsCount.toList)
-
-          //          countBranches += 1
-
-          //          println(s"### $depth ### $currentPlayer ###")
-          //          println(subTrees.map(tree => (tree.state.movesHistory.head, tree.value)).mkString("\n"))
-
-          if (subTrees.isEmpty) {
+          val states = state.getCurrentPlayerMoves.map(state.playPlayerMove)
+          if (states.isEmpty)
             println(state)
-          }
+//          else if (depth == movesToLookAhead)
+//            println("total: " + states.length)
+
+          val subTrees = states
+            .map(state => createTree(state, depth - 1, !maximize))
+
+//          hit += 1
+//          if (hit % 10000 == 0)
+//            println(levelsCount.toList)
+
           val finalValue = if (maximize) subTrees.maxBy(_.value).value else subTrees.minBy(_.value).value
-          Node(state, subTrees, finalValue)
+          Node(state, if (depth == movesToLookAhead) subTrees.map(node => (node.value, node.state)) else Nil, finalValue)
         }
       }
 
       val finalNode =
         createTree(startingState, movesToLookAhead, maximize = true)
 
-      val finalStates = finalNode.nextStates.map(node => (node.value, node.state))
+      val finalStates = finalNode.nextStates
       val statesSorted = finalStates.sortBy(-_._1)
       val bestMoves =
         statesSorted.count(_._1 == statesSorted.head._1)
