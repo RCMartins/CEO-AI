@@ -1,0 +1,8 @@
+King-Frozen_Black
+e                  e           e               e
+Salamander++_Black e           e               e
+e                  e           e               Pawn_Black
+Pawn_Black         e           e               Dummy_White
+Dummy_White        e           King-Weak_White Dummy_White
+e                  Dummy_White Dummy_White     Dummy_White
+e                  e           Morale10_Black  Morale10_White

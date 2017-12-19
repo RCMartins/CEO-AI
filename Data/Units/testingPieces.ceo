@@ -1,0 +1,26 @@
+Dummy 0
+---
+@
+---
+--------------------
+King-Frozen 0
+---
+@
+---
+LoseMoraleOnDeath 25
+--------------------
+King-Weak 0
+---
+ N
+N@N
+ N
+---
+LoseMoraleOnDeath 25
+--------------------
+Morale10 10
+---
+1
+@
+---
+DummyNothingPower 1
+--------------------
