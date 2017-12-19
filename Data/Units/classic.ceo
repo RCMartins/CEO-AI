@@ -1,11 +1,17 @@
 King 0
 ---
-NNN
-N@N
-NNN
+    1
+    1
+
+   NNN
+44 N@N 22
+   NNN
+
+    3
+    3
 ---
 LoseMoraleOnDeath 25
-KingCastling
+KingCastling 1 2 3 4
 --------------------
 Pawn 0
 ---
@@ -82,7 +88,7 @@ N      N      N
 ---
 --------------------
 // ##############################
-// ##### Classic units +++ #######
+// ##### Classic units +++ ######
 // ##############################
 Pawn+ 1
 ---
@@ -110,5 +116,52 @@ N             N
   N         N
  N           N
 N             N
+---
+--------------------
+Bishop+++ 13
+---
+N             N
+ N           N
+  N         N
+   N       N
+    N TMT N
+     N M N
+    T NMN T
+    MMM@MMM
+    T NMN T
+     N M N
+    N TMT N
+   N       N
+  N         N
+ N           N
+N             N
+---
+--------------------
+Knight+ 8
+---
+ J J
+J M J
+ M@M
+J M J
+ J J
+---
+--------------------
+Queen+ 24
+---
+N      N      N
+ N     N     N
+  N    N    N
+   N   N   N
+    N  N  N
+     NTNTN
+     TNNNT
+NNNNNNN@NNNNNNN
+     TNNNT
+     NTNTN
+    N  N  N
+   N   N   N
+  N    N    N
+ N     N     N
+N      N      N
 ---
 --------------------

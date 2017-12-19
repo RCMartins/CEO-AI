@@ -10,6 +10,12 @@ sealed trait MovePower extends Powers {
   def createMove(dx: Int, dy: Int): Moves
 }
 
+sealed trait MovePowerComplete extends Powers {
+  def lettersOfMoves: List[Char]
+
+  def createMove(dx: Int, dy: Int, char: Char, all: List[(Int, Int, Char)]): Moves
+}
+
 object Powers {
 
   case class PromoteTo(unitName: String) extends Powers
@@ -24,11 +30,16 @@ object Powers {
 
   case class DestroyedBy(destroyedBy: List[String]) extends Powers
 
-  case object KingCastling extends Powers
-
   case object SuicideOnKill extends Powers
 
   case object GhostMovement extends Powers
+
+  case class KingCastlingMovePower(lettersOfMoves: List[Char]) extends MovePowerComplete {
+    override def createMove(dx: Int, dy: Int, char: Char, all: List[(Int, Int, Char)]): Moves = {
+      val (otherDx, otherDy, _) = all.find { case (x, y, c) => x != dx || y != dy && c == char }.get
+      Castling(dx, dy, otherDx, otherDy)
+    }
+  }
 
   case class DummyNothingPower(letterOfMove: Char) extends MovePower {
     override def createMove(dx: Int, dy: Int): Moves = DummyMove

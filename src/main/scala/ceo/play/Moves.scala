@@ -220,6 +220,12 @@ object Moves {
     }
   }
 
+  case class Castling(dx: Int, dy: Int, otherDx: Int, otherDy: Int) extends Moves {
+    def getValidMove(piece: Piece, state: GameState, currentPlayer: Player): Option[PlayerMove] = {
+      ???
+    }
+  }
+
   case object DummyMove extends Moves {
     val dx = 0
     val dy = 0

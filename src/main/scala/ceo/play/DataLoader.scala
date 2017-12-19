@@ -105,20 +105,23 @@ object DataLoader {
       case 'J' => Moves.MoveOrAttackUnblockable(posX, posY)
       case 'S' => Moves.MoveOrAttackOrSwapAlly(posX, posY)
       case 'R' => Moves.RangedDestroy(posX, posY)
-      case '1' | '2' | '3' =>
-        powers.collectFirst { case move: MovePower if move.letterOfMove == char => move } match {
+      case '1' | '2' | '3' | '4' =>
+        powers.collectFirst {
+          case move: MovePower if move.letterOfMove == char => move
+          case move: MovePowerComplete if move.lettersOfMoves.contains(char) => move
+        } match {
           case None =>
             throw new Exception("Unknown 'MovePower' letter: " + char)
-          case Some(movePower) =>
+          case Some(movePower: MovePower) =>
             movePower.createMove(posX, posY)
+          case Some(movePowerComplete: MovePowerComplete) =>
+            ???
         }
     }
   }
 
   def loadPowers(powersStr: List[String]): List[Powers] = {
     powersStr.map {
-      case "KingCastling" =>
-        Powers.KingCastling
       case "SuicideOnKill" =>
         Powers.SuicideOnKill
       case "GhostMovement" =>
@@ -153,6 +156,9 @@ object DataLoader {
         val List(letterStr, moraleCost, allyUnitName) = str.drop("MagicTransformIntoAllyUnit ".length).split(" ").toList
         piecesToCheck = allyUnitName :: piecesToCheck
         Powers.TransformIntoAllyMovePower(letterStr.head, moraleCost.toInt, allyUnitName)
+      // Move Power Completes:
+      case str if str.startsWith("KingCastling ") =>
+        Powers.KingCastlingMovePower(str.drop("KingCastling ".length).split(" ").toList.map(_.head))
       case str =>
         throw new Exception("Unknown Power: " + str)
     }

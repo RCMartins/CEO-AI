@@ -15,8 +15,8 @@ object PlayGame {
     //        playSomeMatches(startingState, Strategy.MinMaxStrategy(3), Strategy.oneMoveStrategy)
     //    playSomeMatches(startingState, Strategy.MinMaxStrategyPar(3), Strategy.MinMaxStrategyPar(2))
     //    playSomeMatches(startingState, Strategy.MinMaxStrategy(3), Strategy.oneMoveStrategy)
-//    play(startingState, Strategy.MinMaxStrategy(4), Strategy.MinMaxStrategy(3))
-        playAgainstExternalInput(startingState, Strategy.MinMaxStrategy(5))
+    //    play(startingState, Strategy.MinMaxStrategy(4), Strategy.MinMaxStrategy(3))
+    playAgainstExternalInput(startingState, Strategy.MinMaxStrategy(5))
     println(s"Total time: ${System.currentTimeMillis() - time}")
   }
 

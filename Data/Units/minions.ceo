@@ -1,3 +1,35 @@
+Archer 0
+---
+ R
+M M
+ @
+ M
+---
+PromotesTo Ranger
+--------------------
+Archer+ 1
+---
+m R m
+ M M
+  @
+  M
+---
+PromotesTo Ranger+
+--------------------
+Axeman 1
+---
+AMA
+A@A
+---
+PromotesTo Berserker
+--------------------
+Axeman+ 2
+---
+NMN
+A@A
+---
+PromotesTo Berserker+
+--------------------
 Basilisk 2
 ---
 N1N
@@ -25,12 +57,41 @@ M   M
 RangedPetrify 1 5
 PromotesTo Dragon++
 --------------------
+Drake 4
+---
+  A
+  N
+AN@NA
+  N
+  A
+---
+--------------------
+Drake+ 5
+---
+  N
+  N
+NN@NN
+  N
+  N
+---
+--------------------
 Fireball 2
 ---
 R
 R
 R
 @
+---
+SuicideOnKill
+Immune Poison Petrify
+DestroyedBy Freeze
+--------------------
+Fireball+ 3
+---
+  R
+R R R
+ RRR
+  @
 ---
 SuicideOnKill
 Immune Poison Petrify
@@ -44,12 +105,37 @@ S@S
 ---
 GhostMovement
 --------------------
+Ghost+ 4
+---
+MSM
+S@S
+MSM
+---
+GhostMovement
+--------------------
 Militia 1
 ---
 NNN
  @
 ---
 PromotesTo Knight
+LoseMoraleOnDeath 3
+--------------------
+Militia+ 1
+---
+m m m
+ NNN
+  @
+---
+PromotesTo Knight+
+LoseMoraleOnDeath 4
+--------------------
+Reaver 3
+---
+NAN
+A@A
+NAN
+---
 LoseMoraleOnDeath 3
 --------------------
 Salamander++ 3
@@ -61,10 +147,53 @@ M   M
 MagicDestroy 1
 PromotesTo FireElemental++
 --------------------
+Spearman 1
+---
+A
+N
+@
+---
+PromotesTo Legionary
+--------------------
+Spearman+ 2
+---
+ A
+mNm
+ @
+---
+PromotesTo Legionary+
+--------------------
 Swordsman 1
 ---
  N
 A@A
 ---
 PromotesTo Warrior
+--------------------
+Swordsman+ 2
+---
+ N
+N@N
+---
+PromotesTo Warrior+
+--------------------
+Tiger 1
+---
+1 1 1
+  M
+1M@M1
+  M
+1 1 1
+---
+JumpMinion 1
+--------------------
+Tiger+ 2
+---
+1 1 1
+ MMM
+1M@M1
+ MMM
+1 1 1
+---
+JumpMinion 1
 --------------------
