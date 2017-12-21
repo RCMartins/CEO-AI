@@ -11,6 +11,10 @@ sealed trait PlayerMove {
 
 object PlayerMove {
 
+  case class MultiMove(move1: PlayerMove, move2: PlayerMove) extends PlayerMove {
+    def betterHumanString: String = s"$move1 AND $move2"
+  }
+
   case class Move(piece: Piece, to: BoardPos) extends PlayerMove {
     def betterHumanString: String = s"$piece moves to $to   ${to - piece.pos}"
   }

@@ -30,6 +30,14 @@ A@A
 ---
 PromotesTo Berserker+
 --------------------
+Axeman++ 3
+---
+m m m
+ NMN
+ A@A
+---
+PromotesTo Berserker++
+--------------------
 Basilisk 2
 ---
 N1N
@@ -129,6 +137,23 @@ m m m
 ---
 PromotesTo Knight+
 LoseMoraleOnDeath 4
+--------------------
+Pawn 0
+---
+ m
+AMA
+ @
+---
+PromotesTo Bishop
+--------------------
+Pawn+ 1
+---
+ m
+ m
+AMA
+ @
+---
+PromotesTo Bishop+
 --------------------
 Reaver 3
 ---

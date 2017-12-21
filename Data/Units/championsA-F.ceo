@@ -40,6 +40,19 @@ ANN@NNA
    A
 ---
 --------------------
+Berserker++ 11
+---
+    A
+    A
+    N
+   NNN
+AANN@NNAA
+   NNN
+    N
+    A
+    A
+---
+--------------------
 Demon 10
 ---
     N
@@ -51,6 +64,82 @@ NNNN@NNNN
    TNT
     N
     N
+---
+--------------------
+Bishop 9
+---
+N             N
+ N           N
+  N         N
+   N       N
+    N     N
+     N   N
+      N N
+       @
+      N N
+     N   N
+    N     N
+   N       N
+  N         N
+ N           N
+N             N
+---
+--------------------
+Bishop+ 11
+---
+N             N
+ N           N
+  N         N
+   N       N
+    N     N
+     N   N
+      NMN
+      M@M
+      NMN
+     N   N
+    N     N
+   N       N
+  N         N
+ N           N
+N             N
+---
+--------------------
+Bishop++ 12
+---
+N             N
+ N           N
+  N         N
+   N       N
+    N  M  N
+     N M N
+      NMN
+    MMM@MMM
+      NMN
+     N M N
+    N  M  N
+   N       N
+  N         N
+ N           N
+N             N
+---
+--------------------
+Bishop+++ 13
+---
+N             N
+ N           N
+  N         N
+   N       N
+    N TMT N
+     N M N
+    T NMN T
+    MMM@MMM
+    T NMN T
+     N M N
+    N TMT N
+   N       N
+  N         N
+ N           N
+N             N
 ---
 --------------------
 Dragon 16

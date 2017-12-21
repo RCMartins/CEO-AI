@@ -1,3 +1,50 @@
+Queen 21
+---
+N      N      N
+ N     N     N
+  N    N    N
+   N   N   N
+    N  N  N
+     N N N
+      NNN
+NNNNNNN@NNNNNNN
+      NNN
+     N N N
+    N  N  N
+   N   N   N
+  N    N    N
+ N     N     N
+N      N      N
+---
+--------------------
+Queen+ 24
+---
+N      N      N
+ N     N     N
+  N    N    N
+   N   N   N
+    N  N  N
+     NTNTN
+     TNNNT
+NNNNNNN@NNNNNNN
+     TNNNT
+     NTNTN
+    N  N  N
+   N   N   N
+  N    N    N
+ N     N     N
+N      N      N
+---
+--------------------
+Ranger 5
+---
+R   R
+  N
+ N@N
+  N
+R   R
+---
+--------------------
 Ranger+ 8
 ---
 R   R
@@ -14,6 +61,34 @@ R R R
 RN@NR
  MNM
 R R R
+---
+--------------------
+Ranger+++ 16
+---
+R R R
+ NNN
+RN@NR
+ NNN
+R R R
+---
+--------------------
+Rook 12
+---
+       N
+       N
+       N
+       N
+       N
+       N
+       N
+NNNNNNN@NNNNNNN
+       N
+       N
+       N
+       N
+       N
+       N
+       N
 ---
 --------------------
 SoulKeeper 13
@@ -45,6 +120,15 @@ Warrior 7
 NN@NN
  NNN
   N
+---
+--------------------
+Warrior+ 8
+---
+M N M
+ NNN
+NN@NN
+ NNN
+M N M
 ---
 --------------------
 Wizard 13

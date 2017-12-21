@@ -2,6 +2,7 @@ package ceo.play
 
 case class PieceData(
     name: String,
+    isMinion: Boolean,
     initialMorale: Int,
     moves: List[Moves],
     powers: List[Powers] = List.empty,

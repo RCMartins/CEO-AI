@@ -34,13 +34,6 @@ object Powers {
 
   case object GhostMovement extends Powers
 
-  case class KingCastlingMovePower(lettersOfMoves: List[Char]) extends MovePowerComplete {
-    override def createMove(dx: Int, dy: Int, char: Char, all: List[(Int, Int, Char)]): Moves = {
-      val (otherDx, otherDy, _) = all.find { case (x, y, c) => x != dx || y != dy && c == char }.get
-      Castling(dx, dy, otherDx, otherDy)
-    }
-  }
-
   case class DummyNothingPower(letterOfMove: Char) extends MovePower {
     override def createMove(dx: Int, dy: Int): Moves = DummyMove
   }
@@ -59,6 +52,18 @@ object Powers {
 
   case class TransformIntoAllyMovePower(letterOfMove: Char, moraleCost: Int, allyUnitName: String) extends MovePower {
     override def createMove(dx: Int, dy: Int): Moves = TransformEnemyIntoAllyUnit(dx, dy, moraleCost, allyUnitName)
+  }
+
+  case class JumpMinionMovePower(letterOfMove: Char) extends MovePower {
+    override def createMove(dx: Int, dy: Int): Moves = JumpMinion(dx, dy)
+  }
+
+  case class KingCastlingMovePower(lettersOfMoves: List[Char]) extends MovePowerComplete {
+    override def createMove(dx: Int, dy: Int, char: Char, all: List[(Int, Int, Char)]): Moves = {
+      val pos = BoardPos(dx, dy)
+      val dir = pos.normalize
+      Castling(pos, pos - dir, pos - (dir * 2))
+    }
   }
 
 }

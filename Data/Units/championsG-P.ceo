@@ -1,3 +1,36 @@
+King 0
+---
+    1
+    1
+
+   NNN
+44 N@N 22
+   NNN
+
+    3
+    3
+---
+LoseMoraleOnDeath 25
+KingCastling 1 2 3 4
+--------------------
+Knight 6
+---
+ J J
+J   J
+  @
+J   J
+ J J
+---
+--------------------
+Knight+ 8
+---
+ J J
+J M J
+ M@M
+J M J
+ J J
+---
+--------------------
 Legionary 9
 ---
 A A A

@@ -9,7 +9,6 @@ case class Piece(
   hasMoved: Boolean,
   effectStatus: List[EffectStatus]
 ) {
-
   import ceo.play.Powers._
 
   override def toString: String = s"${data.name}$pos"

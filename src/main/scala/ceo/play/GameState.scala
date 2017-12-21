@@ -167,6 +167,8 @@ case class GameState(board: Board, playerWhite: PlayerWhite, playerBlack: Player
           .changeMorale(piece.team, -moraleCost)
           .updatePiece(pieceToTransform, newPiece)
           .updatePiece(piece, pieceUpdated)
+      case MultiMove(move1, move2) =>
+        playPlayerMove(move1).playPlayerMove(move2)
       case TaurusRush(piece, pieceToKill, maxDistance) =>
 
         val pieceToKillPos = pieceToKill.pos

@@ -9,14 +9,14 @@ object PlayGame {
 
   def main(args: Array[String]): Unit = {
     val time = System.currentTimeMillis()
-    //    val startingState = DataLoader.initialize("Data/boardTest5.ceo")
-    val startingState = DataLoader.initialize("PRINTS/challenge-17-12-2017.ceo")
+        val startingState = DataLoader.initialize("Data/boardStandard.ceo")
+//        val startingState = DataLoader.initialize("Data/boardTest5.ceo")
+//    val startingState = DataLoader.initialize("PRINTS/challenge-21-12-2017.ceo")
     //    playSomeMatches(startingState, Strategy.oneMoveStrategy, Strategy.oneMoveStrategy)
     //        playSomeMatches(startingState, Strategy.MinMaxStrategy(3), Strategy.oneMoveStrategy)
-    //    playSomeMatches(startingState, Strategy.MinMaxStrategyPar(3), Strategy.MinMaxStrategyPar(2))
-    //    playSomeMatches(startingState, Strategy.MinMaxStrategy(3), Strategy.oneMoveStrategy)
-    //    play(startingState, Strategy.MinMaxStrategy(4), Strategy.MinMaxStrategy(3))
-    playAgainstExternalInput(startingState, Strategy.MinMaxStrategy(5))
+//        playSomeMatches(startingState, Strategy.MinMaxStrategyPar(2), Strategy.MinMaxStrategyPar(2))
+//        play(startingState, Strategy.MinMaxStrategy(4), Strategy.MinMaxStrategy(3))
+    playAgainstExternalInput(startingState, Strategy.MinMaxStrategy(4))
     println(s"Total time: ${System.currentTimeMillis() - time}")
   }
 

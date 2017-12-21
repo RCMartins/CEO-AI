@@ -3,9 +3,9 @@ package ceo.play
 sealed trait Moves {
   def getValidMove(piece: Piece, state: GameState, currentPlayer: Player): Option[PlayerMove]
 
-  def dx: Int
-
-  def dy: Int
+  //  def dx: Int
+  //
+  //  def dy: Int
 }
 
 object Moves {
@@ -57,6 +57,21 @@ object Moves {
   private def canAttackUnblockable(piece: Piece, target: BoardPos, state: GameState, currentPlayer: Player): Option[PlayerMove] = {
     (hasNoFreezeTypeEffect(piece), target.getPiece(state.board)) match {
       case (true, Some(targetPiece)) if targetPiece.team == currentPlayer.team.enemy =>
+        Some(PlayerMove.Attack(piece, targetPiece))
+      case _ =>
+        None
+    }
+  }
+
+  private def canAttackUnblockableConditional(
+    piece: Piece,
+    target: BoardPos,
+    state: GameState,
+    currentPlayer: Player,
+    condition: Piece => Boolean
+  ): Option[PlayerMove] = {
+    (hasNoFreezeTypeEffect(piece), target.getPiece(state.board)) match {
+      case (true, Some(targetPiece)) if targetPiece.team == currentPlayer.team.enemy && condition(targetPiece) =>
         Some(PlayerMove.Attack(piece, targetPiece))
       case _ =>
         None
@@ -132,6 +147,12 @@ object Moves {
         Some(PlayerMove.TransformEnemyIntoAllyUnit(piece, targetPiece, moraleCost, AllyPieceData))
       case _ =>
         None
+    }
+  }
+
+  private def allyAt(target: BoardPos, state: GameState, currentPlayer: Player): Option[Piece] = {
+    target.getPiece(state.board) collect {
+      case targetPiece if targetPiece.team == currentPlayer.team => targetPiece
     }
   }
 
@@ -220,10 +241,31 @@ object Moves {
     }
   }
 
-  case class Castling(dx: Int, dy: Int, otherDx: Int, otherDy: Int) extends Moves {
+  case class Castling(posAllyPiece: BoardPos, posAfterKing: BoardPos, posAfterAllyPiece: BoardPos) extends Moves {
     def getValidMove(piece: Piece, state: GameState, currentPlayer: Player): Option[PlayerMove] = {
-      ???
+      (canMove(piece, piece.pos + posAfterKing, state, currentPlayer), allyAt(piece.pos + posAllyPiece, state, currentPlayer)) match {
+        case (Some(kingMove), Some(allyPiece)) if !allyPiece.data.isMinion =>
+          Some(PlayerMove.MultiMove(
+            PlayerMove.Move(allyPiece, posAfterAllyPiece),
+            kingMove
+          ))
+        case _ =>
+          None
+      }
     }
+  }
+
+  case class JumpMinion(dx: Int, dy: Int) extends Moves {
+    def getValidMove(piece: Piece, state: GameState, currentPlayer: Player): Option[PlayerMove] = {
+      canAttackUnblockableConditional(piece, piece.pos.translate(dx, dy), state, currentPlayer, _.data.isMinion)
+    }
+  }
+
+  case object Empty extends Moves {
+    val dx = 0
+    val dy = 0
+
+    def getValidMove(piece: Piece, state: GameState, currentPlayer: Player): Option[PlayerMove] = ???
   }
 
   case object DummyMove extends Moves {

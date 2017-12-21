@@ -46,7 +46,7 @@ object DataLoader {
     val br = new BufferedReader(new StringReader(Source.fromFile(file).getLines.mkString("\n")))
 
     def loadUnits(): Unit = {
-      val gamePieces = loadUnit(br)
+      val gamePieces = loadUnit(file.getName, br)
       gamePieces.foreach {
         gamePiece =>
           units.put(gamePiece.name, gamePiece)
@@ -58,7 +58,7 @@ object DataLoader {
     loadUnits()
   }
 
-  def loadUnit(br: BufferedReader): Seq[PieceData] = {
+  def loadUnit(fileName: String, br: BufferedReader): Seq[PieceData] = {
     def readLine(ignoreEmptyLines: Boolean = true): String = {
       val line = br.readLine()
       if (line != null && (line.isEmpty && ignoreEmptyLines || line.startsWith("//"))) readLine() else line
@@ -79,9 +79,10 @@ object DataLoader {
 
       val name_white = name + "_" + White
       val name_black = name + "_" + Black
+      val isMinion = fileName.startsWith("minions")
       Seq(
-        PieceData(name_white, morale.toInt, movesBottomTop, powers, White),
-        PieceData(name_black, morale.toInt, movesTopBottom, powers, Black)
+        PieceData(name_white, isMinion, morale.toInt, movesBottomTop, powers, White),
+        PieceData(name_black, isMinion, morale.toInt, movesTopBottom, powers, Black)
       )
     }
   }
@@ -90,42 +91,58 @@ object DataLoader {
     val iy = movesStr.indexWhere(_.contains('@'))
     val ix = movesStr(iy).indexWhere(_ == '@')
 
-    for {
-      (line, y) <- movesStr.zipWithIndex
-      (char, x) <- line.zipWithIndex
-      if char != ' ' && char != '@'
-      posX = x - ix
-      posY = y - iy
-    } yield char match {
-      case 'N' => Moves.MoveOrAttack(posX, posY)
-      case 'M' => Moves.Move(posX, posY)
-      case 'm' => Moves.MoveFromStart(posX, posY)
-      case 'T' => Moves.MoveUnblockable(posX, posY)
-      case 'A' => Moves.Attack(posX, posY)
-      case 'J' => Moves.MoveOrAttackUnblockable(posX, posY)
-      case 'S' => Moves.MoveOrAttackOrSwapAlly(posX, posY)
-      case 'R' => Moves.RangedDestroy(posX, posY)
-      case '1' | '2' | '3' | '4' =>
-        powers.collectFirst {
-          case move: MovePower if move.letterOfMove == char => move
-          case move: MovePowerComplete if move.lettersOfMoves.contains(char) => move
-        } match {
-          case None =>
-            throw new Exception("Unknown 'MovePower' letter: " + char)
-          case Some(movePower: MovePower) =>
-            movePower.createMove(posX, posY)
-          case Some(movePowerComplete: MovePowerComplete) =>
-            ???
-        }
-    }
+    var completePos = List[(Int, Int, Char)]()
+    var maybeCompleteMovePower = Option.empty[MovePowerComplete]
+
+    val simpleMoves: List[Moves] =
+      for {
+        (line, y) <- movesStr.zipWithIndex
+        (char, x) <- line.zipWithIndex
+        if char != ' ' && char != '@'
+        posX = x - ix
+        posY = y - iy
+      } yield char match {
+        case 'N' => Moves.MoveOrAttack(posX, posY)
+        case 'M' => Moves.Move(posX, posY)
+        case 'm' => Moves.MoveFromStart(posX, posY)
+        case 'T' => Moves.MoveUnblockable(posX, posY)
+        case 'A' => Moves.Attack(posX, posY)
+        case 'J' => Moves.MoveOrAttackUnblockable(posX, posY)
+        case 'S' => Moves.MoveOrAttackOrSwapAlly(posX, posY)
+        case 'R' => Moves.RangedDestroy(posX, posY)
+        case '1' | '2' | '3' | '4' =>
+          powers.collectFirst {
+            case move: MovePower if move.letterOfMove == char => move
+            case move: MovePowerComplete if move.lettersOfMoves.contains(char) => move
+          } match {
+            case None =>
+              throw new Exception("Unknown 'MovePower' letter: " + char)
+            case Some(movePower: MovePower) =>
+              movePower.createMove(posX, posY)
+            case Some(movePowerComplete: MovePowerComplete) =>
+              completePos = (posX, posY, char) :: completePos
+              maybeCompleteMovePower = Some(movePowerComplete)
+              Moves.Empty
+          }
+      }
+
+    simpleMoves.filterNot(_ == Moves.Empty) ++
+      maybeCompleteMovePower.map {
+        completeMovePower =>
+          completePos.map { case (column, row, char) =>
+            completeMovePower.createMove(column, row, char, completePos)
+          }
+      }.getOrElse(List.empty[Moves])
   }
 
   def loadPowers(powersStr: List[String]): List[Powers] = {
     powersStr.map {
+      // 0-arg Powers:
       case "SuicideOnKill" =>
         Powers.SuicideOnKill
       case "GhostMovement" =>
         Powers.GhostMovement
+      // 1-arg Powers:
       case str if str.startsWith("DummyNothingPower ") =>
         Powers.DummyNothingPower(str.drop("DummyNothingPower ".length).head)
       case str if str.startsWith("PromotesTo ") =>
@@ -136,6 +153,7 @@ object DataLoader {
         Powers.LoseMoraleOnDeath(str.drop("LoseMoraleOnDeath ".length).toInt)
       case str if str.startsWith("GainMoraleOnKill ") =>
         Powers.GainMoraleOnKill(str.drop("GainMoraleOnKill ".length).toInt)
+      // Multiple-arg Powers:
       case str if str.startsWith("DecayAfterTurn ") =>
         val List(turnStarts, moralePerTurn) = str.drop("DecayAfterTurn ".length).split(" ").toList
         Powers.DecayAfterTurn(turnStarts.toInt, moralePerTurn.toInt)
@@ -156,6 +174,8 @@ object DataLoader {
         val List(letterStr, moraleCost, allyUnitName) = str.drop("MagicTransformIntoAllyUnit ".length).split(" ").toList
         piecesToCheck = allyUnitName :: piecesToCheck
         Powers.TransformIntoAllyMovePower(letterStr.head, moraleCost.toInt, allyUnitName)
+      case str if str.startsWith("JumpMinion ") =>
+        Powers.JumpMinionMovePower(str.takeRight(1).head)
       // Move Power Completes:
       case str if str.startsWith("KingCastling ") =>
         Powers.KingCastlingMovePower(str.drop("KingCastling ".length).split(" ").toList.map(_.head))
