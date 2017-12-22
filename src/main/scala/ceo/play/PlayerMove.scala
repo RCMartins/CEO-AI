@@ -1,11 +1,14 @@
 package ceo.play
 
-/**
-  * Created on 17-Dec-17.
-  */
+import ceo.play.PlayerMove.MultiMove
+
 sealed trait PlayerMove {
 
+  self =>
+
   def betterHumanString: String
+
+  @inline def and(other: PlayerMove): PlayerMove = MultiMove(self, other)
 
 }
 
@@ -51,6 +54,10 @@ object PlayerMove {
 
   case class TaurusRush(piece: Piece, pieceToRush: Piece, maxDistance: Int) extends PlayerMove {
     def betterHumanString: String = s"$piece RushEnemy $pieceToRush   ${pieceToRush.pos - piece.pos}"
+  }
+
+  case class KingDoesCastling(kingPiece: Piece, allyPiece: Piece, kingTarget: BoardPos, allyTarget: BoardPos) extends PlayerMove {
+    override def betterHumanString: String = s"$kingPiece does Castling with $allyPiece"
   }
 
   case class DummyMove(piece: Piece) extends PlayerMove {

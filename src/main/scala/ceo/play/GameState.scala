@@ -169,6 +169,15 @@ case class GameState(board: Board, playerWhite: PlayerWhite, playerBlack: Player
           .updatePiece(piece, pieceUpdated)
       case MultiMove(move1, move2) =>
         playPlayerMove(move1).playPlayerMove(move2)
+      case KingDoesCastling(kingPiece, allyPiece, kingTarget, allyTarget) =>
+        // TODO: for now this is simplified because it can only affect champions?
+        val KingWithoutCastling = DataLoader
+          .getPieceData("King-no-Cas", kingPiece.team)
+          .createPiece(kingTarget)
+          .setMorale(kingPiece.currentMorale)
+        this
+          .updatePiece(allyPiece, allyPiece.copy(pos = allyTarget))
+          .updatePiece(kingPiece, KingWithoutCastling)
       case TaurusRush(piece, pieceToKill, maxDistance) =>
 
         val pieceToKillPos = pieceToKill.pos

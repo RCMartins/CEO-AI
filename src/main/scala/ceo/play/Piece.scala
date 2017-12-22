@@ -9,11 +9,14 @@ case class Piece(
   hasMoved: Boolean,
   effectStatus: List[EffectStatus]
 ) {
+
   import ceo.play.Powers._
 
   override def toString: String = s"${data.name}$pos"
 
   def team: PlayerTeam = data.team
+
+  def setMorale(morale: Int): Piece = copy(currentMorale = morale)
 
   private def promoteIfPossible(gameState: GameState): Piece = {
     if (gameState.getPlayer(data.team.enemy).inBaseRow(pos)) {

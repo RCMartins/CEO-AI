@@ -8,7 +8,10 @@ case class PieceData(
     powers: List[Powers] = List.empty,
     team: PlayerTeam
 ) {
+
   override def toString: String = s"$name"
 
   val isKing: Boolean = name.startsWith("King")
+
+  def createPiece(pos: BoardPos): Piece = Piece(this, pos)
 }

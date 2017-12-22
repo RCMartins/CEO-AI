@@ -24,7 +24,7 @@ object Moves {
       None
   }
 
-  private def canMove(piece: Piece, target: BoardPos, state: GameState, currentPlayer: Player): Option[PlayerMove] = {
+  private def canMove(piece: Piece, target: BoardPos, state: GameState, currentPlayer: Player): Option[PlayerMove.Move] = {
     if (hasNoFreezeTypeEffect(piece) && piece.pos.allPosToAreEmpty(target, state.board))
       Some(PlayerMove.Move(piece, target))
     else
@@ -245,10 +245,7 @@ object Moves {
     def getValidMove(piece: Piece, state: GameState, currentPlayer: Player): Option[PlayerMove] = {
       (canMove(piece, piece.pos + posAfterKing, state, currentPlayer), allyAt(piece.pos + posAllyPiece, state, currentPlayer)) match {
         case (Some(kingMove), Some(allyPiece)) if !allyPiece.data.isMinion =>
-          Some(PlayerMove.MultiMove(
-            PlayerMove.Move(allyPiece, posAfterAllyPiece),
-            kingMove
-          ))
+          Some(PlayerMove.KingDoesCastling(piece, allyPiece, kingMove.to, piece.pos + posAfterAllyPiece))
         case _ =>
           None
       }
