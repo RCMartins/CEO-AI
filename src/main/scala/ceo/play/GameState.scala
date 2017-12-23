@@ -1,9 +1,8 @@
 package ceo.play
 
-import ceo.play.Player.{PlayerBlack, PlayerWhite}
 import ceo.play.PlayerTeam.{Black, White}
 
-case class GameState(board: Board, playerWhite: PlayerWhite, playerBlack: PlayerBlack, currentTurn: Double, movesHistory: List[PlayerMove]) {
+case class GameState(board: Board, playerWhite: Player, playerBlack: Player, currentTurn: Double, movesHistory: List[PlayerMove]) {
 
   def trimMorale: GameState = {
     if (playerWhite.morale < 0 || playerBlack.morale < 0) {
@@ -256,13 +255,13 @@ case class GameState(board: Board, playerWhite: PlayerWhite, playerBlack: Player
     val MaxValue = 1e9.toInt
 
     winner match {
-      case Some(winningTeam) if winningTeam == team => MaxValue
-      case Some(winningTeam) if winningTeam == team.enemy => -MaxValue
       case None =>
-        val whitePoints = playerWhite.morale
-        val blackPoints = playerBlack.morale
+        val whitePoints = playerWhite.morale * 10 + playerWhite.numberOfPieces
+        val blackPoints = playerBlack.morale * 10 + playerBlack.numberOfPieces
 
         team.chooseWhiteBlack(whitePoints - blackPoints, blackPoints - whitePoints)
+      case Some(winningTeam) if winningTeam == team => MaxValue
+      case Some(winningTeam) if winningTeam != team => -MaxValue
     }
   }
 

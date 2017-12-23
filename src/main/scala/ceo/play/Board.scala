@@ -21,4 +21,6 @@ class Board(_board: Vector[Vector[Option[Piece]]]) {
 
 }
 
-object EmptyBoard extends Board(Vector.fill(8, 8)(None))
+object Board {
+  val empty: Board = new Board(Vector.fill(8, 8)(None))
+}

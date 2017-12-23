@@ -1,22 +1,23 @@
 package ceo.play
 
-import ceo.play.Player.{PlayerBlack, PlayerWhite}
 import ceo.play.PlayerTeam.{Black, White}
 
 object PlayGame {
 
-  val emptyGameState: GameState = GameState(EmptyBoard, PlayerWhite(0), PlayerBlack(0), 1, Nil)
+  final val DEBUG_SHOW_TURNS: Boolean = false
+
+  val emptyGameState: GameState = GameState(Board.empty, Player(White, 0, Nil, 0), Player(Black, 0, Nil, 0), 1, Nil)
 
   def main(args: Array[String]): Unit = {
     val time = System.currentTimeMillis()
-        val startingState = DataLoader.initialize("Data/boardStandard.ceo")
-//        val startingState = DataLoader.initialize("Data/boardTest5.ceo")
-//    val startingState = DataLoader.initialize("PRINTS/challenge-21-12-2017.ceo")
+    val startingState = DataLoader.initialize("Data/boardStandard.ceo")
+    //        val startingState = DataLoader.initialize("Data/boardTest5.ceo")
+    //    val startingState = DataLoader.initialize("PRINTS/challenge-21-12-2017.ceo")
     //    playSomeMatches(startingState, Strategy.oneMoveStrategy, Strategy.oneMoveStrategy)
     //        playSomeMatches(startingState, Strategy.MinMaxStrategy(3), Strategy.oneMoveStrategy)
-//        playSomeMatches(startingState, Strategy.MinMaxStrategyPar(2), Strategy.MinMaxStrategyPar(2))
-//        play(startingState, Strategy.MinMaxStrategy(4), Strategy.MinMaxStrategy(3))
-    playAgainstExternalInput(startingState, Strategy.MinMaxStrategy(4))
+    playSomeMatches(startingState, Strategy.MinMaxStrategyPar(2), Strategy.MinMaxStrategyPar(2))
+    //        play(startingState, Strategy.MinMaxStrategy(4), Strategy.MinMaxStrategy(3))
+    //    playAgainstExternalInput(startingState, Strategy.MinMaxStrategy(4))
     println(s"Total time: ${System.currentTimeMillis() - time}")
   }
 
@@ -81,9 +82,9 @@ object PlayGame {
         //          println(stateAfter)
         //          println(stateAfter.movesHistory.mkString("\n"))
         //        } else
-        print(stateAfter.currentTurn + " ")
+        if (DEBUG_SHOW_TURNS) print(stateAfter.currentTurn + " ")
         if (stateAfter.winner.isDefined) {
-          println()
+          if (DEBUG_SHOW_TURNS) println()
           stateAfter
         } else
           playFullGame(stateAfter, playerWhiteStrategy, playerBlackStrategy)
