@@ -91,7 +91,7 @@ object DataLoader {
     val iy = movesStr.indexWhere(_.contains('@'))
     val ix = movesStr(iy).indexWhere(_ == '@')
 
-    var completePos = List[(Int, Int, Char)]()
+    var completePos = List[(Distance, Char)]()
     var maybeCompleteMovePower = Option.empty[MovePowerComplete]
 
     val simpleMoves: List[Moves] =
@@ -99,17 +99,16 @@ object DataLoader {
         (line, y) <- movesStr.zipWithIndex
         (char, x) <- line.zipWithIndex
         if char != ' ' && char != '@'
-        posX = x - ix
-        posY = y - iy
+        dist = Distance(y - iy, x - ix)
       } yield char match {
-        case 'N' => Moves.MoveOrAttack(posX, posY)
-        case 'M' => Moves.Move(posX, posY)
-        case 'm' => Moves.MoveFromStart(posX, posY)
-        case 'T' => Moves.MoveUnblockable(posX, posY)
-        case 'A' => Moves.Attack(posX, posY)
-        case 'J' => Moves.MoveOrAttackUnblockable(posX, posY)
-        case 'S' => Moves.MoveOrAttackOrSwapAlly(posX, posY)
-        case 'R' => Moves.RangedDestroy(posX, posY)
+        case 'N' => Moves.MoveOrAttack(dist)
+        case 'M' => Moves.Move(dist)
+        case 'm' => Moves.MoveFromStart(dist)
+        case 'T' => Moves.MoveUnblockable(dist)
+        case 'A' => Moves.Attack(dist)
+        case 'J' => Moves.MoveOrAttackUnblockable(dist)
+        case 'S' => Moves.MoveOrAttackOrSwapAlly(dist)
+        case 'R' => Moves.RangedDestroy(dist)
         case '1' | '2' | '3' | '4' =>
           powers.collectFirst {
             case move: MovePower if move.letterOfMove == char => move
@@ -118,9 +117,9 @@ object DataLoader {
             case None =>
               throw new Exception("Unknown 'MovePower' letter: " + char)
             case Some(movePower: MovePower) =>
-              movePower.createMove(posX, posY)
+              movePower.createMove(dist)
             case Some(movePowerComplete: MovePowerComplete) =>
-              completePos = (posX, posY, char) :: completePos
+              completePos = (dist, char) :: completePos
               maybeCompleteMovePower = Some(movePowerComplete)
               Moves.Empty
           }
@@ -129,8 +128,8 @@ object DataLoader {
     simpleMoves.filterNot(_ == Moves.Empty) ++
       maybeCompleteMovePower.map {
         completeMovePower =>
-          completePos.map { case (column, row, char) =>
-            completeMovePower.createMove(column, row, char, completePos)
+          completePos.map { case (distance, char) =>
+            completeMovePower.createMove(distance, char, completePos)
           }
       }.getOrElse(List.empty[Moves])
   }
@@ -146,9 +145,9 @@ object DataLoader {
       case str if str.startsWith("DummyNothingPower ") =>
         Powers.DummyNothingPower(str.drop("DummyNothingPower ".length).head)
       case str if str.startsWith("PromotesTo ") =>
-        val pieceToCkeck = str.drop("PromotesTo ".length)
-        piecesToCheck = pieceToCkeck :: piecesToCheck
-        Powers.PromoteTo(pieceToCkeck)
+        val pieceToCheck = str.drop("PromotesTo ".length)
+        piecesToCheck = pieceToCheck :: piecesToCheck
+        Powers.PromoteTo(pieceToCheck)
       case str if str.startsWith("LoseMoraleOnDeath ") =>
         Powers.LoseMoraleOnDeath(str.drop("LoseMoraleOnDeath ".length).toInt)
       case str if str.startsWith("GainMoraleOnKill ") =>
@@ -186,6 +185,8 @@ object DataLoader {
 
   def loadBoard(file: File): GameState = {
     val lines = Source.fromFile(file).getLines.toVector
+    if (lines.size == 9 && lines(8).nonEmpty || lines.size > 9)
+      throw new Exception(s"file $file has more than 8 lines!")
 
     var gameState = PlayGame.emptyGameState
     for (row <- lines.indices) {

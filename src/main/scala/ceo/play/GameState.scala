@@ -180,12 +180,9 @@ case class GameState(board: Board, playerWhite: Player, playerBlack: Player, cur
       case TaurusRush(piece, pieceToKill, maxDistance) =>
 
         val pieceToKillPos = pieceToKill.pos
-        val rowDiff = pieceToKillPos.row - piece.pos.row
-        val colDiff = pieceToKillPos.column - piece.pos.column
-        val dx = if (colDiff == 0) 0 else if (colDiff < 0) -1 else 1
-        val dy = if (rowDiff == 0) 0 else if (rowDiff < 0) -1 else 1
+        val direction = Distance( pieceToKillPos.row - piece.pos.row,  pieceToKillPos.column - piece.pos.column).toUnitVector
         val positions = BoardPos.List1to8.view(0, maxDistance)
-          .map(distance => BoardPos(pieceToKillPos.row + dy * distance, pieceToKillPos.column + dx * distance))
+          .map(distance => pieceToKillPos + direction * distance)
           .takeWhile(_.isEmpty(board))
         if (positions.lengthCompare(maxDistance) < 0) {
           // Enemy piece is destroyed, taurus stay at edge of board
@@ -216,7 +213,7 @@ case class GameState(board: Board, playerWhite: Player, playerBlack: Player, cur
             .placePiece(pieceToKillUpdated)
         } else {
           // Enemy piece is crushed, taurus stays on the last empty space
-          val taurusPos = positions.find(_.nonEmpty(board)).get - (dy, dx)
+          val taurusPos = positions.find(_.nonEmpty(board)).get - direction
           val updatedState = pieceToKill.destroyed(this)
           val pieceUpdated = piece.copy(
             pos = taurusPos,

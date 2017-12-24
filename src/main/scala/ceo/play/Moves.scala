@@ -2,44 +2,40 @@ package ceo.play
 
 sealed trait Moves {
   def getValidMove(piece: Piece, state: GameState, currentPlayer: Player): Option[PlayerMove]
-
-  //  def dx: Int
-  //
-  //  def dy: Int
 }
 
 object Moves {
 
-  @inline private def hasNoFreezeTypeEffect(piece: Piece): Boolean = {
-    piece.effectStatus.forall {
-      case _: EffectStatus.Petrified => false
-      case _ => true
-    }
-  }
+  //  @inline private def hasNoFreezeTypeEffect(piece: Piece): Boolean = {
+  //    piece.effectStatus.forall {
+  //      case _: EffectStatus.Petrified => false
+  //      case _ => true
+  //    }
+  //  }
 
-  @inline private def canMoveAndSeeEnemy(piece: Piece, target: BoardPos, state: GameState, currentPlayer: Player): Option[Piece] = {
-    if (hasNoFreezeTypeEffect(piece) && piece.pos.allPosUntilAreEmpty(target, state.board))
+  @inline private final def canMoveAndSeeEnemy(piece: Piece, target: BoardPos, state: GameState, currentPlayer: Player): Option[Piece] = {
+    if (piece.pos.allPosUntilAreEmpty(target, state.board))
       target.getPiece(state.board).filter(_.team == currentPlayer.team.enemy)
     else
       None
   }
 
   private def canMove(piece: Piece, target: BoardPos, state: GameState, currentPlayer: Player): Option[PlayerMove.Move] = {
-    if (hasNoFreezeTypeEffect(piece) && piece.pos.allPosToAreEmpty(target, state.board))
+    if (piece.pos.allPosToAreEmpty(target, state.board))
       Some(PlayerMove.Move(piece, target))
     else
       None
   }
 
   private def canMoveUnblockable(piece: Piece, target: BoardPos, state: GameState, currentPlayer: Player): Option[PlayerMove] = {
-    if (hasNoFreezeTypeEffect(piece) && target.isEmpty(state.board))
+    if (target.isEmpty(state.board))
       Some(PlayerMove.Move(piece, target))
     else
       None
   }
 
   private def canMoveFromStart(piece: Piece, target: BoardPos, state: GameState, currentPlayer: Player): Option[PlayerMove] = {
-    if (hasNoFreezeTypeEffect(piece) && !piece.hasMoved)
+    if (!piece.hasMoved)
       canMove(piece, target, state, currentPlayer)
     else
       None
@@ -55,8 +51,8 @@ object Moves {
   }
 
   private def canAttackUnblockable(piece: Piece, target: BoardPos, state: GameState, currentPlayer: Player): Option[PlayerMove] = {
-    (hasNoFreezeTypeEffect(piece), target.getPiece(state.board)) match {
-      case (true, Some(targetPiece)) if targetPiece.team == currentPlayer.team.enemy =>
+    target.getPiece(state.board) match {
+      case Some(targetPiece) if targetPiece.team != currentPlayer.team =>
         Some(PlayerMove.Attack(piece, targetPiece))
       case _ =>
         None
@@ -70,8 +66,8 @@ object Moves {
     currentPlayer: Player,
     condition: Piece => Boolean
   ): Option[PlayerMove] = {
-    (hasNoFreezeTypeEffect(piece), target.getPiece(state.board)) match {
-      case (true, Some(targetPiece)) if targetPiece.team == currentPlayer.team.enemy && condition(targetPiece) =>
+    target.getPiece(state.board) match {
+      case Some(targetPiece) if targetPiece.team == currentPlayer.team.enemy && condition(targetPiece) =>
         Some(PlayerMove.Attack(piece, targetPiece))
       case _ =>
         None
@@ -79,8 +75,8 @@ object Moves {
   }
 
   private def canSwap(piece: Piece, target: BoardPos, state: GameState, currentPlayer: Player): Option[PlayerMove] = {
-    (hasNoFreezeTypeEffect(piece), target.getPiece(state.board)) match {
-      case (true, Some(targetPiece)) if targetPiece.team == currentPlayer.team =>
+    target.getPiece(state.board) match {
+      case Some(targetPiece) if targetPiece.team == currentPlayer.team =>
         Some(PlayerMove.Swap(piece, targetPiece))
       case _ =>
         None
@@ -97,8 +93,8 @@ object Moves {
   }
 
   private def canMagicDestroy(piece: Piece, target: BoardPos, state: GameState, currentPlayer: Player): Option[PlayerMove] = {
-    (hasNoFreezeTypeEffect(piece), target.getPiece(state.board)) match {
-      case (true, Some(targetPiece)) if targetPiece.team == currentPlayer.team.enemy =>
+    target.getPiece(state.board) match {
+      case Some(targetPiece) if targetPiece.team != currentPlayer.team =>
         Some(PlayerMove.MagicDestroy(piece, targetPiece))
       case _ =>
         None
@@ -142,8 +138,8 @@ object Moves {
     state: GameState,
     currentPlayer: Player
   ): Option[PlayerMove] = {
-    (hasNoFreezeTypeEffect(piece), target.getPiece(state.board)) match {
-      case (true, Some(targetPiece)) if targetPiece.team == currentPlayer.team.enemy =>
+    target.getPiece(state.board) match {
+      case Some(targetPiece) if targetPiece.team == currentPlayer.team.enemy =>
         Some(PlayerMove.TransformEnemyIntoAllyUnit(piece, targetPiece, moraleCost, AllyPieceData))
       case _ =>
         None
@@ -156,92 +152,99 @@ object Moves {
     }
   }
 
-  case class MoveOrAttack(dx: Int, dy: Int) extends Moves {
-    def getValidMove(piece: Piece, state: GameState, currentPlayer: Player): Option[PlayerMove] = {
-      Seq(
-        canMove(piece, piece.pos.translate(dx, dy), state, currentPlayer),
-        canAttack(piece, piece.pos.translate(dx, dy), state, currentPlayer)
-      ).flatten.headOption
+  @inline private final def Or(first: Option[PlayerMove], second: => Option[PlayerMove]): Option[PlayerMove] = {
+    first match {
+      case None => second
+      case _ => first
     }
   }
 
-  case class MoveOrAttackUnblockable(dx: Int, dy: Int) extends Moves {
+  case class MoveOrAttack(dist: Distance) extends Moves {
     def getValidMove(piece: Piece, state: GameState, currentPlayer: Player): Option[PlayerMove] = {
-      Seq(
-        canMoveUnblockable(piece, piece.pos.translate(dx, dy), state, currentPlayer),
-        canAttackUnblockable(piece, piece.pos.translate(dx, dy), state, currentPlayer)
-      ).flatten.headOption
+      Or(
+        canMove(piece, piece.pos + dist, state, currentPlayer),
+        canAttack(piece, piece.pos + dist, state, currentPlayer)
+      )
     }
   }
 
-  case class MoveOrAttackOrSwapAlly(dx: Int, dy: Int) extends Moves {
+  case class MoveOrAttackUnblockable(dist: Distance) extends Moves {
     def getValidMove(piece: Piece, state: GameState, currentPlayer: Player): Option[PlayerMove] = {
-      Seq(
-        canMove(piece, piece.pos.translate(dx, dy), state, currentPlayer),
-        canAttack(piece, piece.pos.translate(dx, dy), state, currentPlayer),
-        canSwap(piece, piece.pos.translate(dx, dy), state, currentPlayer)
-      ).flatten.headOption
+      Or(
+        canMoveUnblockable(piece, piece.pos + dist, state, currentPlayer),
+        canAttackUnblockable(piece, piece.pos + dist, state, currentPlayer)
+      )
     }
   }
 
-  //  case class MoveOrAttackOrBlock1Attack(dx: Int, dy: Int) extends Moves
-
-  case class Move(dx: Int, dy: Int) extends Moves {
+  case class MoveOrAttackOrSwapAlly(dist: Distance) extends Moves {
     def getValidMove(piece: Piece, state: GameState, currentPlayer: Player): Option[PlayerMove] = {
-      canMove(piece, piece.pos.translate(dx, dy), state, currentPlayer)
+      Or(
+        canMove(piece, piece.pos + dist, state, currentPlayer),
+        Or(canAttack(piece, piece.pos + dist, state, currentPlayer),
+          canSwap(piece, piece.pos + dist, state, currentPlayer)
+        ))
     }
   }
 
-  case class MoveFromStart(dx: Int, dy: Int) extends Moves {
+  //  case class MoveOrAttackOrBlock1Attack(dist: Distance) extends Moves
+
+  case class Move(dist: Distance) extends Moves {
     def getValidMove(piece: Piece, state: GameState, currentPlayer: Player): Option[PlayerMove] = {
-      canMoveFromStart(piece, piece.pos.translate(dx, dy), state, currentPlayer)
+      canMove(piece, piece.pos + dist, state, currentPlayer)
     }
   }
 
-  case class MoveUnblockable(dx: Int, dy: Int) extends Moves {
+  case class MoveFromStart(dist: Distance) extends Moves {
     def getValidMove(piece: Piece, state: GameState, currentPlayer: Player): Option[PlayerMove] = {
-      canMoveUnblockable(piece, piece.pos.translate(dx, dy), state, currentPlayer)
+      canMoveFromStart(piece, piece.pos + dist, state, currentPlayer)
     }
   }
 
-  case class Attack(dx: Int, dy: Int) extends Moves {
+  case class MoveUnblockable(dist: Distance) extends Moves {
     def getValidMove(piece: Piece, state: GameState, currentPlayer: Player): Option[PlayerMove] = {
-      canAttack(piece, piece.pos.translate(dx, dy), state, currentPlayer)
+      canMoveUnblockable(piece, piece.pos + dist, state, currentPlayer)
     }
   }
 
-  case class RangedDestroy(dx: Int, dy: Int) extends Moves {
+  case class Attack(dist: Distance) extends Moves {
     def getValidMove(piece: Piece, state: GameState, currentPlayer: Player): Option[PlayerMove] = {
-      canRangedDestroy(piece, piece.pos.translate(dx, dy), state, currentPlayer)
+      canAttack(piece, piece.pos + dist, state, currentPlayer)
     }
   }
 
-  case class MagicDestroy(dx: Int, dy: Int) extends Moves {
+  case class RangedDestroy(dist: Distance) extends Moves {
     def getValidMove(piece: Piece, state: GameState, currentPlayer: Player): Option[PlayerMove] = {
-      canMagicDestroy(piece, piece.pos.translate(dx, dy), state, currentPlayer)
+      canRangedDestroy(piece, piece.pos + dist, state, currentPlayer)
     }
   }
 
-  case class RangedPetrify(dx: Int, dy: Int, durationTurns: Int) extends Moves {
+  case class MagicDestroy(dist: Distance) extends Moves {
     def getValidMove(piece: Piece, state: GameState, currentPlayer: Player): Option[PlayerMove] = {
-      canRangedPetrify(piece, piece.pos.translate(dx, dy), durationTurns, state, currentPlayer)
+      canMagicDestroy(piece, piece.pos + dist, state, currentPlayer)
     }
   }
 
-  case class TaurusRush(dx: Int, dy: Int, maxDistance: Int) extends Moves {
+  case class RangedPetrify(dist: Distance, durationTurns: Int) extends Moves {
     def getValidMove(piece: Piece, state: GameState, currentPlayer: Player): Option[PlayerMove] = {
-      canTaurusRush(piece, piece.pos.translate(dx, dy), maxDistance, state, currentPlayer)
+      canRangedPetrify(piece, piece.pos + dist, durationTurns, state, currentPlayer)
     }
   }
 
-  case class TransformEnemyIntoAllyUnit(dx: Int, dy: Int, moraleCost: Int, allyUnitName: String) extends Moves {
+  case class TaurusRush(dist: Distance, maxDistance: Int) extends Moves {
+    def getValidMove(piece: Piece, state: GameState, currentPlayer: Player): Option[PlayerMove] = {
+      canTaurusRush(piece, piece.pos + dist, maxDistance, state, currentPlayer)
+    }
+  }
+
+  case class TransformEnemyIntoAllyUnit(dist: Distance, moraleCost: Int, allyUnitName: String) extends Moves {
     def getValidMove(piece: Piece, state: GameState, currentPlayer: Player): Option[PlayerMove] = {
       val allyUnitPieceData = DataLoader.getPieceData(allyUnitName, piece.data.team)
-      canTransformEnemyIntoAllyUnit(piece, piece.pos.translate(dx, dy), moraleCost, allyUnitPieceData, state, currentPlayer)
+      canTransformEnemyIntoAllyUnit(piece, piece.pos + dist, moraleCost, allyUnitPieceData, state, currentPlayer)
     }
   }
 
-  case class Castling(posAllyPiece: BoardPos, posAfterKing: BoardPos, posAfterAllyPiece: BoardPos) extends Moves {
+  case class Castling(posAllyPiece: Distance, posAfterKing: Distance, posAfterAllyPiece: Distance) extends Moves {
     def getValidMove(piece: Piece, state: GameState, currentPlayer: Player): Option[PlayerMove] = {
       (canMove(piece, piece.pos + posAfterKing, state, currentPlayer), allyAt(piece.pos + posAllyPiece, state, currentPlayer)) match {
         case (Some(kingMove), Some(allyPiece)) if !allyPiece.data.isMinion =>
@@ -252,9 +255,9 @@ object Moves {
     }
   }
 
-  case class JumpMinion(dx: Int, dy: Int) extends Moves {
+  case class JumpMinion(dist: Distance) extends Moves {
     def getValidMove(piece: Piece, state: GameState, currentPlayer: Player): Option[PlayerMove] = {
-      canAttackUnblockableConditional(piece, piece.pos.translate(dx, dy), state, currentPlayer, _.data.isMinion)
+      canAttackUnblockableConditional(piece, piece.pos + dist, state, currentPlayer, _.data.isMinion)
     }
   }
 

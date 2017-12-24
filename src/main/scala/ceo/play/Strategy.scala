@@ -35,7 +35,7 @@ object Strategy {
   case class MinMaxStrategy(movesToLookAhead: Int) extends Strategy {
     private val MaxValue = 1e9.toInt
 
-    case class Node(state: GameState, nextStates: List[(Int, GameState)], value: Int)
+    case class Node(state: GameState, nextStates: List[(Int, PlayerMove)], value: Int)
 
     //    var countNodes = 0
     //    var countBranches = 0
@@ -43,11 +43,11 @@ object Strategy {
     override def chooseMove(startingState: GameState): Option[GameState] = {
       val currentPlayer = startingState.getCurrentPlayer.team
 
-//      val levelsCount = Array.ofDim[Int](movesToLookAhead + 1)
-//      var hit = 0
+      //      val levelsCount = Array.ofDim[Int](movesToLookAhead + 1)
+      //      var hit = 0
 
       def createTree(state: GameState, depth: Int, maximize: Boolean): Node = {
-//        levelsCount(depth) += 1
+        //        levelsCount(depth) += 1
 
         if (depth == 0 || state.winner.isDefined) {
           val value = state.valueOfState(currentPlayer)
@@ -58,21 +58,27 @@ object Strategy {
           else
             Node(state, Nil, value)
         } else {
-          val states = state.getCurrentPlayerMoves.map(state.playPlayerMove)
+          val playerMoves = state.getCurrentPlayerMoves
+          val states = playerMoves.map(state.playPlayerMove)
           if (states.isEmpty)
             println(state)
-//          else if (depth == movesToLookAhead)
-//            println("total: " + states.length)
+          //          else if (depth == movesToLookAhead)
+          //            println("total: " + states.length)
 
           val subTrees = states
             .map(state => createTree(state, depth - 1, !maximize))
 
-//          hit += 1
-//          if (hit % 10000 == 0)
-//            println(levelsCount.toList)
+          //          hit += 1
+          //          if (hit % 10000 == 0)
+          //            println(levelsCount.toList)
 
-          val finalValue = if (maximize) subTrees.maxBy(_.value).value else subTrees.minBy(_.value).value
-          Node(state, if (depth == movesToLookAhead) subTrees.map(node => (node.value, node.state)) else Nil, finalValue)
+          val finalValue = if (maximize) subTrees.view.map(_.value).max else subTrees.view.map(_.value).min
+          val nextStates =
+            if (depth == movesToLookAhead)
+              subTrees.zip(playerMoves).map{ case (node, move) => (node.value, move) }
+            else
+              Nil
+          Node(state, nextStates, finalValue)
         }
       }
 
@@ -84,8 +90,10 @@ object Strategy {
       val bestMoves =
         statesSorted.count(_._1 == statesSorted.head._1)
 
-      println(statesSorted.map { case (value, state) => (value, state.movesHistory.head) }.mkString("\n"))
-      Some(statesSorted(random.nextInt(bestMoves))._2)
+      println(statesSorted.mkString("\n"))
+      val endMove = statesSorted(random.nextInt(bestMoves))._2
+      val endState = startingState.playPlayerMove(endMove)
+      Some(endState)
     }
   }
 
