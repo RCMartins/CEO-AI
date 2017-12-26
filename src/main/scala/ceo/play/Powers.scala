@@ -32,9 +32,9 @@ object Powers {
 
   case class DecayAfterTurn(turnStarts: Int, moralePerTurn: Int) extends Powers
 
-  case class Immune(immuneList: List[String]) extends Powers
+  case class ImmuneTo(immuneList: List[EffectStatusType]) extends Powers
 
-  case class DestroyedBy(destroyedBy: List[String]) extends Powers
+  case class DestroyedBy(destroyedBy: List[EffectStatusType]) extends Powers
 
   case object SuicideOnKill extends Powers
 
@@ -50,6 +50,10 @@ object Powers {
 
   case class RangedPetrifyMovePower(letterOfMove: Char, durationTurns: Int) extends MovePower {
     override def createMove(dist: Distance): Moves = RangedPetrify(dist, durationTurns)
+  }
+
+  case class MagicPoisonMovePower(letterOfMove: Char, durationTurns: Int) extends MovePower {
+    override def createMove(dist: Distance): Moves = MagicPoison(dist, durationTurns)
   }
 
   case class TaurusRushMovePower(letterOfMove: Char, maxDistance: Int) extends MovePower {

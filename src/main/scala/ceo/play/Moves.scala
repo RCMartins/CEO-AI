@@ -4,18 +4,12 @@ sealed trait Moves {
   def getValidMove(piece: Piece, state: GameState, currentPlayer: Player): Option[PlayerMove]
 }
 
-object Moves {
 
-  //  @inline private def hasNoFreezeTypeEffect(piece: Piece): Boolean = {
-  //    piece.effectStatus.forall {
-  //      case _: EffectStatus.Petrified => false
-  //      case _ => true
-  //    }
-  //  }
+object Moves {
 
   @inline private final def canMoveAndSeeEnemy(piece: Piece, target: BoardPos, state: GameState, currentPlayer: Player): Option[Piece] = {
     if (piece.pos.allPosUntilAreEmpty(target, state.board))
-      target.getPiece(state.board).filter(_.team == currentPlayer.team.enemy)
+      target.getPiece(state.board).filter(_.team != currentPlayer.team)
     else
       None
   }
@@ -67,7 +61,7 @@ object Moves {
     condition: Piece => Boolean
   ): Option[PlayerMove] = {
     target.getPiece(state.board) match {
-      case Some(targetPiece) if targetPiece.team == currentPlayer.team.enemy && condition(targetPiece) =>
+      case Some(targetPiece) if targetPiece.team != currentPlayer.team && condition(targetPiece) =>
         Some(PlayerMove.Attack(piece, targetPiece))
       case _ =>
         None
@@ -111,6 +105,21 @@ object Moves {
     canMoveAndSeeEnemy(piece, target, state, currentPlayer) match {
       case Some(targetPiece) =>
         Some(PlayerMove.RangedPetrify(piece, targetPiece, durationTurns))
+      case _ =>
+        None
+    }
+  }
+
+  private def canMagicPoison(
+    piece: Piece,
+    target: BoardPos,
+    durationTurns: Int,
+    state: GameState,
+    currentPlayer: Player
+  ): Option[PlayerMove] = {
+    target.getPiece(state.board) match {
+      case Some(targetPiece) if targetPiece.team != currentPlayer.team && !targetPiece.isPoisoned =>
+        Some(PlayerMove.MagicPoison(piece, targetPiece, durationTurns))
       case _ =>
         None
     }
@@ -228,6 +237,12 @@ object Moves {
   case class RangedPetrify(dist: Distance, durationTurns: Int) extends Moves {
     def getValidMove(piece: Piece, state: GameState, currentPlayer: Player): Option[PlayerMove] = {
       canRangedPetrify(piece, piece.pos + dist, durationTurns, state, currentPlayer)
+    }
+  }
+
+  case class MagicPoison(dist: Distance, durationTurns: Int) extends Moves {
+    def getValidMove(piece: Piece, state: GameState, currentPlayer: Player): Option[PlayerMove] = {
+      canMagicPoison(piece, piece.pos + dist, durationTurns, state, currentPlayer)
     }
   }
 

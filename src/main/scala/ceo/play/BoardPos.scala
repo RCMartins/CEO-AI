@@ -34,6 +34,16 @@ class BoardPos private(val row: Int, val column: Int) {
     val maxDist = Math.max(Math.abs(colDiff), Math.abs(rowDiff)) - 1
     List1to8.view(0, maxDist).forall(distance => BoardPos(row + dy * distance, column + dx * distance).isEmpty(board))
   }
+
+  def canEqual(other: Any): Boolean = other.isInstanceOf[BoardPos]
+
+  override def equals(other: Any): Boolean = other match {
+    case that: BoardPos =>
+      (that canEqual this) && row == that.row && column == that.column
+    case _ => false
+  }
+
+  override def hashCode(): Int = row * 8 + column
 }
 
 object BoardPos {

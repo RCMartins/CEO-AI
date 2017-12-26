@@ -152,6 +152,10 @@ object DataLoader {
         Powers.LoseMoraleOnDeath(str.drop("LoseMoraleOnDeath ".length).toInt)
       case str if str.startsWith("GainMoraleOnKill ") =>
         Powers.GainMoraleOnKill(str.drop("GainMoraleOnKill ".length).toInt)
+      case str if str.startsWith("OnKillTransform ") =>
+        val pieceToCheck = str.drop("OnKillTransform ".length)
+        piecesToCheck = pieceToCheck :: piecesToCheck
+        Powers.OnKillTransform(pieceToCheck)
       // Multiple-arg Powers:
       case str if str.startsWith("DecayAfterTurn ") =>
         val List(turnStarts, moralePerTurn) = str.drop("DecayAfterTurn ".length).split(" ").toList

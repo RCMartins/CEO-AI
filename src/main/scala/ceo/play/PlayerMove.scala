@@ -39,7 +39,13 @@ object PlayerMove {
   }
 
   case class RangedPetrify(piece: Piece, pieceToPetrify: Piece, turnsPetrified: Int) extends PlayerMove {
-    def betterHumanString: String = s"$piece ranged-petrifies $pieceToPetrify   ${pieceToPetrify.pos - piece.pos}"
+    def betterHumanString: String = s"$piece ranged-petrifies $pieceToPetrify " +
+      s"for $turnsPetrified turns  ${pieceToPetrify.pos - piece.pos}"
+  }
+
+  case class MagicPoison(piece: Piece, pieceToPoison: Piece, turnsToDeath: Int) extends PlayerMove {
+    def betterHumanString: String = s"$piece magic-poisoned $pieceToPoison " +
+      s"killing it in $turnsToDeath turns  ${pieceToPoison.pos - piece.pos}"
   }
 
   case class TransformEnemyIntoAllyUnit(

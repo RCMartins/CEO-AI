@@ -50,10 +50,26 @@ case class Piece(
 
   def destroyed(currentState: GameState): GameState = {
     loseMoraleOnDeath(currentState)
+
+  def afterPoisonPiece(pieceToPoison: Piece, turnsToDeath: Int, currentState: GameState): (GameState, Piece, Piece) = {
+    val turnOfDeath = currentState.currentTurn + turnsToDeath
+    (currentState, this, pieceToPoison.addEffect(EffectStatus.Poison(turnOfDeath)))
   }
 
   def petrify(currentState: GameState, turnsPetrified: Int): Piece = {
     copy(effectStatus = Petrified(currentState.currentTurn + turnsPetrified) :: effectStatus)
+  }
+
+  def addEffect(effect: EffectStatus): Piece = copy(effectStatus = effect :: effectStatus)
+
+  def isPoisoned: Boolean = effectStatus.collectFirst { case poison: EffectStatus.Poison => poison }.isDefined
+
+  def isNotFrozenOrPetrified: Boolean = {
+    effectStatus.forall {
+      case _: EffectStatus.Petrified => false
+      case _: EffectStatus.Frozen => false
+      case _ => true
+    }
   }
 
 }

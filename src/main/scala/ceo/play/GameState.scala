@@ -46,7 +46,10 @@ case class GameState(board: Board, playerWhite: Player, playerBlack: Player, cur
     * updatePiece(piece1, piece2) === removePiece(piece1).placePiece(piece2)
     */
   def updatePiece(piece: Piece, pieceNewPos: Piece): GameState = {
-    removePiece(piece).placePiece(pieceNewPos)
+    if (piece eq pieceNewPos)
+      this
+    else
+      removePiece(piece).placePiece(pieceNewPos)
   }
 
   /**
@@ -102,8 +105,11 @@ case class GameState(board: Board, playerWhite: Player, playerBlack: Player, cur
     val currentPlayer: Player = getCurrentPlayer
 
     currentPlayer.pieces.flatMap { piece =>
-      piece.data.moves
-        .flatMap(_.getValidMove(piece, this, currentPlayer))
+      if (piece.isNotFrozenOrPetrified)
+        piece.data.moves
+          .flatMap(_.getValidMove(piece, this, currentPlayer))
+      else
+        List.empty
     }
   }
 
