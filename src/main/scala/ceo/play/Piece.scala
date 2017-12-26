@@ -4,9 +4,9 @@ import ceo.play.EffectStatus._
 
 case class Piece(
   data: PieceData,
+  startingPosition: BoardPos,
   pos: BoardPos,
   currentMorale: Int,
-  hasMoved: Boolean,
   effectStatus: List[EffectStatus]
 ) {
 
@@ -32,7 +32,7 @@ case class Piece(
     }
   }
 
-  private def loseMoraleOnDeath(currentState: GameState): GameState = {
+  private def loseMoraleOnDeathIfPossible(currentState: GameState): GameState = {
     data.powers.collectFirst { case LoseMoraleOnDeath(amount) => amount } match {
       case None => currentState
       case Some(amount) => currentState.changeMorale(team, -amount)
@@ -43,13 +43,14 @@ case class Piece(
     copy(pos = target).promoteIfPossible(currentState)
   }
 
-  def killed(pieceToKill: Piece, currentState: GameState): (Piece, GameState) = {
-    val updatedState = pieceToKill.loseMoraleOnDeath(currentState)
+  def afterMeleeKill(pieceToKill: Piece, currentState: GameState): (Piece, GameState) = {
+    val updatedState = pieceToKill.loseMoraleOnDeathIfPossible(currentState)
     (copy(pos = pieceToKill.pos).promoteIfPossible(updatedState), updatedState)
   }
 
-  def destroyed(currentState: GameState): GameState = {
-    loseMoraleOnDeath(currentState)
+  def afterMagicKill(pieceToKill: Piece, currentState: GameState): GameState = {
+    pieceToKill.loseMoraleOnDeathIfPossible(currentState)
+  }
 
   def afterPoisonPiece(pieceToPoison: Piece, turnsToDeath: Int, currentState: GameState): (GameState, Piece, Piece) = {
     val turnOfDeath = currentState.currentTurn + turnsToDeath
@@ -76,5 +77,5 @@ case class Piece(
 
 object Piece {
   def apply(data: PieceData, pos: BoardPos): Piece =
-    Piece(data, pos, data.initialMorale, hasMoved = false, effectStatus = Nil)
+    Piece(data, pos, pos, data.initialMorale, effectStatus = List.empty)
 }

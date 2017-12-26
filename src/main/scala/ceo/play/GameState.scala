@@ -127,53 +127,49 @@ case class GameState(board: Board, playerWhite: Player, playerBlack: Player, cur
     import PlayerMove._
 
     val newState = move match {
+      // Standard moves:
       case Move(piece, target) =>
-        val pieceNewPos = piece.moveTo(target, this).copy(hasMoved = true)
+        val pieceNewPos = piece.moveTo(target, this)
         updatePiece(piece, pieceNewPos)
       case Attack(piece, pieceToKill) =>
-        val (pieceNewPos, updatedState) = piece.killed(pieceToKill, this)
-        val pieceUpdated = pieceNewPos.copy(hasMoved = true)
-
+        val (pieceNewPos, updatedState) = piece.afterMeleeKill(pieceToKill, this)
         updatedState
           .removePiece(pieceToKill)
-          .updatePiece(piece, pieceUpdated)
+          .updatePiece(piece, pieceNewPos)
       case Swap(piece, pieceToSwap) =>
         val updatedState = this.removePiece(piece).removePiece(pieceToSwap)
 
-        val pieceToSwapUpdated = pieceToSwap.moveTo(piece.pos, updatedState).copy(hasMoved = true)
-        val pieceUpdated = piece.moveTo(pieceToSwap.pos, updatedState).copy(hasMoved = true)
+        val pieceToSwapUpdated = pieceToSwap.moveTo(piece.pos, updatedState)
+        val pieceUpdated = piece.moveTo(pieceToSwap.pos, updatedState)
 
         updatedState
           .placePiece(pieceUpdated)
           .placePiece(pieceToSwapUpdated)
+      // Ranged moves:
       case RangedDestroy(piece, pieceToKill) =>
-        val updatedState = pieceToKill.destroyed(this)
-        val pieceUpdated = piece.copy(hasMoved = true)
+        val updatedState = piece.afterMagicKill(pieceToKill, this)
         updatedState
           .removePiece(pieceToKill)
-          .updatePiece(piece, pieceUpdated)
-      case MagicDestroy(piece, pieceToKill) =>
-        val updatedState = pieceToKill.destroyed(this)
-        val pieceUpdated = piece.copy(hasMoved = true)
-        updatedState
-          .removePiece(pieceToKill)
-          .updatePiece(piece, pieceUpdated)
       case RangedPetrify(piece, pieceToPetrify, turnsPetrified) =>
         val pieceToPetrifyUpdated = pieceToPetrify.petrify(this, turnsPetrified)
-        val pieceUpdated = piece.copy(hasMoved = true)
         this
           .updatePiece(pieceToPetrify, pieceToPetrifyUpdated)
-          .updatePiece(piece, pieceUpdated)
+      // Magic moves:
+      case MagicDestroy(piece, pieceToKill) =>
+        val updatedState = piece.afterMagicKill(pieceToKill, this)
+        updatedState
+          .removePiece(pieceToKill)
+      case MagicPoison(piece, pieceToPoison, turnsToDeath) =>
+        val (updatedState, updatedPiece, updatedPoisonedPiece) = piece.afterPoisonPiece(pieceToPoison, turnsToDeath, this)
+        updatedState
+          .updatePiece(piece, updatedPiece)
+          .updatePiece(pieceToPoison, updatedPoisonedPiece)
       case TransformEnemyIntoAllyUnit(piece, pieceToTransform, moraleCost, allyPieceData) =>
-        val updatedState = pieceToTransform.destroyed(this)
-        val pieceUpdated = piece.copy(hasMoved = true)
+        val updatedState = piece.afterMagicKill(pieceToTransform, this)
         val newPiece = Piece(allyPieceData, pieceToTransform.pos)
         updatedState
           .changeMorale(piece.team, -moraleCost)
           .updatePiece(pieceToTransform, newPiece)
-          .updatePiece(piece, pieceUpdated)
-      case MultiMove(move1, move2) =>
-        playPlayerMove(move1).playPlayerMove(move2)
       case KingDoesCastling(kingPiece, allyPiece, kingTarget, allyTarget) =>
         // TODO: for now this is simplified because it can only affect champions?
         val KingWithoutCastling = DataLoader
@@ -184,34 +180,24 @@ case class GameState(board: Board, playerWhite: Player, playerBlack: Player, cur
           .updatePiece(allyPiece, allyPiece.copy(pos = allyTarget))
           .updatePiece(kingPiece, KingWithoutCastling)
       case TaurusRush(piece, pieceToKill, maxDistance) =>
-
         val pieceToKillPos = pieceToKill.pos
-        val direction = Distance( pieceToKillPos.row - piece.pos.row,  pieceToKillPos.column - piece.pos.column).toUnitVector
+        val direction = Distance(pieceToKillPos.row - piece.pos.row, pieceToKillPos.column - piece.pos.column).toUnitVector
         val positions = BoardPos.List1to8.view(0, maxDistance)
           .map(distance => pieceToKillPos + direction * distance)
           .takeWhile(_.isEmpty(board))
         if (positions.lengthCompare(maxDistance) < 0) {
           // Enemy piece is destroyed, taurus stay at edge of board
           val taurusPos = if (positions.isEmpty) pieceToKill.pos else positions.last
-          val updatedState = pieceToKill.destroyed(this)
-          val pieceUpdated = piece.copy(
-            pos = taurusPos,
-            hasMoved = true
-          )
+          val updatedState = piece.afterMagicKill(pieceToKill, this)
+          val pieceUpdated = piece.copy(pos = taurusPos)
           updatedState
             .removePiece(piece)
             .removePiece(pieceToKill)
             .placePiece(pieceUpdated)
         } else if (positions.forall(_.isEmpty(board))) {
           // Enemy piece is moved, taurus stay one space before enemy piece
-          val pieceToKillUpdated = pieceToKill.copy(
-            pos = positions.last,
-            hasMoved = true
-          )
-          val pieceUpdated = piece.copy(
-            pos = positions.init.last,
-            hasMoved = true
-          )
+          val pieceToKillUpdated = pieceToKill.copy(pos = positions.last)
+          val pieceUpdated = piece.copy(pos = positions.init.last)
           this
             .removePiece(piece)
             .removePiece(pieceToKill)
@@ -220,16 +206,15 @@ case class GameState(board: Board, playerWhite: Player, playerBlack: Player, cur
         } else {
           // Enemy piece is crushed, taurus stays on the last empty space
           val taurusPos = positions.find(_.nonEmpty(board)).get - direction
-          val updatedState = pieceToKill.destroyed(this)
-          val pieceUpdated = piece.copy(
-            pos = taurusPos,
-            hasMoved = true
-          )
+          val updatedState = piece.afterMagicKill(pieceToKill, this)
+          val pieceUpdated = piece.copy(pos = taurusPos)
           updatedState
             .removePiece(piece)
             .removePiece(pieceToKill)
             .placePiece(pieceUpdated)
         }
+      case MultiMove(move1, move2) =>
+        playPlayerMove(move1).playPlayerMove(move2)
       case DummyMove(_) => this
     }
 

@@ -4,9 +4,11 @@ import ceo.play.PlayerTeam.{Black, White}
 
 sealed trait PlayerTeam {
 
+  self =>
+
   val letter: Char
 
-  def enemy: PlayerTeam = if (this == White) Black else White
+  val enemy: PlayerTeam = if (self == White) Black else White
 
   def chooseWhiteBlack[A](whiteBranch: A, blackBranch: A): A = if (this == White) whiteBranch else blackBranch
 }
@@ -29,6 +31,7 @@ case class Player(
   team: PlayerTeam,
   morale: Int,
   pieces: List[Piece] = List.empty,
+  piecesAffected: List[Piece] = List.empty,
   numberOfPieces: Int,
   hasKing: Boolean = false
 ) {
@@ -39,16 +42,24 @@ case class Player(
 
   def removePiece(piece: Piece): Player = {
     if (piece.data.isKing)
-      copy(pieces = pieces.filterNot(_ == piece), numberOfPieces = numberOfPieces - 1, hasKing = false)
+      copy(pieces = pieces.filterNot(_ eq piece), piecesAffected = pieces.filterNot(_ eq piece), numberOfPieces = numberOfPieces - 1, hasKing = false)
     else
-      copy(pieces = pieces.filterNot(_ == piece), numberOfPieces = numberOfPieces - 1)
+      copy(pieces = pieces.filterNot(_ eq piece), piecesAffected = pieces.filterNot(_ eq piece), numberOfPieces = numberOfPieces - 1)
   }
 
   def placePiece(piece: Piece): Player = {
-    if (piece.data.isKing)
-      copy(pieces = piece :: pieces, numberOfPieces = numberOfPieces + 1, hasKing = true)
-    else
-      copy(pieces = piece :: pieces, numberOfPieces = numberOfPieces + 1)
+    val isAffected = piece.effectStatus.nonEmpty
+    if (piece.data.isKing) {
+      if (isAffected)
+        copy(piecesAffected = piece :: pieces, numberOfPieces = numberOfPieces + 1, hasKing = true)
+      else
+        copy(pieces = piece :: pieces, numberOfPieces = numberOfPieces + 1, hasKing = true)
+    } else {
+      if (isAffected)
+        copy(piecesAffected = piece :: pieces, numberOfPieces = numberOfPieces + 1)
+      else
+        copy(pieces = piece :: pieces, numberOfPieces = numberOfPieces + 1)
+    }
   }
 
   def inBaseRow(pos: BoardPos): Boolean = pos.row == (if (team == White) 7 else 0)

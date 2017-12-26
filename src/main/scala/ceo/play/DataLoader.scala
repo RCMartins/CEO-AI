@@ -89,6 +89,8 @@ object DataLoader {
 
   def loadMoves(movesStr: List[String], powers: List[Powers]): List[Moves] = {
     val iy = movesStr.indexWhere(_.contains('@'))
+    if (iy == -1)
+      throw new Exception("moves needs to contain @ character to define piece position.")
     val ix = movesStr(iy).indexWhere(_ == '@')
 
     var completePos = List[(Distance, Char)]()
@@ -160,16 +162,19 @@ object DataLoader {
       case str if str.startsWith("DecayAfterTurn ") =>
         val List(turnStarts, moralePerTurn) = str.drop("DecayAfterTurn ".length).split(" ").toList
         Powers.DecayAfterTurn(turnStarts.toInt, moralePerTurn.toInt)
-      case str if str.startsWith("Immune ") =>
-        Powers.Immune(str.drop("Immune ".length).split(" ").toList)
+      case str if str.startsWith("ImmuneTo ") =>
+        Powers.ImmuneTo(str.drop("ImmuneTo ".length).split(" ").toList.map(EffectStatusType.apply))
       case str if str.startsWith("DestroyedBy ") =>
-        Powers.DestroyedBy(str.drop("DestroyedBy ".length).split(" ").toList)
+        Powers.DestroyedBy(str.drop("DestroyedBy ".length).split(" ").toList.map(EffectStatusType.apply))
       // Move Powers:
       case str if str.startsWith("MagicDestroy ") && str.length == "MagicDestroy ".length + 1 =>
         Powers.MagicDestroyMovePower(str.takeRight(1).head)
       case str if str.startsWith("RangedPetrify ") =>
         val List(letterStr, duration) = str.drop("RangedPetrify ".length).split(" ").toList
         Powers.RangedPetrifyMovePower(letterStr.head, duration.toInt)
+      case str if str.startsWith("MagicPoison ") =>
+        val List(letterStr, duration) = str.drop("MagicPoison ".length).split(" ").toList
+        Powers.MagicPoisonMovePower(letterStr.head, duration.toInt)
       case str if str.startsWith("TaurusRush ") =>
         val List(letterStr, maxDistance) = str.drop("TaurusRush ".length).split(" ").toList
         Powers.TaurusRushMovePower(letterStr.head, maxDistance.toInt)

@@ -29,7 +29,7 @@ object Moves {
   }
 
   private def canMoveFromStart(piece: Piece, target: BoardPos, state: GameState, currentPlayer: Player): Option[PlayerMove] = {
-    if (!piece.hasMoved)
+    if (piece.pos == piece.startingPosition)
       canMove(piece, target, state, currentPlayer)
     else
       None
