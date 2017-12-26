@@ -1,31 +1,6 @@
 package ceo.play
 
-import ceo.play.PlayerTeam.{Black, White}
-
-sealed trait PlayerTeam {
-
-  self =>
-
-  val letter: Char
-
-  val enemy: PlayerTeam = if (self == White) Black else White
-
-  def chooseWhiteBlack[A](whiteBranch: A, blackBranch: A): A = if (this == White) whiteBranch else blackBranch
-}
-
-object PlayerTeam {
-
-  case object White extends PlayerTeam {
-    val letter = 'W'
-  }
-
-  case object Black extends PlayerTeam {
-    val letter = 'B'
-  }
-
-  def apply(str: String): PlayerTeam = if (str == "White") White else if (str == "Black") Black else ???
-
-}
+import ceo.play.PlayerTeam.White
 
 case class Player(
   team: PlayerTeam,

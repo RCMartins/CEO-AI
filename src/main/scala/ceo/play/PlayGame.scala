@@ -29,13 +29,14 @@ object PlayGame {
           if (index % 1 == 0) println(index + "...")
           playFullGame(startingState, playerWhiteStrategy, playerBlackStrategy)
         })
-        .map(finalState => (finalState, finalState.winner.get))
+        .map(finalState => (finalState, finalState.winner))
 
     val minWinState = playSomeMatches.minBy(_._1.currentTurn)._1
     val maxWinState = playSomeMatches.maxBy(_._1.currentTurn)._1
-    val whiteWins = playSomeMatches.count(_._2 == White)
-    val blackWins = playSomeMatches.count(_._2 == Black)
-    println(s"White: $whiteWins, Black: $blackWins")
+    val whiteWins = playSomeMatches.count(_._2 == PlayerWinType.PlayerWhite)
+    val blackWins = playSomeMatches.count(_._2 == PlayerWinType.PlayerBlack)
+    val draws = playSomeMatches.count(_._2 == PlayerWinType.Draw)
+    println(s"White: $whiteWins, Black: $blackWins, Draw: $draws")
     println(s"Min turn game: ${minWinState.currentTurn}\n$minWinState\n${minWinState.movesHistory.mkString("\n")}\n")
     println(s"Max turn game: ${maxWinState.currentTurn}\n$maxWinState\n${maxWinState.movesHistory.mkString("\n")}")
 
@@ -83,7 +84,7 @@ object PlayGame {
         //          println(stateAfter.movesHistory.mkString("\n"))
         //        } else
         if (DEBUG_SHOW_TURNS) print(stateAfter.currentTurn + " ")
-        if (stateAfter.winner.isDefined) {
+        if (stateAfter.winner != PlayerWinType.NotFinished) {
           if (DEBUG_SHOW_TURNS) println()
           stateAfter
         } else
@@ -100,7 +101,7 @@ object PlayGame {
         case Some(stateAfter) =>
           println(stateAfter)
           println("Move made: " + stateAfter.movesHistory.head + "\n")
-          if (stateAfter.winner.isDefined) {
+          if (stateAfter.winner != PlayerWinType.NotFinished) {
             println("GAME OVER")
             stateAfter
           } else {

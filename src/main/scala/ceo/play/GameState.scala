@@ -113,13 +113,19 @@ case class GameState(board: Board, playerWhite: Player, playerBlack: Player, cur
     }
   }
 
-  def winner: Option[PlayerTeam] = {
-    if (playerWhite.morale == 0) {
-      Some(Black)
+  /**
+    * TODO It's possible to draw a game, and it's not that far-fetched...
+    * Example: Having a unit killing a bomber unit, if both players reach 0 morale in that play -> draw
+    */
+  def winner: PlayerWinType = {
+    if (playerWhite.morale == 0 && playerBlack.morale == 0) {
+      PlayerWinType.Draw
+    } else if (playerWhite.morale == 0) {
+      PlayerWinType.PlayerBlack
     } else if (playerBlack.morale == 0) {
-      Some(White)
+      PlayerWinType.PlayerWhite
     } else {
-      None
+      PlayerWinType.NotFinished
     }
   }
 
@@ -239,17 +245,19 @@ case class GameState(board: Board, playerWhite: Player, playerBlack: Player, cur
 
   def getNextPlayer: Player = if (currentTurn == currentTurn.toInt) playerBlack else playerWhite
 
+  @inline private final val MaxValue: Int = 1e9.toInt
+
   def valueOfState(team: PlayerTeam): Int = {
-    val MaxValue = 1e9.toInt
 
     winner match {
-      case None =>
+      case PlayerWinType.NotFinished =>
         val whitePoints = playerWhite.morale * 10 + playerWhite.numberOfPieces
         val blackPoints = playerBlack.morale * 10 + playerBlack.numberOfPieces
 
         team.chooseWhiteBlack(whitePoints - blackPoints, blackPoints - whitePoints)
-      case Some(winningTeam) if winningTeam == team => MaxValue
-      case Some(winningTeam) if winningTeam != team => -MaxValue
+      case PlayerWinType.PlayerWhite => if (team == White) MaxValue else -MaxValue
+      case PlayerWinType.PlayerBlack => if (team == Black) MaxValue else -MaxValue
+      case PlayerWinType.Draw => -MaxValue / 2
     }
   }
 
