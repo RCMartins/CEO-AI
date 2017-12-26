@@ -45,10 +45,14 @@ object DataLoader {
   def loadFile(file: File): Unit = {
     val br = new BufferedReader(new StringReader(Source.fromFile(file).getLines.mkString("\n")))
 
+    var names: List[PieceData] = List.empty
+
     def loadUnits(): Unit = {
       val gamePieces = loadUnit(file.getName, br)
       gamePieces.foreach {
         gamePiece =>
+          if (gamePiece.team == White)
+            names = gamePiece :: names
           units.put(gamePiece.name, gamePiece)
       }
       if (gamePieces.nonEmpty)
@@ -56,6 +60,22 @@ object DataLoader {
     }
 
     loadUnits()
+
+    val namesRev = names.reverse
+    val namesSorted = names.sortBy(_.nameWithTier)
+    if (names.lengthCompare(names.distinct.size) != 0) {
+      System.err.println(s"There are duplicated piece names in $file:")
+      System.err.println(namesSorted.zip(namesSorted.distinct).find { case (a, b) => a != b }.get._1)
+      ???
+    }
+
+    if (namesRev != namesSorted) {
+      System.err.println(s"Pieces not in alphabetic order in $file:")
+      System.err.println(namesRev.map(_.name))
+      System.err.println("Should be:")
+      System.err.println(namesSorted)
+      ???
+    }
   }
 
   def loadUnit(fileName: String, br: BufferedReader): Seq[PieceData] = {
@@ -69,6 +89,9 @@ object DataLoader {
       Seq.empty
     else {
       val List(name, morale) = firstLine.split(" ").toList
+      if ("[A-Z][a-zA-Z\\-]+(\\+){0,3}".r.findAllIn(name).isEmpty)
+        throw new Exception(s"Piece name is not valid: '$name' in $fileName")
+
       br.readLine()
       val movesStr = Stream.continually(readLine(false)).takeWhile(!_.startsWith("-" * 3)).toList
       val powersStr = Stream.continually(readLine()).takeWhile(!_.startsWith("-" * 20)).toList

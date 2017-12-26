@@ -15,6 +15,12 @@ case class PieceData(
 
   def createPiece(pos: BoardPos): Piece = Piece(this, pos)
 
+  val simpleName: String = name.takeWhile(c => c.isLetter || c == '-')
+
+  val tier: Int = name.count(_ == '+')
+
+  def nameWithTier: String = s"$simpleName-$tier"
+
   val isKing: Boolean = name.startsWith("King")
 
   val isGhost: Boolean = powers.exists {

@@ -53,19 +53,6 @@ AANN@NNAA
     A
 ---
 --------------------
-Demon 10
----
-    N
-    N
-   TNT
-  T N T
-NNNN@NNNN
-  T N T
-   TNT
-    N
-    N
----
---------------------
 Bishop 9
 ---
 N             N
@@ -140,6 +127,19 @@ N             N
   N         N
  N           N
 N             N
+---
+--------------------
+Demon 10
+---
+    N
+    N
+   TNT
+  T N T
+NNNN@NNNN
+  T N T
+   TNT
+    N
+    N
 ---
 --------------------
 Dragon 16
