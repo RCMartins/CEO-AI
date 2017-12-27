@@ -48,7 +48,7 @@ object PlayerMove {
       s"killing it in $turnsToDeath turns  ${pieceToPoison.pos - piece.pos}"
   }
 
-  case class TransformEnemyIntoAllyUnit(
+  case class TransformEnemyIntoAllyPiece(
     piece: Piece,
     pieceToTransform: Piece,
     moraleCost: Int,

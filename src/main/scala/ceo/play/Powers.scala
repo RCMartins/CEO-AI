@@ -60,8 +60,8 @@ object Powers {
     override def createMove(dist: Distance): Moves = TaurusRush(dist, maxDistance)
   }
 
-  case class TransformIntoAllyMovePower(letterOfMove: Char, moraleCost: Int, allyUnitName: String) extends MovePower {
-    override def createMove(dist: Distance): Moves = TransformEnemyIntoAllyUnit(dist, moraleCost, allyUnitName)
+  case class TransformIntoAllyMovePower(letterOfMove: Char, moraleCost: Int, allyPieceName: String) extends MovePower {
+    override def createMove(dist: Distance): Moves = TransformEnemyIntoAllyPiece(dist, moraleCost, allyPieceName)
   }
 
   case class JumpMinionMovePower(letterOfMove: Char) extends MovePower {

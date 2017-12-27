@@ -52,6 +52,10 @@ case class Piece(
     pieceToKill.loseMoraleOnDeathIfPossible(currentState)
   }
 
+  def afterPoisonDeath(currentState: GameState): GameState = {
+    loseMoraleOnDeathIfPossible(currentState)
+  }
+
   def afterPoisonPiece(pieceToPoison: Piece, turnsToDeath: Int, currentState: GameState): (GameState, Piece, Piece) = {
     val turnOfDeath = currentState.currentTurn + turnsToDeath
     (currentState, this, pieceToPoison.addEffect(EffectStatus.Poison(turnOfDeath)))

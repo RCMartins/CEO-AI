@@ -113,10 +113,6 @@ case class GameState(board: Board, playerWhite: Player, playerBlack: Player, cur
     }
   }
 
-  /**
-    * TODO It's possible to draw a game, and it's not that far-fetched...
-    * Example: Having a unit killing a bomber unit, if both players reach 0 morale in that play -> draw
-    */
   def winner: PlayerWinType = {
     if (playerWhite.morale == 0 && playerBlack.morale == 0) {
       PlayerWinType.Draw
@@ -170,7 +166,7 @@ case class GameState(board: Board, playerWhite: Player, playerBlack: Player, cur
         updatedState
           .updatePiece(piece, updatedPiece)
           .updatePiece(pieceToPoison, updatedPoisonedPiece)
-      case TransformEnemyIntoAllyUnit(piece, pieceToTransform, moraleCost, allyPieceData) =>
+      case TransformEnemyIntoAllyPiece(piece, pieceToTransform, moraleCost, allyPieceData) =>
         val updatedState = piece.afterMagicKill(pieceToTransform, this)
         val newPiece = Piece(allyPieceData, pieceToTransform.pos)
         updatedState
@@ -192,7 +188,7 @@ case class GameState(board: Board, playerWhite: Player, playerBlack: Player, cur
           .map(distance => pieceToKillPos + direction * distance)
           .takeWhile(_.isEmpty(board))
         if (positions.lengthCompare(maxDistance) < 0) {
-          // Enemy piece is destroyed, taurus stay at edge of board
+          // Enemy piece is destroyed, taurus stays at edge of board
           val taurusPos = if (positions.isEmpty) pieceToKill.pos else positions.last
           val updatedState = piece.afterMagicKill(pieceToKill, this)
           val pieceUpdated = piece.copy(pos = taurusPos)
@@ -201,7 +197,7 @@ case class GameState(board: Board, playerWhite: Player, playerBlack: Player, cur
             .removePiece(pieceToKill)
             .placePiece(pieceUpdated)
         } else if (positions.forall(_.isEmpty(board))) {
-          // Enemy piece is moved, taurus stay one space before enemy piece
+          // Enemy piece is moved, taurus stays one space before enemy piece
           val pieceToKillUpdated = pieceToKill.copy(pos = positions.last)
           val pieceUpdated = piece.copy(pos = positions.init.last)
           this
@@ -238,7 +234,64 @@ case class GameState(board: Board, playerWhite: Player, playerBlack: Player, cur
     stateWithPenalties.trimMorale.copy(
       currentTurn = stateWithPenalties.currentTurn + 0.5,
       movesHistory = move :: stateWithPenalties.movesHistory
-    )
+    ).startingTurnStatusEffectUpdate
+  }
+
+  private def startingTurnStatusEffectUpdate: GameState = {
+
+    def updatePieces(pieces: List[Piece]): (List[Piece], List[Piece]) =
+      pieces.foldLeft((List.empty[Piece], List.empty[Piece])) {
+        case ((deadPieces, updatedPieces), piece) =>
+          val updatedEffectStatus = piece.effectStatus.flatMap {
+            case effect @ EffectStatus.Petrified(untilTurn) =>
+              if (untilTurn == currentTurn) Nil else List(effect)
+            case effect @ EffectStatus.Frozen(untilTurn) =>
+              if (untilTurn == currentTurn) Nil else List(effect)
+            case effect @ EffectStatus.Poison(turnOfDeath) =>
+              if (turnOfDeath == currentTurn) {
+                return (piece :: deadPieces, updatedPieces)
+              } else
+                List(effect)
+          }
+          (deadPieces, piece.copy(effectStatus = updatedEffectStatus) :: updatedPieces)
+      }
+
+    def updatePlayer(currentState: GameState, player: Player): (GameState, Player) = {
+      val (deadPieces, updatedPieces) = updatePieces(player.piecesAffected)
+
+      // remove all pieces that have effects
+      val stateRemovedAll =
+        player.piecesAffected.foldLeft(currentState)((state, piece) => state.removePiece(piece))
+      // update state with possible side effects from dead pieces
+      val stateAfterDeadSideEffects =
+        deadPieces.foldLeft(stateRemovedAll)((state, deadPiece) => deadPiece.afterPoisonDeath(state))
+      // place all the remaining pieces back to the board
+      val stateFinal =
+        updatedPieces.foldLeft(stateAfterDeadSideEffects)((state, updatedPiece) => state.placePiece(updatedPiece))
+
+      // update player object with the updated pieces (to be coherent with the stateFinal object)
+      val (piecesUnaffected, piecesStillAffected) = updatedPieces.partition(_.effectStatus.isEmpty)
+      val playerUpdated =
+        player.copy(pieces = piecesUnaffected ++ player.pieces, piecesAffected = piecesStillAffected)
+
+      (stateFinal, playerUpdated)
+    }
+
+    val stateAfterWhiteIsUpdated =
+      if (playerWhite.piecesAffected.isEmpty)
+        this
+      else {
+        val (updatedState, updatedPlayer) = updatePlayer(this, playerWhite)
+        updatedState.copy(playerWhite = updatedPlayer)
+      }
+    val stateAfterBlackIsUpdated =
+      if (playerBlack.piecesAffected.isEmpty)
+        stateAfterWhiteIsUpdated
+      else {
+        val (updatedState, updatedPlayer) = updatePlayer(stateAfterWhiteIsUpdated, playerBlack)
+        updatedState.copy(playerBlack = updatedPlayer)
+      }
+    stateAfterBlackIsUpdated
   }
 
   def getCurrentPlayer: Player = if (currentTurn == currentTurn.toInt) playerWhite else playerBlack

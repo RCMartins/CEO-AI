@@ -49,11 +49,11 @@ object Strategy {
       def createTree(state: GameState, depth: Int, maximize: Boolean): Node = {
         //        levelsCount(depth) += 1
 
-        if (depth == 0 || state.winner.isDefined) {
+        if (depth == 0 || state.winner != PlayerWinType.NotFinished) {
           val value = state.valueOfState(currentPlayer)
           if (value == MaxValue)
             Node(state, Nil, value + depth)
-          else if (value == -MaxValue)
+          else if (value == -MaxValue || value == -MaxValue / 2)
             Node(state, Nil, value - depth)
           else
             Node(state, Nil, value)
@@ -75,7 +75,7 @@ object Strategy {
           val finalValue = if (maximize) subTrees.view.map(_.value).max else subTrees.view.map(_.value).min
           val nextStates =
             if (depth == movesToLookAhead)
-              subTrees.zip(playerMoves).map{ case (node, move) => (node.value, move) }
+              subTrees.zip(playerMoves).map { case (node, move) => (node.value, move) }
             else
               Nil
           Node(state, nextStates, finalValue)
@@ -106,7 +106,7 @@ object Strategy {
       val currentPlayer = startingState.getCurrentPlayer.team
 
       def createTree(state: GameState, depth: Int, maximize: Boolean): Node = {
-        if (depth == 0 || state.winner.isDefined) {
+        if (depth == 0 || state.winner != PlayerWinType.NotFinished) {
           val value = state.valueOfState(currentPlayer)
           if (value == MaxValue)
             Node(state, ParSeq.empty, value + depth)
