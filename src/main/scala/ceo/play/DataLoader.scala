@@ -10,10 +10,10 @@ import scala.util.{Failure, Success, Try}
 
 object DataLoader {
 
-  private val units: mutable.Map[String, PieceData] = mutable.Map[String, PieceData]()
+  private val pieces: mutable.Map[String, PieceData] = mutable.Map[String, PieceData]()
   private var piecesToCheck: List[String] = List[String]()
 
-  def getPieceData(name: String, team: PlayerTeam): PieceData = units(name + "_" + team)
+  def getPieceData(name: String, team: PlayerTeam): PieceData = pieces(name + "_" + team)
 
   def main(args: Array[String]): Unit = {
     println(initialize())
@@ -53,7 +53,7 @@ object DataLoader {
         gamePiece =>
           if (gamePiece.team == White)
             names = gamePiece :: names
-          units.put(gamePiece.name, gamePiece)
+          pieces.put(gamePiece.name, gamePiece)
       }
       if (gamePieces.nonEmpty)
         loadUnits()
@@ -160,6 +160,11 @@ object DataLoader {
   }
 
   def loadPowers(powersStr: List[String]): List[Powers] = {
+    def getLetter(str: String): Char = {
+      assume(str.length == 1)
+      str.head
+    }
+
     powersStr.map {
       // 0-arg Powers:
       case "SuicideOnKill" =>
@@ -177,10 +182,10 @@ object DataLoader {
         Powers.LoseMoraleOnDeath(str.drop("LoseMoraleOnDeath ".length).toInt)
       case str if str.startsWith("GainMoraleOnKill ") =>
         Powers.GainMoraleOnKill(str.drop("GainMoraleOnKill ".length).toInt)
-      case str if str.startsWith("OnKillTransform ") =>
-        val pieceToCheck = str.drop("OnKillTransform ".length)
+      case str if str.startsWith("OnKillTransformInto ") =>
+        val pieceToCheck = str.drop("OnKillTransformInto ".length)
         piecesToCheck = pieceToCheck :: piecesToCheck
-        Powers.OnKillTransform(pieceToCheck)
+        Powers.OnKillTransformInto(pieceToCheck)
       // Multiple-arg Powers:
       case str if str.startsWith("DecayAfterTurn ") =>
         val List(turnStarts, moralePerTurn) = str.drop("DecayAfterTurn ".length).split(" ").toList
@@ -190,23 +195,24 @@ object DataLoader {
       case str if str.startsWith("DestroyedBy ") =>
         Powers.DestroyedBy(str.drop("DestroyedBy ".length).split(" ").toList.map(EffectStatusType.apply))
       // Move Powers:
-      case str if str.startsWith("MagicDestroy ") && str.length == "MagicDestroy ".length + 1 =>
-        Powers.MagicDestroyMovePower(str.takeRight(1).head)
+        //OnMeleeDeathSpawnPieces 1 Slime
+      case str if str.startsWith("MagicDestroy ") =>
+        Powers.MagicDestroyMovePower(getLetter(str.drop("MagicDestroy ".length)))
       case str if str.startsWith("RangedPetrify ") =>
         val List(letterStr, duration) = str.drop("RangedPetrify ".length).split(" ").toList
-        Powers.RangedPetrifyMovePower(letterStr.head, duration.toInt)
+        Powers.RangedPetrifyMovePower(getLetter(letterStr), duration.toInt)
       case str if str.startsWith("MagicPoison ") =>
         val List(letterStr, duration) = str.drop("MagicPoison ".length).split(" ").toList
-        Powers.MagicPoisonMovePower(letterStr.head, duration.toInt)
+        Powers.MagicPoisonMovePower(getLetter(letterStr), duration.toInt)
       case str if str.startsWith("TaurusRush ") =>
         val List(letterStr, maxDistance) = str.drop("TaurusRush ".length).split(" ").toList
-        Powers.TaurusRushMovePower(letterStr.head, maxDistance.toInt)
+        Powers.TaurusRushMovePower(getLetter(letterStr), maxDistance.toInt)
       case str if str.startsWith("MagicTransformIntoAllyUnit ") =>
         val List(letterStr, moraleCost, allyUnitName) = str.drop("MagicTransformIntoAllyUnit ".length).split(" ").toList
         piecesToCheck = allyUnitName :: piecesToCheck
-        Powers.TransformIntoAllyMovePower(letterStr.head, moraleCost.toInt, allyUnitName)
+        Powers.TransformIntoAllyMovePower(getLetter(letterStr), moraleCost.toInt, allyUnitName)
       case str if str.startsWith("JumpMinion ") =>
-        Powers.JumpMinionMovePower(str.takeRight(1).head)
+        Powers.JumpMinionMovePower(getLetter(str.drop("JumpMinion ".length)))
       // Move Power Completes:
       case str if str.startsWith("KingCastling ") =>
         Powers.KingCastlingMovePower(str.drop("KingCastling ".length).split(" ").toList.map(_.head))
@@ -223,10 +229,10 @@ object DataLoader {
     var gameState = PlayGame.emptyGameState
     for (row <- lines.indices) {
       val line = lines(row).replaceAll("""\s+""", " ")
-      val unitNames = line.split(" ")
-      for ((unitName, column) <- unitNames.zipWithIndex) {
-        if (unitName.length > 1) {
-          val List(name, team) = unitName.split("_").toList
+      val pieceNames = line.split(" ")
+      for ((pieceName, column) <- pieceNames.zipWithIndex) {
+        if (pieceName.length > 1) {
+          val List(name, team) = pieceName.split("_").toList
           Try(getPieceData(name, PlayerTeam(team))) match {
             case Failure(_) =>
               piecesToCheck = name :: piecesToCheck
