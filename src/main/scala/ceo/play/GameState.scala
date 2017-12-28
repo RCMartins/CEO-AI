@@ -134,10 +134,15 @@ case class GameState(board: Board, playerWhite: Player, playerBlack: Player, cur
         val pieceNewPos = piece.moveTo(target, this)
         updatePiece(piece, pieceNewPos)
       case Attack(piece, pieceToKill) =>
-        val (pieceNewPos, updatedState) = piece.afterMeleeKill(pieceToKill, this)
-        updatedState
-          .removePiece(pieceToKill)
-          .updatePiece(piece, pieceNewPos)
+        val (pieceNewPosOpt, updatedState) = piece.afterMeleeKill(pieceToKill, this)
+        val updatedStateAfterRemoves =
+          updatedState
+            .removePiece(pieceToKill)
+            .removePiece(piece)
+        pieceNewPosOpt match {
+          case Some(pieceNewPos) => updatedStateAfterRemoves.placePiece(pieceNewPos)
+          case _ => updatedStateAfterRemoves
+        }
       case Swap(piece, pieceToSwap) =>
         val updatedState = this.removePiece(piece).removePiece(pieceToSwap)
 
@@ -156,6 +161,17 @@ case class GameState(board: Board, playerWhite: Player, playerBlack: Player, cur
         val pieceToPetrifyUpdated = pieceToPetrify.petrify(this, turnsPetrified)
         this
           .updatePiece(pieceToPetrify, pieceToPetrifyUpdated)
+      case RangedPush(piece, pieceToPush, moraleCost, maxPushDistance) =>
+        val pieceToPushPos = pieceToPush.pos
+        val dir = (pieceToPushPos - piece.pos).toUnitVector
+        val positions = BoardPos.List1to8.view(0, maxPushDistance)
+          .map(distance => pieceToPushPos + dir * distance)
+          .takeWhile(_.isEmpty(board))
+
+        val pieceToPushUpdated = pieceToPush.moveTo(positions.last, this)
+        this
+          .changeMorale(piece.team, -moraleCost)
+          .updatePiece(pieceToPush, pieceToPushUpdated)
       // Magic moves:
       case MagicDestroy(piece, pieceToKill) =>
         val updatedState = piece.afterMagicKill(pieceToKill, this)
@@ -166,6 +182,10 @@ case class GameState(board: Board, playerWhite: Player, playerBlack: Player, cur
         updatedState
           .updatePiece(piece, updatedPiece)
           .updatePiece(pieceToPoison, updatedPoisonedPiece)
+      case MagicCharm(piece, pieceToCharm) =>
+        val pieceToCharmUpdated = pieceToCharm.swapTeams
+        this
+          .updatePiece(pieceToCharm, pieceToCharmUpdated)
       case TransformEnemyIntoAllyPiece(piece, pieceToTransform, moraleCost, allyPieceData) =>
         val updatedState = piece.afterMagicKill(pieceToTransform, this)
         val newPiece = Piece(allyPieceData, pieceToTransform.pos)

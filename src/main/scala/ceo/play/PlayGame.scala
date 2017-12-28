@@ -5,8 +5,10 @@ import ceo.play.PlayerTeam.{Black, White}
 object PlayGame {
 
   final val DEBUG_SHOW_TURNS: Boolean = false
+  final val DEBUG_SHOW_CALC_TIME: Boolean = true
 
-  val emptyGameState: GameState = GameState(Board.empty, Player(White, 0, Nil, 0), Player(Black, 0, Nil, 0), 1, Nil)
+  val emptyGameState: GameState =
+    GameState(Board.empty, Player(White, 0, Nil, Nil, 0), Player(Black, 0, Nil, Nil, 0), 1, Nil)
 
   def main(args: Array[String]): Unit = {
     val time = System.currentTimeMillis()
@@ -94,7 +96,15 @@ object PlayGame {
 
   def playAgainstExternalInput(startingState: GameState, strategy: Strategy): GameState = {
     def machineMove(state: GameState, history: List[GameState]): GameState = {
-      strategy.chooseMove(state) match {
+      val moveChoosen =
+        if (DEBUG_SHOW_CALC_TIME) {
+          val time = System.currentTimeMillis()
+          val move = strategy.chooseMove(state)
+          println(s"Turn calc time: ${System.currentTimeMillis() - time}")
+          move
+        } else
+          strategy.chooseMove(state)
+      moveChoosen match {
         case None =>
           showStateWithMoves(state)
           ???

@@ -66,6 +66,15 @@ object PlayerMove {
     override def betterHumanString: String = s"$kingPiece does Castling with $allyPiece"
   }
 
+  case class MagicCharm(piece: Piece, pieceToCharm: Piece) extends PlayerMove {
+    def betterHumanString: String = s"$piece charms $pieceToCharm  ${pieceToCharm.pos - piece.pos}"
+  }
+
+  case class RangedPush(piece: Piece, pieceToPush: Piece, moraleCost: Int, maxPushDistance: Int) extends PlayerMove {
+    def betterHumanString: String = s"$piece ranged-pushes[$moraleCost cost] $pieceToPush " +
+      s"for max $maxPushDistance distance  ${pieceToPush.pos - piece.pos}"
+  }
+
   case class DummyMove(piece: Piece) extends PlayerMove {
     def betterHumanString: String = s"$piece does nothing special"
   }

@@ -100,7 +100,7 @@ object Strategy {
   case class MinMaxStrategyPar(movesToLookAhead: Int) extends Strategy {
     private val MaxValue = 1e9.toInt
 
-    case class Node(state: GameState, nextStates: ParSeq[Node], value: Int)
+    case class Node(state: GameState, nextStates: ParSeq[(Int, PlayerMove)], value: Int)
 
     override def chooseMove(startingState: GameState): Option[GameState] = {
       val currentPlayer = startingState.getCurrentPlayer.team
@@ -110,29 +110,39 @@ object Strategy {
           val value = state.valueOfState(currentPlayer)
           if (value == MaxValue)
             Node(state, ParSeq.empty, value + depth)
-          else if (value == -MaxValue)
+          else if (value == -MaxValue || value == -MaxValue / 2)
             Node(state, ParSeq.empty, value - depth)
           else
             Node(state, ParSeq.empty, value)
         } else {
-          val moves = state.getCurrentPlayerMoves.par
-          val subTrees = moves
-            .map(move => createTree(state.playPlayerMove(move), depth - 1, !maximize))
+          val playerMoves = state.getCurrentPlayerMoves.par
+          val states = playerMoves.map(state.playPlayerMove)
 
-          val finalValue = if (maximize) subTrees.maxBy(_.value).value else subTrees.minBy(_.value).value
-          Node(state, subTrees, finalValue)
+          val subTrees = states
+            .map(state => createTree(state, depth - 1, !maximize))
+
+          val finalValue = if (maximize) subTrees.seq.view.map(_.value).max else subTrees.seq.view.map(_.value).min
+          val nextStates =
+            if (depth == movesToLookAhead)
+              subTrees.zip(playerMoves).map { case (node, move) => (node.value, move) }
+            else
+              ParSeq.empty
+          Node(state, nextStates, finalValue)
         }
       }
 
       val finalNode =
         createTree(startingState, movesToLookAhead, maximize = true)
 
-      val finalStates = finalNode.nextStates.map(node => (node.value, node.state)).toList
+      val finalStates = finalNode.nextStates.toList
       val statesSorted = finalStates.sortBy(-_._1)
       val bestMoves =
         statesSorted.count(_._1 == statesSorted.head._1)
 
-      Some(statesSorted(random.nextInt(bestMoves))._2)
+      println(statesSorted.mkString("\n"))
+      val endMove = statesSorted(random.nextInt(bestMoves))._2
+      val endState = startingState.playPlayerMove(endMove)
+      Some(endState)
     }
   }
 

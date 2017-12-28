@@ -67,7 +67,7 @@ object Moves {
     }
   }
 
-  private def canSwap(piece: Piece, target: BoardPos, state: GameState): Option[PlayerMove] = {
+  private def canSwapUnblockable(piece: Piece, target: BoardPos, state: GameState): Option[PlayerMove] = {
     target.getPiece(state.board) match {
       case Some(targetPiece) if targetPiece.team == piece.team =>
         Some(PlayerMove.Swap(piece, targetPiece))
@@ -122,6 +122,20 @@ object Moves {
     }
   }
 
+  private def canCharmMagicConditional(
+    piece: Piece,
+    target: BoardPos,
+    state: GameState,
+    condition: Piece => Boolean
+  ): Option[PlayerMove] = {
+    target.getPiece(state.board) match {
+      case Some(targetPiece) if targetPiece.team != piece.team && condition(targetPiece) =>
+        Some(PlayerMove.MagicCharm(piece, targetPiece))
+      case _ =>
+        None
+    }
+  }
+
   /**
     * TODO: this will not work if there are ghost piece before/after the path...
     */
@@ -160,6 +174,25 @@ object Moves {
     }
   }
 
+  private def canRangedPush(
+    piece: Piece,
+    target: BoardPos,
+    moraleCost: Int,
+    maxPushDistance: Int,
+    state: GameState
+  ): Option[PlayerMove] = {
+    canRangedReachEnemy(piece, target, state) match {
+      case Some(targetPiece) if targetPiece.team != piece.team =>
+        val dir = (targetPiece.pos - piece.pos).toUnitVector
+        if ((targetPiece.pos + dir).isEmpty(state.board))
+          Some(PlayerMove.RangedPush(piece, targetPiece, moraleCost, maxPushDistance))
+        else
+          None
+      case _ =>
+        None
+    }
+  }
+
   private def allyAt(target: BoardPos, state: GameState, currentPlayer: Player): Option[Piece] = {
     target.getPiece(state.board).filter(_.team == currentPlayer.team)
   }
@@ -192,10 +225,19 @@ object Moves {
   case class MoveOrAttackOrSwapAlly(dist: Distance) extends Moves {
     def getValidMove(piece: Piece, state: GameState, currentPlayer: Player): Option[PlayerMove] = {
       Or(
-        canMove(piece, piece.pos + dist, state),
-        Or(canAttack(piece, piece.pos + dist, state),
-          canSwap(piece, piece.pos + dist, state)
+        canMoveUnblockable(piece, piece.pos + dist, state),
+        Or(canAttackUnblockable(piece, piece.pos + dist, state),
+          canSwapUnblockable(piece, piece.pos + dist, state)
         ))
+    }
+  }
+
+  case class MoveOrSwapAlly(dist: Distance) extends Moves {
+    def getValidMove(piece: Piece, state: GameState, currentPlayer: Player): Option[PlayerMove] = {
+      Or(
+        canMoveUnblockable(piece, piece.pos + dist, state),
+        canSwapUnblockable(piece, piece.pos + dist, state)
+      )
     }
   }
 
@@ -277,6 +319,18 @@ object Moves {
   case class JumpMinion(dist: Distance) extends Moves {
     def getValidMove(piece: Piece, state: GameState, currentPlayer: Player): Option[PlayerMove] = {
       canAttackUnblockableConditional(piece, piece.pos + dist, state, _.data.isMinion)
+    }
+  }
+
+  case class CharmMinion(dist: Distance) extends Moves {
+    def getValidMove(piece: Piece, state: GameState, currentPlayer: Player): Option[PlayerMove] = {
+      canCharmMagicConditional(piece, piece.pos + dist, state, _.data.isMinion)
+    }
+  }
+
+  case class PushPiece(dist: Distance, moraleCost: Int, pushDistance: Int) extends Moves {
+    def getValidMove(piece: Piece, state: GameState, currentPlayer: Player): Option[PlayerMove] = {
+      canRangedPush(piece, piece.pos + dist, moraleCost, pushDistance, state)
     }
   }
 

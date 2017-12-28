@@ -43,9 +43,45 @@ case class Piece(
     copy(pos = target).promoteIfPossible(currentState)
   }
 
-  def afterMeleeKill(pieceToKill: Piece, currentState: GameState): (Piece, GameState) = {
+  def afterMeleeKill(pieceToKill: Piece, currentState: GameState): (Option[Piece], GameState) = {
     val updatedState = pieceToKill.loseMoraleOnDeathIfPossible(currentState)
-    (copy(pos = pieceToKill.pos).promoteIfPossible(updatedState), updatedState)
+
+    var attackerPieceDies = false
+    var updatedThisPiece = this
+
+    val finalState =
+      if (pieceToKill.data.hasOnMeleeDeathEffects) {
+        pieceToKill.data.powers.foldLeft(updatedState) { (state, power) =>
+          power match {
+            case OnMeleeDeathKillAttacker =>
+              attackerPieceDies = true
+              state
+            case OnMeleeDeathKillAttackerFromPosition(distances) if distances.contains(pos - pieceToKill.pos) =>
+              attackerPieceDies = true
+              state
+            case OnMeleeDeathSpawnPieces(distances, pieceName) =>
+              distances.foldLeft(state) { (state2, dist) =>
+                val spawnPos = pos + dist
+                if (spawnPos.isEmpty(state2.board))
+                  state2.placePiece(DataLoader.getPieceData(pieceName, team).createPiece(spawnPos))
+                else state2
+              }
+            case _ => state
+          }
+        }
+      } else if (data.powers.collectFirst { case OnKillMercenary if pieceToKill.data.isChampion => true }.isDefined) {
+        updatedThisPiece = swapTeams
+        updatedState.changeMorale(team.enemy, -1)
+      } else {
+        updatedState
+      }
+
+    ( {
+      if (data.suicidesOnKill || attackerPieceDies)
+        None
+      else
+        Some(updatedThisPiece.copy(pos = pieceToKill.pos).promoteIfPossible(finalState))
+    }, finalState)
   }
 
   def afterMagicKill(pieceToKill: Piece, currentState: GameState): GameState = {
@@ -64,6 +100,19 @@ case class Piece(
   def petrify(currentState: GameState, turnsPetrified: Int): Piece = {
     copy(effectStatus = Petrified(currentState.currentTurn + turnsPetrified) :: effectStatus)
   }
+
+  def onKillTransformIfPossible(): Piece = {
+    data.powers.collectFirst { case OnKillTransformInto(pieceUpgradeName) => pieceUpgradeName } match {
+      case None =>
+        this
+      case Some(pieceUpgradeName) =>
+        val pieceData = DataLoader.getPieceData(pieceUpgradeName, data.team)
+        Piece(pieceData, pos)
+    }
+  }
+
+  def swapTeams: Piece =
+    copy(data = DataLoader.getPieceData(data.officialName, team.enemy))
 
   def addEffect(effect: EffectStatus): Piece = copy(effectStatus = effect :: effectStatus)
 
