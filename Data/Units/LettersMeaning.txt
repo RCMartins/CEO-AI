@@ -12,4 +12,6 @@ J: Attack or Move [Unblockable]
 
 S: Attack or Move or Swap
 
+P: Move or Swap [Unblockable]
+
 R: Destroy Target [Ranged]

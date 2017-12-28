@@ -99,7 +99,7 @@ S 1 S
 S 1 S
 TS ST
 ---
-MagicTransformIntoAllyUnit 1 1 Ghost
+MagicTransformIntoAlly 1 1 Ghost
 --------------------
 Taurus+++ 12
 ---

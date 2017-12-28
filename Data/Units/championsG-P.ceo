@@ -1,3 +1,27 @@
+GiantSlime 6
+---
+  M
+  N
+MN@NM
+ 1N1
+  M
+---
+// TODO add a conditional to this ability: "if GiantSlime is Frozen or Petrified this ability cannot activate"
+OnMeleeDeathSpawnPieces 1 Slime
+--------------------
+GiantSlime+++ 12
+---
+   N
+   N
+   N
+NNN@NNN
+  1N1
+   N
+   N
+---
+// TODO add a conditional to this ability: "if GiantSlime is Frozen or Petrified this ability cannot activate"
+OnMeleeDeathSpawnPieces 1 Slime
+--------------------
 King 0
 ---
     1
@@ -50,6 +74,27 @@ A     A
  A A A
 A     A
 ---
+--------------------
+Legionary+++ 14
+---
+A     A
+ N N N
+  NNN
+ANN@NNA
+  NNN
+ N N N
+A     A
+---
+--------------------
+Lilith 4
+---
+ T T
+T111T
+ 1@1
+T111T
+ T T
+---
+MagicCharmMinion 1
 --------------------
 Ninja 13
 ---
