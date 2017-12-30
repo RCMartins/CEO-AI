@@ -1,3 +1,19 @@
+Apprentice 1
+---
+PPP
+P@P
+PPP
+---
+--------------------
+Apprentice+ 3
+---
+P P P
+ PPP
+PP@PP
+ PPP
+P P P
+---
+--------------------
 Apprentice++ 5
 ---
 P S P
@@ -492,6 +508,22 @@ Tiger+ 2
 1 1 1
 ---
 JumpMinion 1
+--------------------
+Undine 0
+---
+MNM
+1@1
+---
+//TODO uncomment when ready: PromotesTo WaterElemental
+MagicPushFreeze 1 1 2
+--------------------
+Undine+ 2
+---
+ MNM
+11@11
+---
+//TODO uncomment when ready: PromotesTo WaterElemental+
+MagicPushFreeze 1 1 2
 --------------------
 Undine++ 3
 ---

@@ -93,20 +93,20 @@ object DataLoader {
     if (firstLine == null)
       Seq.empty
     else {
-      val List(name, morale) = firstLine.split(" ").toList
-      if ("[A-Z][a-zA-Z\\-]+(\\+){0,3}".r.findAllIn(name).isEmpty)
-        throw new Exception(s"Piece name is not valid: '$name' in $fileName")
+      val List(pieceName, morale) = firstLine.split(" ").toList
+      if ("[A-Z][a-zA-Z\\-]+(\\+){0,3}".r.findAllIn(pieceName).isEmpty)
+        throw new Exception(s"Piece name is not valid: '$pieceName' in $fileName")
 
       br.readLine()
       val movesStr = Stream.continually(readLine(false)).takeWhile(!_.startsWith("-" * 3)).toList
       val powersStr = Stream.continually(readLine()).takeWhile(!_.startsWith("-" * 20)).toList
 
       val powers = loadPowers(powersStr)
-      val (movesBottomTop, extraPowersWhite) = loadMoves(movesStr, powers)
-      val (movesTopBottom, extraPowersBlack) = loadMoves(movesStr.reverse, powers)
+      val (movesBottomTop, extraPowersWhite) = loadMoves(pieceName, movesStr, powers)
+      val (movesTopBottom, extraPowersBlack) = loadMoves(pieceName, movesStr.reverse, powers)
 
-      val name_white = name + "_" + White
-      val name_black = name + "_" + Black
+      val name_white = pieceName + "_" + White
+      val name_black = pieceName + "_" + Black
       val isMinion = fileName.startsWith("minions")
       Seq(
         PieceData(name_white, isMinion, morale.toInt, movesBottomTop, powers ++ extraPowersWhite, White),
@@ -115,10 +115,10 @@ object DataLoader {
     }
   }
 
-  def loadMoves(movesStr: List[String], powers: List[Powers]): (List[Moves], List[Powers]) = {
+  def loadMoves(pieceName: String, movesStr: List[String], powers: List[Powers]): (List[Moves], List[Powers]) = {
     val iy = movesStr.indexWhere(_.contains('@'))
     if (iy == -1)
-      throw new Exception("moves needs to contain @ character to define piece position.")
+      throw new Exception(s"$pieceName moves needs to contain @ character to define piece position.")
     val ix = movesStr(iy).indexWhere(_ == '@')
 
     var completePos = List[(Char, Distance)]()
