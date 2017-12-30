@@ -42,9 +42,11 @@ object Powers {
 
   case class PromoteTo(pieceName: String) extends Powers
 
-  case class LoseMoraleOnDeath(moraleAmount: Int) extends Powers
+  case class PlayerChangeMoraleOnDeath(moraleAmount: Int) extends Powers
 
   case class PieceChangeMoraleOnKill(moraleAmount: Int) extends Powers
+
+  case class PlayerChangeMoraleOnKill(moraleAmount: Int) extends Powers
 
   case class OnKillTransformInto(pieceName: String) extends Powers
 
@@ -107,6 +109,18 @@ object Powers {
         dist =>
           val dir = dist.toUnitVector
           Castling(dist, dist - dir, dist - (dir * 2))
+      }
+    }
+  }
+
+  case class TeleportPiecesMovePowerComplete(lettersOfMoves: List[Char]) extends MovePowerComplete {
+    override def createMoves(distances: Map[Char, List[Distance]]): List[Moves] = {
+      lettersOfMoves.grouped(2).toList.flatMap {
+        case List(c1, c2) =>
+          for {
+            dist1 <- distances(c1)
+            dist2 <- distances(c2)
+          } yield TeleportPiece(dist1, dist2)
       }
     }
   }

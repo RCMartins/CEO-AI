@@ -274,7 +274,6 @@ object Moves {
     }
   }
 
-
   case class Move(dist: Distance) extends SingleMove {
     def getValidMove(piece: Piece, state: GameState, currentPlayer: Player): Option[PlayerMove] = {
       canMove(piece, piece.pos + dist, state)
@@ -366,7 +365,7 @@ object Moves {
     }
   }
 
-  case class PushPiece(dist: Distance, moraleCost: Int, pushDistance: Int) extends Moves {
+  case class PushPiece(dist: Distance, moraleCost: Int, pushDistance: Int) extends SingleMove {
     def getValidMove(piece: Piece, state: GameState, currentPlayer: Player): Option[PlayerMove] = {
       canRangedPush(piece, piece.pos + dist, moraleCost, pushDistance, state)
     }
@@ -379,12 +378,22 @@ object Moves {
     }
   }
 
-  case class MagicPushFreezePiece(dist: Distance, maxPushDistance: Int, freezeDuration: Int) extends Moves {
+  case class MagicPushFreezePiece(dist: Distance, maxPushDistance: Int, freezeDuration: Int) extends SingleMove {
     def getValidMove(piece: Piece, state: GameState, currentPlayer: Player): Option[PlayerMove] = {
       canPushFreeze(piece, piece.pos + dist, maxPushDistance, freezeDuration, state)
     }
   }
 
+  case class TeleportPiece(distFrom: Distance, distTo: Distance) extends SingleMove {
+    def getValidMove(piece: Piece, state: GameState, currentPlayer: Player): Option[PlayerMove] = {
+      (piece.pos + distFrom).getPiece(state.board) match {
+        case Some(targetPiece) if targetPiece.team == piece.team &&
+          !targetPiece.data.isImmuneTo(EffectType.Displacement) && (piece.pos + distFrom).isEmpty(state.board) =>
+          Some(PlayerMove.TeleportPiece(piece, targetPiece, piece.pos + distFrom))
+        case _ =>
+          None
+      }
+    }
   }
 
   case object Empty extends Moves {

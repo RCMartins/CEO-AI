@@ -207,10 +207,12 @@ object DataLoader {
         val pieceToCheck = str.drop("PromotesTo ".length)
         piecesToCheck = pieceToCheck :: piecesToCheck
         Powers.PromoteTo(pieceToCheck)
-      case str if str.startsWith("LoseMoraleOnDeath ") =>
-        Powers.LoseMoraleOnDeath(str.drop("LoseMoraleOnDeath ".length).toInt)
+      case str if str.startsWith("PlayerChangeMoraleOnDeath ") =>
+        Powers.PlayerChangeMoraleOnDeath(str.drop("PlayerChangeMoraleOnDeath ".length).toInt)
       case str if str.startsWith("PieceChangeMoraleOnKill ") =>
         Powers.PieceChangeMoraleOnKill(str.drop("PieceChangeMoraleOnKill ".length).toInt)
+      case str if str.startsWith("PlayerChangeMoraleOnKill ") =>
+        Powers.PlayerChangeMoraleOnKill(str.drop("PlayerChangeMoraleOnKill ".length).toInt)
       case str if str.startsWith("OnKillTransformInto ") =>
         val pieceToCheck = str.drop("OnKillTransformInto ".length)
         piecesToCheck = pieceToCheck :: piecesToCheck
@@ -256,6 +258,8 @@ object DataLoader {
       // Move Power Complete:
       case str if str.startsWith("KingCastling ") =>
         Powers.KingCastlingMovePowerComplete(str.drop("KingCastling ".length).split(" ").toList.map(getLetter))
+      case str if str.startsWith("TeleportPiece ") =>
+        Powers.TeleportPiecesMovePowerComplete(str.drop("TeleportPiece ".length).split(" ").toList.map(getLetter))
       // Positional Powers:
       case str if str.startsWith("OnMeleeDeathSpawnPieces ") =>
         val List(letterStr, pieceToCheck) = str.drop("OnMeleeDeathSpawnPieces ".length).split(" ").toList

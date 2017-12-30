@@ -32,10 +32,10 @@ case class Piece(
     }
   }
 
-  private def loseMoraleOnDeathIfPossible(currentState: GameState): GameState = {
-    data.powers.collectFirst { case LoseMoraleOnDeath(amount) => amount } match {
+  private def checkPlayerLosesMoraleOnDeath(currentState: GameState): GameState = {
+    data.powers.collectFirst { case PlayerChangeMoraleOnDeath(amount) => amount } match {
       case None => currentState
-      case Some(amount) => currentState.changeMorale(team, -amount)
+      case Some(amount) => currentState.changeMorale(team, amount)
     }
   }
 
@@ -44,7 +44,7 @@ case class Piece(
   }
 
   def afterMeleeKill(pieceToKill: Piece, currentState: GameState): (Option[Piece], GameState) = {
-    val updatedState = pieceToKill.loseMoraleOnDeathIfPossible(currentState)
+    val updatedState = pieceToKill.checkPlayerLosesMoraleOnDeath(currentState)
 
     var attackerPieceDies = false
     var updatedThisPiece = this
@@ -85,11 +85,11 @@ case class Piece(
   }
 
   def afterMagicKill(pieceToKill: Piece, currentState: GameState): GameState = {
-    pieceToKill.loseMoraleOnDeathIfPossible(currentState)
+    pieceToKill.checkPlayerLosesMoraleOnDeath(currentState)
   }
 
   def afterPoisonDeath(currentState: GameState): GameState = {
-    loseMoraleOnDeathIfPossible(currentState)
+    checkPlayerLosesMoraleOnDeath(currentState)
   }
 
   def afterPoisonPiece(pieceToPoison: Piece, turnsToDeath: Int, currentState: GameState): (GameState, Piece, Piece) = {

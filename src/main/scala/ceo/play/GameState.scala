@@ -163,7 +163,7 @@ case class GameState(board: Board, playerWhite: Player, playerBlack: Player, cur
         val updatedState = piece.afterMagicKill(pieceToKill, this)
         updatedState
           .removePiece(pieceToKill)
-      case RangedPetrify(piece, pieceToPetrify, turnsPetrified) =>
+      case RangedPetrify(_, pieceToPetrify, turnsPetrified) =>
         val pieceToPetrifyUpdated = pieceToPetrify.petrify(this, turnsPetrified)
         this
           .updatePiece(pieceToPetrify, pieceToPetrifyUpdated)
@@ -188,7 +188,7 @@ case class GameState(board: Board, playerWhite: Player, playerBlack: Player, cur
         updatedState
           .updatePiece(piece, updatedPiece)
           .updatePiece(pieceToPoison, updatedPoisonedPiece)
-      case MagicCharm(piece, pieceToCharm) =>
+      case MagicCharm(_, pieceToCharm) =>
         val pieceToCharmUpdated = pieceToCharm.swapTeams
         this
           .updatePiece(pieceToCharm, pieceToCharmUpdated)
@@ -207,7 +207,12 @@ case class GameState(board: Board, playerWhite: Player, playerBlack: Player, cur
         this
           .updatePiece(allyPiece, allyPiece.copy(pos = allyTarget))
           .updatePiece(kingPiece, KingWithoutCastling)
-      //TODO: MagicPushFreeze
+      case TeleportPiece(_, pieceToTeleport, target) =>
+        val pieceToTeleportUpdated = pieceToTeleport.moveTo(target, this)
+        this
+          .updatePiece(pieceToTeleport, pieceToTeleportUpdated)
+      case MagicPushFreeze(piece, pieceToPushFreeze, maxPushDistance, freezeDuration) =>
+        ???
       case TaurusRush(piece, pieceToKill, maxDistance) =>
         val pieceToKillPos = pieceToKill.pos
         val direction = Distance(pieceToKillPos.row - piece.pos.row, pieceToKillPos.column - piece.pos.column).toUnitVector

@@ -16,23 +16,10 @@ object PlayGame {
       Nil
     )
 
-  def main(args: Array[String]): Unit = {
-    val time = System.currentTimeMillis()
-//    val startingState = DataLoader.initialize("Data/boardTest7.ceo")
-    //        val startingState = DataLoader.initialize("Data/boardTest5.ceo")
-        val startingState = DataLoader.initialize("PRINTS/challenge-24-12-2017.ceo")
-    //    playSomeMatches(startingState, Strategy.oneMoveStrategy, Strategy.oneMoveStrategy)
-    //        playSomeMatches(startingState, Strategy.MinMaxStrategy(3), Strategy.oneMoveStrategy)
-//    playSomeMatches(startingState, Strategy.MinMaxStrategyPar(2), Strategy.MinMaxStrategyPar(2))
-    //        play(startingState, Strategy.MinMaxStrategy(4), Strategy.MinMaxStrategy(3))
-        playAgainstExternalInput(startingState, Strategy.MinMaxStrategy(4))
-    println(s"Total time: ${System.currentTimeMillis() - time}")
-  }
-
-  def playSomeMatches(startingState: GameState, playerWhiteStrategy: Strategy, playerBlackStrategy: Strategy): Unit = {
+  def playSomeMatches(startingState: GameState, playerWhiteStrategy: Strategy, playerBlackStrategy: Strategy, numberOfGames: Int): Unit = {
     println(startingState)
-    val playSomeMatches: Seq[(GameState, PlayerTeam)] =
-      (1 to 15)
+    val playSomeMatches: Seq[(GameState, PlayerWinType)] =
+      (1 to numberOfGames)
         .map(index => {
           if (index % 1 == 0) println(index + "...")
           playFullGame(startingState, playerWhiteStrategy, playerBlackStrategy)
@@ -87,10 +74,6 @@ object PlayGame {
         showStateWithMoves(startingState)
         ???
       case Some(stateAfter) =>
-        //        if (stateAfter.currentTurn > 50) {
-        //          println(stateAfter)
-        //          println(stateAfter.movesHistory.mkString("\n"))
-        //        } else
         if (DEBUG_SHOW_TURNS) print(stateAfter.currentTurn + " ")
         if (stateAfter.winner != PlayerWinType.NotFinished) {
           if (DEBUG_SHOW_TURNS) println()

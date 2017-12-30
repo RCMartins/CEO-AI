@@ -40,12 +40,12 @@ object PlayerMove {
 
   case class RangedPetrify(piece: Piece, pieceToPetrify: Piece, turnsPetrified: Int) extends PlayerMove {
     def betterHumanString: String = s"$piece ranged-petrifies $pieceToPetrify " +
-      s"for $turnsPetrified turns  ${pieceToPetrify.pos - piece.pos}"
+      s"for $turnsPetrified turns   ${pieceToPetrify.pos - piece.pos}"
   }
 
   case class MagicPoison(piece: Piece, pieceToPoison: Piece, turnsToDeath: Int) extends PlayerMove {
     def betterHumanString: String = s"$piece magic-poisoned $pieceToPoison " +
-      s"killing it in $turnsToDeath turns  ${pieceToPoison.pos - piece.pos}"
+      s"killing it in $turnsToDeath turns   ${pieceToPoison.pos - piece.pos}"
   }
 
   case class TransformEnemyIntoAllyPiece(
@@ -67,17 +67,22 @@ object PlayerMove {
   }
 
   case class MagicCharm(piece: Piece, pieceToCharm: Piece) extends PlayerMove {
-    def betterHumanString: String = s"$piece charms $pieceToCharm  ${pieceToCharm.pos - piece.pos}"
+    def betterHumanString: String = s"$piece charms $pieceToCharm   ${pieceToCharm.pos - piece.pos}"
   }
 
   case class RangedPush(piece: Piece, pieceToPush: Piece, moraleCost: Int, maxPushDistance: Int) extends PlayerMove {
     def betterHumanString: String = s"$piece ranged-pushes[$moraleCost cost] $pieceToPush " +
-      s"for max $maxPushDistance distance  ${pieceToPush.pos - piece.pos}"
+      s"for max $maxPushDistance distance   ${pieceToPush.pos - piece.pos}"
   }
 
   case class MagicPushFreeze(piece: Piece, pieceToPushFreeze: Piece, maxPushDistance: Int, freezeDuration: Int) extends PlayerMove {
     def betterHumanString: String = s"$piece magic-push-freezes $pieceToPushFreeze " +
       s"for max $maxPushDistance distance and freezes it for $freezeDuration turns   ${pieceToPushFreeze.pos - piece.pos}"
+  }
+
+  case class TeleportPiece(piece: Piece, pieceToTeleport: Piece, positionToTeleport: BoardPos) extends PlayerMove {
+    def betterHumanString: String = s"$piece teleports $pieceToTeleport " +
+      s"to $positionToTeleport   ${positionToTeleport - pieceToTeleport.pos}"
   }
 
   case class DummyMove(piece: Piece) extends PlayerMove {

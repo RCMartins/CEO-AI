@@ -45,7 +45,7 @@ King 0
     3
     3
 ---
-LoseMoraleOnDeath 25
+PlayerChangeMoraleOnDeath -25
 KingCastling 1 2 3 4
 --------------------
 Knight 6
@@ -106,6 +106,20 @@ T111T
  T T
 ---
 MagicCharmMinion 1
+--------------------
+Nexus+++ 5
+---
+    1
+   121
+  12221
+ 1223221
+1222@2221
+ 1222221
+  12221
+   121
+    1
+---
+TeleportPiece 2 3 3 1
 --------------------
 Ninja 13
 ---

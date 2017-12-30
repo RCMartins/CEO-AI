@@ -170,7 +170,7 @@ NNN
  @
 ---
 PromotesTo Knight
-LoseMoraleOnDeath 3
+PlayerChangeMoraleOnDeath -3
 --------------------
 Militia+ 1
 ---
@@ -179,7 +179,7 @@ m m m
   @
 ---
 PromotesTo Knight+
-LoseMoraleOnDeath 4
+PlayerChangeMoraleOnDeath -4
 --------------------
 Militia++ 1
 ---
@@ -188,7 +188,7 @@ tmtmtmt
    @
 ---
 PromotesTo Knight++
-LoseMoraleOnDeath 5
+PlayerChangeMoraleOnDeath -5
 --------------------
 Pawn 0
 ---
