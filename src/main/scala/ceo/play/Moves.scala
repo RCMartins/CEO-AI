@@ -388,7 +388,7 @@ object Moves {
   case object TeleportToFallenAllyPosition extends MultipleMoves {
     def getValidMoves(piece: Piece, state: GameState, currentPlayer: Player): List[PlayerMove] = {
       val positions = currentPlayer.extraData.fallenPiecesPositions
-      positions.flatMap(boardPos => canMoveUnblockable(piece, boardPos, state))
+      positions.flatMap(boardPos => canMoveUnblockable(piece, boardPos, state)).toList
     }
   }
 

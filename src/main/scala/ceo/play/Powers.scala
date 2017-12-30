@@ -57,11 +57,14 @@ object Powers {
   // TODO do this validation
   case class ImmuneTo(immuneList: List[EffectType]) extends Powers
 
+  // TODO do this validation
   case class DestroyedBy(destroyedBy: List[EffectType]) extends Powers
 
   case class OnMeleeDeathSpawnPieces(distances: List[Distance], pieceName: String) extends Powers
 
-  case class OnMeleeDeathKillAttackerFromPosition(distances: List[Distance]) extends Powers
+  case class OnMeleeDeathKillAttackerFromPosition(distances: Set[Distance]) extends Powers
+
+  case class TriggerGuardian(distances: List[Distance]) extends Powers
 
   case class DummyNothingPower(letterOfMove: Char) extends MovePower {
     override def createMove(dist: Distance): Moves = DummyMove
@@ -136,7 +139,12 @@ object Powers {
 
   case class OnMeleeDeathKillAttackerPositionalPower(letterOfMove: Char) extends PositionalPower {
     def createPowers(distances: Map[Char, List[Distance]]): List[Powers] =
-      List(OnMeleeDeathKillAttackerFromPosition(distances.values.flatten.toList))
+      List(OnMeleeDeathKillAttackerFromPosition(distances.values.flatten.toSet))
+  }
+
+  case class TriggerGuardianPositionalPower(letterOfMove: Char) extends PositionalPower {
+    def createPowers(distances: Map[Char, List[Distance]]): List[Powers] =
+      List(TriggerGuardian(distances.values.flatten.toList))
   }
 
   case object AugmentedTeleportGhastMovePower extends AugmentedMovePower {

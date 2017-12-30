@@ -25,7 +25,7 @@ case class PieceData(
 
   val isKing: Boolean = name.startsWith("King")
 
-  val isChampion: Boolean = !isMinion
+  val isChampion: Boolean = !isKing && !isMinion
 
   val isGhost: Boolean = powers.exists {
     case GhostMovement => true
@@ -51,5 +51,15 @@ case class PieceData(
     case OnMeleeDeathKillAttacker | OnMeleeDeathSpawnPieces(_, _) => true
     case _ => false
   }
+
+  val isGuardian: Boolean = powers.exists {
+    case TriggerGuardian(_) => true
+    case _ => false
+  }
+
+  val guardedPositions: Set[Distance] = powers.flatMap {
+    case TriggerGuardian(distances) => distances
+    case _ => List.empty
+  }.toSet
 
 }

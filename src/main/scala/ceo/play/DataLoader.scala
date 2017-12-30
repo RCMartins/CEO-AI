@@ -270,6 +270,8 @@ object DataLoader {
         Powers.OnMeleeDeathSpawnPiecesPositionalPower(getLetter(letterStr), pieceToCheck)
       case str if str.startsWith("OnMeleeDeathKillAttackerPosition ") =>
         Powers.OnMeleeDeathKillAttackerPositionalPower(getLetter(str.drop("OnMeleeDeathKillAttackerPosition ".length)))
+      case str if str.startsWith("TriggerGuardian ") =>
+        Powers.TriggerGuardianPositionalPower(getLetter(str.drop("TriggerGuardian ".length)))
       // Augmented Move Powers:
       case "AugmentedTeleportGhast" =>
         Powers.AugmentedTeleportGhastMovePower
@@ -298,6 +300,16 @@ object DataLoader {
           }
         }
       }
+    }
+
+    gameState.playerWhite.pieces.foreach { piece =>
+      gameState = gameState
+        .updatePlayer(gameState.playerWhite.updateGuardedPositions(None, Some(piece)))
+    }
+
+    gameState.playerBlack.pieces.foreach { piece =>
+      gameState = gameState
+        .updatePlayer(gameState.playerBlack.updateGuardedPositions(None, Some(piece)))
     }
 
     gameState

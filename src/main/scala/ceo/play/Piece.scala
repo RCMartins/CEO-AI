@@ -39,11 +39,17 @@ case class Piece(
     }
   }
 
-  def moveTo(currentState: GameState, target: BoardPos): Piece = {
-    copy(pos = target).promoteIfPossible(currentState)
+  def moveTo(currentState: GameState, target: BoardPos): (GameState, Piece) = {
+    val updatedPiece = copy(pos = target).promoteIfPossible(currentState)
+    val updatedState =
+      if (data.isGuardian)
+        currentState.updatePlayer(currentState.getPlayer(team).updateGuardedPositions(Some(this), Some(updatedPiece)))
+      else
+        currentState
+    (updatedState, updatedPiece)
   }
 
-  def afterMeleeKill(pieceToKill: Piece, currentState: GameState): (Option[Piece], GameState) = {
+  def afterMeleeKill(currentState: GameState, pieceToKill: Piece): (GameState, Option[Piece]) = {
     val updatedState = pieceToKill.checkPlayerLosesMoraleOnDeath(currentState)
 
     var attackerPieceDies = false
@@ -76,20 +82,34 @@ case class Piece(
         updatedState
       }
 
-    ( {
+    val stateAfterGuardianCleanup =
+      if (data.isGuardian)
+        updatedState.updatePlayer(currentState.getPlayer(team).updateGuardedPositions(Some(this), None))
+      else
+        updatedState
+
+    (stateAfterGuardianCleanup, {
       if (data.suicidesOnKill || attackerPieceDies)
         None
       else
-        Some(updatedThisPiece.copy(pos = pieceToKill.pos).promoteIfPossible(finalState))
-    }, finalState)
+        Some(updatedThisPiece.copy(pos = pieceToKill.pos).promoteIfPossible(stateAfterGuardianCleanup))
+    })
   }
 
-  def afterMagicKill(pieceToKill: Piece, currentState: GameState): GameState = {
-    pieceToKill.checkPlayerLosesMoraleOnDeath(currentState)
+  def afterMagicKill(currentState: GameState, pieceToKill: Piece): GameState = {
+    val updatedState = checkPlayerLosesMoraleOnDeath(currentState)
+    if (data.isGuardian)
+      updatedState.updatePlayer(currentState.getPlayer(team).updateGuardedPositions(Some(this), None))
+    else
+      updatedState
   }
 
   def afterPoisonDeath(currentState: GameState): GameState = {
-    checkPlayerLosesMoraleOnDeath(currentState)
+    val updatedState = checkPlayerLosesMoraleOnDeath(currentState)
+    if (data.isGuardian)
+      updatedState.updatePlayer(currentState.getPlayer(team).updateGuardedPositions(Some(this), None))
+    else
+      updatedState
   }
 
   def afterPoisonPiece(pieceToPoison: Piece, turnsToDeath: Int, currentState: GameState): (GameState, Piece, Piece) = {

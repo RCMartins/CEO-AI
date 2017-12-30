@@ -40,13 +40,32 @@ case class Player(
 
   // TODO: not used yet
   def killAt(boardPos: BoardPos): Player =
-    copy(extraData = extraData.copy(fallenPiecesPositions = boardPos :: extraData.fallenPiecesPositions))
+    copy(extraData = extraData.copy(fallenPiecesPositions = extraData.fallenPiecesPositions + boardPos))
+
+  def updateGuardedPositions(toRemove: Option[Piece], toAdd: Option[Piece]): Player = {
+    val updatedGuardedPositions =
+      (toRemove, toAdd) match {
+        case (Some(piece1), Some(piece2)) =>
+          extraData.guardedPositions -- piece1.data.guardedPositions.map(piece1.pos + _) ++
+            piece2.data.guardedPositions.map(dist => (piece2.pos + dist) -> piece2)
+        case (Some(piece), None) =>
+          extraData.guardedPositions -- piece.data.guardedPositions.map(piece.pos + _)
+        case (None, Some(piece)) =>
+          extraData.guardedPositions ++ piece.data.guardedPositions.map(dist => (piece.pos + dist) -> piece)
+        case (None, None) =>
+          extraData.guardedPositions
+      }
+    copy(extraData = extraData.copy(guardedPositions = updatedGuardedPositions))
+  }
 
   def inBaseRow(pos: BoardPos): Boolean = pos.row == (if (team == White) 7 else 0)
 }
 
-case class PlayerExtraData(fallenPiecesPositions: List[BoardPos])
+case class PlayerExtraData(
+  fallenPiecesPositions: Set[BoardPos],
+  guardedPositions: Map[BoardPos, Piece]
+)
 
 object PlayerExtraData {
-  val empty: PlayerExtraData = PlayerExtraData(List.empty)
+  val empty: PlayerExtraData = PlayerExtraData(Set.empty, Map.empty)
 }

@@ -33,6 +33,18 @@ NNN@NNN
 // TODO add a conditional to this ability: "if GiantSlime is Frozen or Petrified this ability cannot activate"
 OnMeleeDeathSpawnPieces 1 Slime
 --------------------
+Guardian 7
+---
+M  M  M
+ M M M
+  NNN
+MMN@NMM
+  NNN
+ M1M1M
+M  M  M
+---
+TriggerGuardian 1
+--------------------
 King 0
 ---
     1
