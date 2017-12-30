@@ -25,6 +25,16 @@ m R m
 ---
 PromotesTo Ranger+
 --------------------
+Archer+++ 3
+---
+t   t
+M R M
+ M M
+  @
+  M
+---
+PromotesTo Ranger+++
+--------------------
 Axeman 1
 ---
 AMA
@@ -116,6 +126,15 @@ NN@NN
   N
 ---
 --------------------
+Drake++ 6
+---
+  J
+  N
+JN@NJ
+  N
+  J
+---
+--------------------
 Fireball 2
 ---
 R
@@ -151,6 +170,22 @@ Ghost+ 4
 MSM
 S@S
 MSM
+---
+GhostMovement
+--------------------
+Ghost++ 5
+---
+NSN
+S@S
+NSN
+---
+GhostMovement
+--------------------
+Ghost+++ 6
+---
+SSS
+S@S
+SSS
 ---
 GhostMovement
 --------------------
@@ -206,6 +241,20 @@ AMA
  @
 ---
 PromotesTo Bishop+
+--------------------
+Penguin 0
+---
+1N1
+ @
+
+
+
+
+
+
+ T
+---
+MagicFreeze 1 3
 --------------------
 Phantasm++ 5
 ---
@@ -372,6 +421,15 @@ Swordsman+ 2
 N@N
 ---
 PromotesTo Warrior+
+--------------------
+Swordsman+++ 4
+---
+m m m
+ NNN
+ N@N
+  M
+---
+PromotesTo Warrior+++
 --------------------
 Sylph 0
 ---

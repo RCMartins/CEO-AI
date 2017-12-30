@@ -255,6 +255,9 @@ object DataLoader {
       case str if str.startsWith("MagicPushFreeze ") =>
         val List(letterStr, maxPushDistance, freezeDuration) = str.drop("MagicPushFreeze ".length).split(" ").toList
         Powers.MagicPushFreeze(getLetter(letterStr), maxPushDistance.toInt, freezeDuration.toInt)
+      case str if str.startsWith("MagicFreeze ") =>
+        val List(letterStr, freezeDuration) = str.drop("MagicFreeze ".length).split(" ").toList
+        Powers.MagicFreeze(getLetter(letterStr), freezeDuration.toInt)
       // Move Power Complete:
       case str if str.startsWith("KingCastling ") =>
         Powers.KingCastlingMovePowerComplete(str.drop("KingCastling ".length).split(" ").toList.map(getLetter))

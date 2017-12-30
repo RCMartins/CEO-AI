@@ -137,7 +137,7 @@ case class GameState(board: Board, playerWhite: Player, playerBlack: Player, cur
     val newState = move match {
       // Standard moves:
       case Move(piece, target) =>
-        val pieceNewPos = piece.moveTo(target, this)
+        val pieceNewPos = piece.moveTo(this, target)
         updatePiece(piece, pieceNewPos)
       case Attack(piece, pieceToKill) =>
         val (pieceNewPosOpt, updatedState) = piece.afterMeleeKill(pieceToKill, this)
@@ -152,8 +152,8 @@ case class GameState(board: Board, playerWhite: Player, playerBlack: Player, cur
       case Swap(piece, pieceToSwap) =>
         val updatedState = this.removePiece(piece).removePiece(pieceToSwap)
 
-        val pieceToSwapUpdated = pieceToSwap.moveTo(piece.pos, updatedState)
-        val pieceUpdated = piece.moveTo(pieceToSwap.pos, updatedState)
+        val pieceToSwapUpdated = pieceToSwap.moveTo(updatedState, piece.pos)
+        val pieceUpdated = piece.moveTo(updatedState, pieceToSwap.pos)
 
         updatedState
           .placePiece(pieceUpdated)
@@ -174,7 +174,7 @@ case class GameState(board: Board, playerWhite: Player, playerBlack: Player, cur
           .map(distance => pieceToPushPos + dir * distance)
           .takeWhile(_.isEmpty(board))
 
-        val pieceToPushUpdated = pieceToPush.moveTo(positions.last, this)
+        val pieceToPushUpdated = pieceToPush.moveTo(this, positions.last)
         this
           .changeMorale(piece.team, -moraleCost)
           .updatePiece(pieceToPush, pieceToPushUpdated)
@@ -208,11 +208,15 @@ case class GameState(board: Board, playerWhite: Player, playerBlack: Player, cur
           .updatePiece(allyPiece, allyPiece.copy(pos = allyTarget))
           .updatePiece(kingPiece, KingWithoutCastling)
       case TeleportPiece(_, pieceToTeleport, target) =>
-        val pieceToTeleportUpdated = pieceToTeleport.moveTo(target, this)
+        val pieceToTeleportUpdated = pieceToTeleport.moveTo(this, target)
         this
           .updatePiece(pieceToTeleport, pieceToTeleportUpdated)
       case MagicPushFreeze(piece, pieceToPushFreeze, maxPushDistance, freezeDuration) =>
         ???
+      case MagicFreeze(piece, pieceToFreeze, freezeDuration) =>
+        val pieceToFreezeUpdated = piece.freeze(this, freezeDuration)
+        this
+          .updatePiece(pieceToFreeze, pieceToFreezeUpdated)
       case TaurusRush(piece, pieceToKill, maxDistance) =>
         val pieceToKillPos = pieceToKill.pos
         val direction = Distance(pieceToKillPos.row - piece.pos.row, pieceToKillPos.column - piece.pos.column).toUnitVector

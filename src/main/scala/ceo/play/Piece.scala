@@ -39,7 +39,7 @@ case class Piece(
     }
   }
 
-  def moveTo(target: BoardPos, currentState: GameState): Piece = {
+  def moveTo(currentState: GameState, target: BoardPos): Piece = {
     copy(pos = target).promoteIfPossible(currentState)
   }
 
@@ -97,9 +97,11 @@ case class Piece(
     (currentState, this, pieceToPoison.addEffect(EffectStatus.Poison(turnOfDeath)))
   }
 
-  def petrify(currentState: GameState, turnsPetrified: Int): Piece = {
-    copy(effectStatus = Petrified(currentState.currentTurn + turnsPetrified) :: effectStatus)
-  }
+  def petrify(currentState: GameState, turnsPetrified: Int): Piece =
+    addEffect(Petrified(currentState.currentTurn + turnsPetrified))
+
+  def freeze(currentState: GameState, turnsFrozen: Int): Piece =
+    addEffect(Frozen(currentState.currentTurn + turnsFrozen))
 
   def onKillTransformIfPossible(): Piece = {
     data.powers.collectFirst { case OnKillTransformInto(pieceUpgradeName) => pieceUpgradeName } match {

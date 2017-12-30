@@ -85,6 +85,11 @@ object PlayerMove {
       s"to $positionToTeleport   ${positionToTeleport - pieceToTeleport.pos}"
   }
 
+  case class MagicFreeze(piece: Piece, pieceToFreeze: Piece, freezeDuration: Int) extends PlayerMove {
+    def betterHumanString: String = s"$piece magic-freezes $pieceToFreeze " +
+      s"for $freezeDuration turns   ${pieceToFreeze.pos - piece.pos}"
+  }
+
   case class DummyMove(piece: Piece) extends PlayerMove {
     def betterHumanString: String = s"$piece does nothing special"
   }

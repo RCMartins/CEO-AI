@@ -226,6 +226,20 @@ object Moves {
     }
   }
 
+  private def canFreeze(
+    piece: Piece,
+    target: BoardPos,
+    freezeDuration: Int,
+    state: GameState
+  ): Option[PlayerMove] = {
+    target.getPiece(state.board) match {
+      case Some(targetPiece) if targetPiece.team != piece.team && !targetPiece.data.isImmuneTo(EffectType.Freeze) =>
+          Some(PlayerMove.MagicFreeze(piece, targetPiece, freezeDuration))
+      case _ =>
+        None
+    }
+  }
+
   private def allyAt(target: BoardPos, state: GameState, currentPlayer: Player): Option[Piece] = {
     target.getPiece(state.board).filter(_.team == currentPlayer.team)
   }
@@ -393,6 +407,12 @@ object Moves {
         case _ =>
           None
       }
+    }
+  }
+
+  case class MagicFreezePiece(dist: Distance, freezeDuration: Int) extends SingleMove {
+    def getValidMove(piece: Piece, state: GameState, currentPlayer: Player): Option[PlayerMove] = {
+      canFreeze(piece, piece.pos + dist, freezeDuration, state)
     }
   }
 

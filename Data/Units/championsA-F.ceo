@@ -169,6 +169,30 @@ JNNNJ
 JJJJJ
 ---
 --------------------
+FireElemental 15
+---
+1 1 1
+ MNM
+1N@N1
+ MNM
+1 1 1
+---
+MagicDestroy 1
+PieceChangeMoraleOnKill +3
+DecayAfterTurn 35 1
+--------------------
+FireElemental+ 18
+---
+1 1 1
+ NNN
+1N@N1
+ NNN
+1 1 1
+---
+MagicDestroy 1
+PieceChangeMoraleOnKill +4
+DecayAfterTurn 30 1
+--------------------
 FireElemental++ 20
 ---
 1T1T1

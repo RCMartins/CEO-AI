@@ -103,6 +103,10 @@ object Powers {
     override def createMove(dist: Distance): Moves = MagicPushFreezePiece(dist, maxPushDistance, freezeDuration)
   }
 
+  case class MagicFreeze(letterOfMove: Char, freezeDuration: Int) extends MovePower {
+    override def createMove(dist: Distance): Moves = MagicFreezePiece(dist, freezeDuration)
+  }
+
   case class KingCastlingMovePowerComplete(lettersOfMoves: List[Char]) extends MovePowerComplete {
     override def createMoves(distances: Map[Char, List[Distance]]): List[Moves] = {
       distances.values.flatten.toList.map {
