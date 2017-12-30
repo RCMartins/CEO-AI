@@ -8,7 +8,8 @@ case class Player(
   pieces: List[Piece] = List.empty,
   piecesAffected: List[Piece] = List.empty,
   numberOfPieces: Int,
-  hasKing: Boolean = false
+  hasKing: Boolean = false,
+  extraData: PlayerExtraData
 ) {
 
   override def toString: String = s"Player$team($morale)"
@@ -37,5 +38,15 @@ case class Player(
     }
   }
 
+  // TODO: not used yet
+  def killAt(boardPos: BoardPos): Player =
+    copy(extraData = extraData.copy(fallenPiecesPositions = boardPos :: extraData.fallenPiecesPositions))
+
   def inBaseRow(pos: BoardPos): Boolean = pos.row == (if (team == White) 7 else 0)
+}
+
+case class PlayerExtraData(fallenPiecesPositions: List[BoardPos])
+
+object PlayerExtraData {
+  val empty: PlayerExtraData = PlayerExtraData(List.empty)
 }

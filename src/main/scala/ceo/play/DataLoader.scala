@@ -29,7 +29,9 @@ object DataLoader {
 
     if (unknownPieces.nonEmpty) {
       System.err.println("Unknown pieces:")
-      System.err.println(unknownPieces.distinct.mkString("\n"))
+      System.err.println(unknownPieces.distinct.zipWithIndex.map {
+        case (piece, index) => s"${index + 1}) $piece"
+      }.mkString("\n"))
       ???
     } else
       board
@@ -119,9 +121,9 @@ object DataLoader {
       throw new Exception("moves needs to contain @ character to define piece position.")
     val ix = movesStr(iy).indexWhere(_ == '@')
 
-    var completePos = List[(Distance, Char)]()
+    var completePos = List[(Char, Distance)]()
     var maybeCompleteMovePower = Option.empty[MovePowerComplete]
-    var positionalPowerPos = List[(Distance, Char)]()
+    var positionalPowerPos = List[(Char, Distance)]()
     var maybePositionalPower = Option.empty[PositionalPower]
 
     val simpleMoves: List[Moves] =
@@ -135,6 +137,7 @@ object DataLoader {
         case 'M' => Moves.Move(dist)
         case 'm' => Moves.MoveFromStart(dist)
         case 'T' => Moves.MoveUnblockable(dist)
+        case 't' => Moves.MoveUnblockableFromStart(dist)
         case 'A' => Moves.Attack(dist)
         case 'J' => Moves.MoveOrAttackUnblockable(dist)
         case 'S' => Moves.MoveOrAttackOrSwapAlly(dist)
@@ -151,13 +154,15 @@ object DataLoader {
             case Some(movePower: MovePower) =>
               movePower.createMove(dist)
             case Some(positionalPower: PositionalPower) =>
-              positionalPowerPos = (dist, char) :: positionalPowerPos
+              positionalPowerPos = (char, dist) :: positionalPowerPos
               maybePositionalPower = Some(positionalPower)
               Moves.Empty
             case Some(movePowerComplete: MovePowerComplete) =>
-              completePos = (dist, char) :: completePos
+              completePos = (char, dist) :: completePos
               maybeCompleteMovePower = Some(movePowerComplete)
               Moves.Empty
+            case _ =>
+              ???
           }
       }
 
@@ -165,18 +170,16 @@ object DataLoader {
       simpleMoves.filterNot(_ == Moves.Empty) ++
         maybeCompleteMovePower.map {
           completeMovePower =>
-            completePos.map { case (distance, char) =>
-              completeMovePower.createMove(distance, char, completePos)
-            }
+            completeMovePower.createMoves(completePos.groupBy(_._1).mapValues(_.map(_._2)))
         }.getOrElse(List.empty[Moves])
 
     val extraPowers: List[Powers] =
       maybePositionalPower.map {
         positionalPower =>
-          positionalPower.createPower(positionalPowerPos)
+          positionalPower.createPowers(positionalPowerPos.groupBy(_._1).mapValues(_.map(_._2)))
       }.getOrElse(List.empty[Powers])
 
-    (moves, powers)
+    (moves, extraPowers)
   }
 
   def loadPowers(powersStr: List[String]): List[Powers] = {
@@ -194,32 +197,36 @@ object DataLoader {
       case "OnMeleeDeathKillAttacker" =>
         Powers.OnMeleeDeathKillAttacker
       case "StatusImmune" =>
-        Powers.ImmuneTo(EffectStatusType.all)
+        Powers.ImmuneTo(EffectType.all)
       case "OnKillMercenary" =>
         Powers.OnKillMercenary
       // 1-arg Powers:
       case str if str.startsWith("DummyNothingPower ") =>
-        Powers.DummyNothingPower(str.drop("DummyNothingPower ".length).head)
+        Powers.DummyNothingPower(getLetter(str.drop("DummyNothingPower ".length)))
       case str if str.startsWith("PromotesTo ") =>
         val pieceToCheck = str.drop("PromotesTo ".length)
         piecesToCheck = pieceToCheck :: piecesToCheck
         Powers.PromoteTo(pieceToCheck)
       case str if str.startsWith("LoseMoraleOnDeath ") =>
         Powers.LoseMoraleOnDeath(str.drop("LoseMoraleOnDeath ".length).toInt)
-      case str if str.startsWith("GainMoraleOnKill ") =>
-        Powers.GainMoraleOnKill(str.drop("GainMoraleOnKill ".length).toInt)
+      case str if str.startsWith("PieceChangeMoraleOnKill ") =>
+        Powers.PieceChangeMoraleOnKill(str.drop("PieceChangeMoraleOnKill ".length).toInt)
       case str if str.startsWith("OnKillTransformInto ") =>
         val pieceToCheck = str.drop("OnKillTransformInto ".length)
         piecesToCheck = pieceToCheck :: piecesToCheck
         Powers.OnKillTransformInto(pieceToCheck)
+      case str if str.startsWith("OnSpellPromoteTo ") =>
+        val pieceToCheck = str.drop("OnSpellPromoteTo ".length)
+        piecesToCheck = pieceToCheck :: piecesToCheck
+        Powers.OnSpellPromoteTo(pieceToCheck)
       // Multiple-arg Powers:
       case str if str.startsWith("DecayAfterTurn ") =>
         val List(turnStarts, moralePerTurn) = str.drop("DecayAfterTurn ".length).split(" ").toList
         Powers.DecayAfterTurn(turnStarts.toInt, moralePerTurn.toInt)
       case str if str.startsWith("ImmuneTo ") =>
-        Powers.ImmuneTo(str.drop("ImmuneTo ".length).split(" ").toList.map(EffectStatusType.apply))
+        Powers.ImmuneTo(str.drop("ImmuneTo ".length).split(" ").toList.map(EffectType.apply))
       case str if str.startsWith("DestroyedBy ") =>
-        Powers.DestroyedBy(str.drop("DestroyedBy ".length).split(" ").toList.map(EffectStatusType.apply))
+        Powers.DestroyedBy(str.drop("DestroyedBy ".length).split(" ").toList.map(EffectType.apply))
       // Move Powers:
       case str if str.startsWith("MagicDestroy ") =>
         Powers.MagicDestroyMovePower(getLetter(str.drop("MagicDestroy ".length)))
@@ -243,9 +250,12 @@ object DataLoader {
       case str if str.startsWith("RangedPush ") =>
         val List(letterStr, moraleCost, maxPushDistance) = str.drop("RangedPush ".length).split(" ").toList
         Powers.RangedPushMovePower(getLetter(letterStr), moraleCost.toInt, maxPushDistance.toInt)
-      // Move Power Completes:
+      case str if str.startsWith("MagicPushFreeze ") =>
+        val List(letterStr, maxPushDistance, freezeDuration) = str.drop("MagicPushFreeze ".length).split(" ").toList
+        Powers.MagicPushFreeze(getLetter(letterStr), maxPushDistance.toInt, freezeDuration.toInt)
+      // Move Power Complete:
       case str if str.startsWith("KingCastling ") =>
-        Powers.KingCastlingMovePower(str.drop("KingCastling ".length).split(" ").toList.map(_.head))
+        Powers.KingCastlingMovePowerComplete(str.drop("KingCastling ".length).split(" ").toList.map(getLetter))
       // Positional Powers:
       case str if str.startsWith("OnMeleeDeathSpawnPieces ") =>
         val List(letterStr, pieceToCheck) = str.drop("OnMeleeDeathSpawnPieces ".length).split(" ").toList
@@ -253,6 +263,9 @@ object DataLoader {
         Powers.OnMeleeDeathSpawnPiecesPositionalPower(getLetter(letterStr), pieceToCheck)
       case str if str.startsWith("OnMeleeDeathKillAttackerPosition ") =>
         Powers.OnMeleeDeathKillAttackerPositionalPower(getLetter(str.drop("OnMeleeDeathKillAttackerPosition ".length)))
+      // Augmented Move Powers:
+      case "AugmentedTeleportGhast" =>
+        Powers.AugmentedTeleportGhastMovePower
       case str =>
         throw new Exception("Unknown Power: " + str)
     }

@@ -13,13 +13,17 @@ sealed trait MovePower extends Powers {
 sealed trait PositionalPower extends Powers {
   def letterOfMove: Char
 
-  def createPower(positionalPowerPos: List[(Distance, Char)]): List[Powers]
+  def createPowers(distances: Map[Char, List[Distance]]): List[Powers]
 }
 
 sealed trait MovePowerComplete extends Powers {
   def lettersOfMoves: List[Char]
 
-  def createMove(dist: Distance, char: Char, all: List[(Distance, Char)]): Moves
+  def createMoves(distances: Map[Char, List[Distance]]): List[Moves]
+}
+
+sealed trait AugmentedMovePower extends Powers {
+  def createMove: List[Moves]
 }
 
 sealed trait InitialStatusEffect {
@@ -40,16 +44,18 @@ object Powers {
 
   case class LoseMoraleOnDeath(moraleAmount: Int) extends Powers
 
-  case class GainMoraleOnKill(moraleAmount: Int) extends Powers
+  case class PieceChangeMoraleOnKill(moraleAmount: Int) extends Powers
 
   case class OnKillTransformInto(pieceName: String) extends Powers
+
+  case class OnSpellPromoteTo(pieceName: String) extends Powers
 
   case class DecayAfterTurn(turnStarts: Int, moralePerTurn: Int) extends Powers
 
   // TODO do this validation
-  case class ImmuneTo(immuneList: List[EffectStatusType]) extends Powers
+  case class ImmuneTo(immuneList: List[EffectType]) extends Powers
 
-  case class DestroyedBy(destroyedBy: List[EffectStatusType]) extends Powers
+  case class DestroyedBy(destroyedBy: List[EffectType]) extends Powers
 
   case class OnMeleeDeathSpawnPieces(distances: List[Distance], pieceName: String) extends Powers
 
@@ -91,21 +97,34 @@ object Powers {
     override def createMove(dist: Distance): Moves = PushPiece(dist, moraleCost, maxPushDistance)
   }
 
-  case class KingCastlingMovePower(lettersOfMoves: List[Char]) extends MovePowerComplete {
-    override def createMove(dist: Distance, char: Char, all: List[(Distance, Char)]): Moves = {
-      val dir = dist.toUnitVector
-      Castling(dist, dist - dir, dist - (dir * 2))
+  case class MagicPushFreeze(letterOfMove: Char, maxPushDistance: Int, freezeDuration: Int) extends MovePower {
+    override def createMove(dist: Distance): Moves = MagicPushFreezePiece(dist, maxPushDistance, freezeDuration)
+  }
+
+  case class KingCastlingMovePowerComplete(lettersOfMoves: List[Char]) extends MovePowerComplete {
+    override def createMoves(distances: Map[Char, List[Distance]]): List[Moves] = {
+      distances.values.flatten.toList.map {
+        dist =>
+          val dir = dist.toUnitVector
+          Castling(dist, dist - dir, dist - (dir * 2))
+      }
     }
   }
 
   case class OnMeleeDeathSpawnPiecesPositionalPower(letterOfMove: Char, allyPieceName: String) extends PositionalPower {
-    def createPower(positions: List[(Distance, Char)]): List[Powers] =
-      List(OnMeleeDeathSpawnPieces(positions.map(_._1), allyPieceName))
+    def createPowers(distances: Map[Char, List[Distance]]): List[Powers] =
+      List(OnMeleeDeathSpawnPieces(distances.values.flatten.toList, allyPieceName))
   }
 
   case class OnMeleeDeathKillAttackerPositionalPower(letterOfMove: Char) extends PositionalPower {
-    def createPower(positions: List[(Distance, Char)]): List[Powers] =
-      List(OnMeleeDeathKillAttackerFromPosition(positions.map(_._1)))
+    def createPowers(distances: Map[Char, List[Distance]]): List[Powers] =
+      List(OnMeleeDeathKillAttackerFromPosition(distances.values.flatten.toList))
+  }
+
+  case object AugmentedTeleportGhastMovePower extends AugmentedMovePower {
+    override def createMove: List[Moves] = List(
+      TeleportToFallenAllyPosition
+    )
   }
 
 }

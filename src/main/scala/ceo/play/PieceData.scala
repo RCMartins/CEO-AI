@@ -32,12 +32,12 @@ case class PieceData(
     case _ => false
   }
 
-  val isImmuneTo: Set[EffectStatusType] = powers.flatMap {
+  val isImmuneTo: Set[EffectType] = powers.flatMap {
     case ImmuneTo(list) => list
     case _ => List.empty
   }.toSet
 
-  val isDestroyedBy: Set[EffectStatusType] = powers.flatMap {
+  val isDestroyedBy: Set[EffectType] = powers.flatMap {
     case DestroyedBy(list) => list
     case _ => List.empty
   }.toSet

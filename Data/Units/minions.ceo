@@ -181,6 +181,15 @@ m m m
 PromotesTo Knight+
 LoseMoraleOnDeath 4
 --------------------
+Militia++ 1
+---
+tmtmtmt
+  NNN
+   @
+---
+PromotesTo Knight++
+LoseMoraleOnDeath 5
+--------------------
 Pawn 0
 ---
  m
@@ -198,11 +207,34 @@ AMA
 ---
 PromotesTo Bishop+
 --------------------
+Phantasm++ 5
+---
+   T
+ T   T
+   S
+T S@S T
+   S
+ T   T
+   T
+---
+GhostMovement
+--------------------
 Pikeman 2
 ---
  1 1
 1ANA1
   @
+  M
+---
+OnMeleeDeathKillAttackerPosition 1
+--------------------
+Pikeman++ 6
+---
+A1A1A
+1ANA1
+  @
+  M
+  M
   M
 ---
 OnMeleeDeathKillAttackerPosition 1
@@ -213,7 +245,25 @@ NAN
 A@A
 NAN
 ---
-LoseMoraleOnDeath 3
+PlayerChangeMoraleOnKill -3
+--------------------
+Reaver+ 4
+---
+  A
+ NAN
+AA@AA
+ NAN
+  A
+---
+PlayerChangeMoraleOnKill -5
+--------------------
+Salamander+ 2
+---
+N1N
+ @
+---
+MagicDestroy 1
+PromotesTo FireElemental+
 --------------------
 Salamander++ 3
 ---
@@ -229,6 +279,16 @@ Skeleton+ 3
 MNM
 N@N
 MNM
+---
+StatusImmune
+--------------------
+Skeleton++ 4
+---
+  M
+ MNM
+MN@NM
+ MNM
+  M
 ---
 StatusImmune
 --------------------
@@ -374,4 +434,13 @@ Tiger+ 2
 1 1 1
 ---
 JumpMinion 1
+--------------------
+Undine++ 3
+---
+  1
+ MNM
+11@11
+---
+//TODO uncomment when ready: PromotesTo WaterElemental++
+MagicPushFreeze 1 1 2
 --------------------

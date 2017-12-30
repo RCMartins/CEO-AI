@@ -1,47 +1,51 @@
 package ceo.play
 
-sealed trait EffectStatusType {
+sealed trait EffectType {
   def name: String
 }
 
-object EffectStatusType {
+object EffectType {
 
-  case object Petrify extends EffectStatusType {
+  case object Petrify extends EffectType {
     val name = "Petrify"
   }
 
-  case object Poison extends EffectStatusType {
+  case object Poison extends EffectType {
     val name = "Poison"
   }
 
-  case object Freeze extends EffectStatusType {
+  case object Freeze extends EffectType {
     val name = "Freeze"
   }
 
-  val all: List[EffectStatusType] = List(Petrify, Poison, Freeze)
+  case object Displacement extends EffectType {
+    val name = "Push"
+  }
 
-  def apply(name: String): EffectStatusType = all.find(_.name == name) match {
+  val all: List[EffectType] = List(Petrify, Poison, Freeze, Displacement)
+
+  def apply(name: String): EffectType = all.find(_.name == name) match {
     case Some(effectStatusType) => effectStatusType
     case None => throw new Exception(s"Unknown status effect: $name")
   }
 }
 
 sealed trait EffectStatus {
-  def effectType: EffectStatusType
+  def effectType: EffectType
 }
 
 object EffectStatus {
 
   case class Petrified(untilTurn: Double) extends EffectStatus {
-    override val effectType: EffectStatusType = EffectStatusType.Petrify
+    override val effectType: EffectType = EffectType.Petrify
   }
 
   case class Poison(turnOfDeath: Double) extends EffectStatus {
-    override val effectType: EffectStatusType = EffectStatusType.Poison
+    override val effectType: EffectType = EffectType.Poison
   }
 
   case class Frozen(untilTurn: Double) extends EffectStatus {
-    override val effectType: EffectStatusType = EffectStatusType.Freeze
+    override val effectType: EffectType = EffectType.Freeze
   }
 
 }

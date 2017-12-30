@@ -75,6 +75,11 @@ object PlayerMove {
       s"for max $maxPushDistance distance  ${pieceToPush.pos - piece.pos}"
   }
 
+  case class MagicPushFreeze(piece: Piece, pieceToPushFreeze: Piece, maxPushDistance: Int, freezeDuration: Int) extends PlayerMove {
+    def betterHumanString: String = s"$piece magic-push-freezes $pieceToPushFreeze " +
+      s"for max $maxPushDistance distance and freezes it for $freezeDuration turns   ${pieceToPushFreeze.pos - piece.pos}"
+  }
+
   case class DummyMove(piece: Piece) extends PlayerMove {
     def betterHumanString: String = s"$piece does nothing special"
   }

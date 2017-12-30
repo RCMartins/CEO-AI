@@ -3,6 +3,7 @@
 @: Unit Position
 
 A: Attack
+O: Attack [Unblockable]
 
 M: Move
 T: Move [Unblockable]

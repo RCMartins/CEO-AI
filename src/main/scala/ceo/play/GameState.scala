@@ -106,8 +106,14 @@ case class GameState(board: Board, playerWhite: Player, playerBlack: Player, cur
 
     currentPlayer.pieces.flatMap { piece =>
       if (piece.isNotFrozenOrPetrified)
-        piece.data.moves
-          .flatMap(_.getValidMove(piece, this, currentPlayer))
+        piece.data.moves.flatMap {
+          case single: SingleMove =>
+            single.getValidMove(piece, this, currentPlayer)
+          case multi: MultipleMoves =>
+            multi.getValidMoves(piece, this, currentPlayer)
+          case _ =>
+            ???
+        }
       else
         List.empty
     }
@@ -201,10 +207,11 @@ case class GameState(board: Board, playerWhite: Player, playerBlack: Player, cur
         this
           .updatePiece(allyPiece, allyPiece.copy(pos = allyTarget))
           .updatePiece(kingPiece, KingWithoutCastling)
+      //TODO: MagicPushFreeze
       case TaurusRush(piece, pieceToKill, maxDistance) =>
         val pieceToKillPos = pieceToKill.pos
         val direction = Distance(pieceToKillPos.row - piece.pos.row, pieceToKillPos.column - piece.pos.column).toUnitVector
-        val positions = BoardPos.List1to8.view(0, maxDistance)
+        val positions = BoardPos.List1to8.take(maxDistance)
           .map(distance => pieceToKillPos + direction * distance)
           .takeWhile(_.isEmpty(board))
         if (positions.lengthCompare(maxDistance) < 0) {

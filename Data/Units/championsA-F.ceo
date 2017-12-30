@@ -178,6 +178,6 @@ TNNNT
 1T1T1
 ---
 MagicDestroy 1
-GainMoraleOnKill 5
+PieceChangeMoraleOnKill +5
 DecayAfterTurn 25 1
 --------------------

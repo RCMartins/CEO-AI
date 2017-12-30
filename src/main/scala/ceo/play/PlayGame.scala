@@ -8,7 +8,13 @@ object PlayGame {
   final val DEBUG_SHOW_CALC_TIME: Boolean = true
 
   val emptyGameState: GameState =
-    GameState(Board.empty, Player(White, 0, Nil, Nil, 0), Player(Black, 0, Nil, Nil, 0), 1, Nil)
+    GameState(
+      Board.empty,
+      Player(White, 0, Nil, Nil, 0, hasKing = false, PlayerExtraData.empty),
+      Player(Black, 0, Nil, Nil, 0, hasKing = false, PlayerExtraData.empty),
+      1,
+      Nil
+    )
 
   def main(args: Array[String]): Unit = {
     val time = System.currentTimeMillis()
