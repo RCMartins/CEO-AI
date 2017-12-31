@@ -78,21 +78,45 @@ case class Piece(
       } else if (data.powers.collectFirst { case OnKillMercenary if pieceToKill.data.isChampion => true }.isDefined) {
         updatedThisPiece = swapTeams
         updatedState.changeMorale(team.enemy, -1)
+      } else if (data.isGuardian) {
+        updatedState.updatePlayer(currentState.getPlayer(team).updateGuardedPositions(Some(this), None))
       } else {
-        updatedState
+        var kingPieceLocation: BoardPos = null
+        var wrathDuration: Int = 0
+        val thisDeathTriggersWrath =
+          Distance.adjacentDistances.map(pieceToKill.pos + _).exists { adjacentPos =>
+            adjacentPos.getPiece(updatedState.board).exists { piece =>
+              piece.team == pieceToKill.team && piece.data.powers.collectFirst {
+                case Powers.TriggerWrathOnAdjacentAllyDeath(turnsToLightUpLocation) =>
+                  wrathDuration = turnsToLightUpLocation
+                  true
+              }.isDefined
+            }
+          } && {
+            val player = updatedState.getPlayer(pieceToKill.team)
+            player.pieces.find(_.data.isKing).orElse(player.piecesAffected.find(_.data.isKing)) match {
+              case Some(kingPiece) =>
+                kingPieceLocation = kingPiece.pos
+                !updatedState.boardEffects.exists {
+                  case BoardEffect.Lightning(boardPos, _) if boardPos == kingPiece.pos => true
+                  case _ => false
+                }
+              case _ => false
+            }
+          }
+        if (thisDeathTriggersWrath) {
+          val lightning = BoardEffect.Lightning(kingPieceLocation, updatedState.currentTurn + wrathDuration)
+          updatedState.copy(boardEffects = lightning :: updatedState.boardEffects)
+        } else {
+          updatedState
+        }
       }
 
-    val stateAfterGuardianCleanup =
-      if (data.isGuardian)
-        updatedState.updatePlayer(currentState.getPlayer(team).updateGuardedPositions(Some(this), None))
-      else
-        updatedState
-
-    (stateAfterGuardianCleanup, {
+    (finalState, {
       if (data.suicidesOnKill || attackerPieceDies)
         None
       else
-        Some(updatedThisPiece.copy(pos = pieceToKill.pos).promoteIfPossible(stateAfterGuardianCleanup))
+        Some(updatedThisPiece.copy(pos = pieceToKill.pos).promoteIfPossible(finalState))
     })
   }
 
@@ -123,6 +147,7 @@ case class Piece(
   def freeze(currentState: GameState, turnsFrozen: Int): Piece =
     addEffect(Frozen(currentState.currentTurn + turnsFrozen))
 
+  // TODO use this ...
   def onKillTransformIfPossible(): Piece = {
     data.powers.collectFirst { case OnKillTransformInto(pieceUpgradeName) => pieceUpgradeName } match {
       case None =>

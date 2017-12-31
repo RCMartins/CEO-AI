@@ -214,13 +214,22 @@ object Moves {
   ): Option[PlayerMove] = {
     target.getPiece(state.board) match {
       case Some(targetPiece) if targetPiece.team != piece.team =>
-        if (!targetPiece.data.isImmuneTo(EffectType.Freeze) || {
+        (!targetPiece.data.isImmuneTo(EffectType.Freeze), {
           val dir = (targetPiece.pos - piece.pos).toUnitVector
           (targetPiece.pos + dir).isEmpty(state.board) && !targetPiece.data.isImmuneTo(EffectType.Displacement)
-        })
-          Some(PlayerMove.MagicPushFreeze(piece, targetPiece, maxPushDistance, freezeDuration))
-        else
-          None
+        }) match {
+          case (true, true) =>
+            Some(PlayerMove.MultiMove(
+              PlayerMove.MagicPush(piece, targetPiece, maxPushDistance),
+              PlayerMove.MagicFreeze(piece, targetPiece, freezeDuration)
+            ))
+          case (false, true) =>
+            Some(PlayerMove.MagicPush(piece, targetPiece, maxPushDistance))
+          case (true, false) =>
+            Some(PlayerMove.MagicFreeze(piece, targetPiece, freezeDuration))
+          case _ =>
+            None
+        }
       case _ =>
         None
     }
@@ -413,6 +422,17 @@ object Moves {
   case class MagicFreezePiece(dist: Distance, freezeDuration: Int) extends SingleMove {
     def getValidMove(piece: Piece, state: GameState, currentPlayer: Player): Option[PlayerMove] = {
       canFreeze(piece, piece.pos + dist, freezeDuration, state)
+    }
+  }
+
+  case class MagicLightning(dist: Distance, moraleCost: Int, turnsToLightUpLocation: Int) extends SingleMove {
+    def getValidMove(piece: Piece, state: GameState, currentPlayer: Player): Option[PlayerMove] = {
+      val target = piece.pos + dist
+      if (state.boardEffects.collectFirst { case BoardEffect.Lightning(pos, _) if pos == target => () }.isEmpty) {
+        Some(PlayerMove.MagicLightning(piece, target, moraleCost, turnsToLightUpLocation))
+      } else {
+        None
+      }
     }
   }
 

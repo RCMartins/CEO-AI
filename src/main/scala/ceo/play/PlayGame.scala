@@ -13,6 +13,7 @@ object PlayGame {
       Player(White, 0, Nil, Nil, 0, hasKing = false, PlayerExtraData.empty),
       Player(Black, 0, Nil, Nil, 0, hasKing = false, PlayerExtraData.empty),
       1,
+      Nil,
       Nil
     )
 

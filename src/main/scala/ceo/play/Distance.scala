@@ -34,4 +34,6 @@ object Distance {
       cache((rowDiff + 7) * 15 + (columnDiff + 7))
     }
   }
+
+  val adjacentDistances: List[Distance] = List(Distance(-1, 0), Distance(0, 1), Distance(1, 0), Distance(0, -1))
 }

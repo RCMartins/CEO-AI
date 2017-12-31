@@ -75,9 +75,9 @@ object PlayerMove {
       s"for max $maxPushDistance distance   ${pieceToPush.pos - piece.pos}"
   }
 
-  case class MagicPushFreeze(piece: Piece, pieceToPushFreeze: Piece, maxPushDistance: Int, freezeDuration: Int) extends PlayerMove {
-    def betterHumanString: String = s"$piece magic-push-freezes $pieceToPushFreeze " +
-      s"for max $maxPushDistance distance and freezes it for $freezeDuration turns   ${pieceToPushFreeze.pos - piece.pos}"
+  case class MagicPush(piece: Piece, pieceToPush: Piece, maxPushDistance: Int) extends PlayerMove {
+    def betterHumanString: String = s"$piece magic-pushes $pieceToPush " +
+      s"for max $maxPushDistance distance   ${pieceToPush.pos - piece.pos}"
   }
 
   case class TeleportPiece(piece: Piece, pieceToTeleport: Piece, positionToTeleport: BoardPos) extends PlayerMove {
@@ -88,6 +88,11 @@ object PlayerMove {
   case class MagicFreeze(piece: Piece, pieceToFreeze: Piece, freezeDuration: Int) extends PlayerMove {
     def betterHumanString: String = s"$piece magic-freezes $pieceToFreeze " +
       s"for $freezeDuration turns   ${pieceToFreeze.pos - piece.pos}"
+  }
+
+  case class MagicLightning(piece: Piece, lightningPosition: BoardPos, moraleCost: Int, durationTurns: Int) extends PlayerMove {
+    def betterHumanString: String = s"$piece casts-lightning at $lightningPosition " +
+      s"in $durationTurns turns   ${lightningPosition - piece.pos}"
   }
 
   case class DummyMove(piece: Piece) extends PlayerMove {

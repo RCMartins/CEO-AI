@@ -67,6 +67,8 @@ object Powers {
 
   case class TriggerGuardian(distances: List[Distance]) extends Powers
 
+  case class TriggerWrathOnAdjacentAllyDeath(turnsToLightUpLocation: Int) extends Powers
+
   case class DummyNothingPower(letterOfMove: Char) extends MovePower {
     override def createMove(dist: Distance): Moves = DummyMove
   }
@@ -109,6 +111,10 @@ object Powers {
 
   case class MagicFreezeMovePower(letterOfMove: Char, freezeDuration: Int) extends MovePower {
     override def createMove(dist: Distance): Moves = MagicFreezePiece(dist, freezeDuration)
+  }
+
+  case class MagicLightningOnLocation(letterOfMove: Char, moraleCost: Int, turnsToLightUpLocation: Int) extends MovePower {
+    override def createMove(dist: Distance): Moves = MagicLightning(dist, moraleCost, turnsToLightUpLocation)
   }
 
   case class KingCastlingMovePowerComplete(lettersOfMoves: List[Char]) extends MovePowerComplete {

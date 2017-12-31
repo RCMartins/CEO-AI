@@ -2,7 +2,14 @@ package ceo.play
 
 import ceo.play.PlayerTeam.{Black, White}
 
-case class GameState(board: Board, playerWhite: Player, playerBlack: Player, currentTurn: Double, movesHistory: List[PlayerMove]) {
+case class GameState(
+  board: Board,
+  playerWhite: Player,
+  playerBlack: Player,
+  currentTurn: Double,
+  movesHistory: List[PlayerMove],
+  boardEffects: List[BoardEffect]
+) {
 
   def trimMorale: GameState = {
     if (playerWhite.morale < 0 || playerBlack.morale < 0) {
@@ -241,14 +248,27 @@ case class GameState(board: Board, playerWhite: Player, playerBlack: Player, cur
         val (updatedState2, pieceToTeleportUpdated) = pieceToTeleport.moveTo(updatedState1, target)
         updatedState2
           .updatePiece(pieceToTeleport, pieceToTeleportUpdated)
-      case MagicPushFreeze(piece, _pieceToPushFreeze, maxPushDistance, freezeDuration) =>
-        val (updatedState, pieceToPushFreeze) = guardianSwapPiece(this, _pieceToPushFreeze)
-        ???
+      case MagicPush(piece, _pieceToPush, maxPushDistance) => //TODO use MultiMove with Push & Freeze
+        val (updatedState1, pieceToPush) = guardianSwapPiece(this, _pieceToPush)
+        val pieceToPushPos = pieceToPush.pos
+        val dir = (pieceToPushPos - piece.pos).toUnitVector
+        val positions = BoardPos.List1to8.view(0, maxPushDistance)
+          .map(distance => pieceToPushPos + dir * distance)
+          .takeWhile(_.isEmpty(board))
+
+        val (updatedState2, pieceToPushUpdated) = pieceToPush.moveTo(updatedState1, positions.last)
+        updatedState2
+          .updatePiece(pieceToPush, pieceToPushUpdated)
       case MagicFreeze(piece, _pieceToFreeze, freezeDuration) =>
         val (updatedState, pieceToFreeze) = guardianSwapPiece(this, _pieceToFreeze)
         val pieceToFreezeUpdated = piece.freeze(updatedState, freezeDuration)
         updatedState
           .updatePiece(pieceToFreeze, pieceToFreezeUpdated)
+      case MagicLightning(piece, lightningPosition, moraleCost, durationTurns) =>
+        val lightning = BoardEffect.Lightning(lightningPosition, currentTurn + durationTurns)
+        this
+          .changeMorale(piece.team, -moraleCost)
+          .copy(boardEffects = lightning :: boardEffects)
       case TaurusRush(piece, _pieceToKill, maxDistance) =>
         val (updatedState1, pieceToKill) = guardianSwapPiece(this, _pieceToKill)
         val pieceToKillPos = pieceToKill.pos

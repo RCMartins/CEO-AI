@@ -223,6 +223,8 @@ object DataLoader {
         val pieceToCheck = str.drop("OnSpellPromoteTo ".length)
         piecesToCheck = pieceToCheck :: piecesToCheck
         Powers.OnSpellPromoteTo(pieceToCheck)
+      case str if str.startsWith("TriggerWrathOnAdjacentAllyDeath ") =>
+        Powers.TriggerWrathOnAdjacentAllyDeath(str.drop("TriggerWrathOnAdjacentAllyDeath ".length).toInt)
       // Multiple-arg Powers:
       case str if str.startsWith("DecayAfterTurn ") =>
         val List(turnStarts, moralePerTurn) = str.drop("DecayAfterTurn ".length).split(" ").toList
@@ -260,6 +262,9 @@ object DataLoader {
       case str if str.startsWith("MagicFreeze ") =>
         val List(letterStr, freezeDuration) = str.drop("MagicFreeze ".length).split(" ").toList
         Powers.MagicFreezeMovePower(getLetter(letterStr), freezeDuration.toInt)
+      case str if str.startsWith("MagicLightningOnLocation ") =>
+        val List(letterStr, moraleCost, lightningDelayTurns) = str.drop("MagicLightningOnLocation ".length).split(" ").toList
+        Powers.MagicLightningOnLocation(getLetter(letterStr), moraleCost.toInt, lightningDelayTurns.toInt)
       // Move Power Complete:
       case str if str.startsWith("KingCastling ") =>
         Powers.KingCastlingMovePowerComplete(str.drop("KingCastling ".length).split(" ").toList.map(getLetter))
