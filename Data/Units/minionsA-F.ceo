@@ -1,0 +1,184 @@
+Apprentice 1
+---
+PPP
+P@P
+PPP
+---
+--------------------
+Apprentice+ 3
+---
+P P P
+ PPP
+PP@PP
+ PPP
+P P P
+---
+--------------------
+Apprentice++ 5
+---
+P S P
+ PPP
+SP@PS
+ PPP
+P S P
+---
+--------------------
+Archer 0
+---
+ R
+M M
+ @
+ M
+---
+PromotesTo Ranger
+--------------------
+Archer+ 1
+---
+m R m
+ M M
+  @
+  M
+---
+PromotesTo Ranger+
+--------------------
+Archer+++ 3
+---
+t   t
+M R M
+ M M
+  @
+  M
+---
+PromotesTo Ranger+++
+--------------------
+Axeman 1
+---
+AMA
+A@A
+---
+PromotesTo Berserker
+--------------------
+Axeman+ 2
+---
+NMN
+A@A
+---
+PromotesTo Berserker+
+--------------------
+Axeman++ 3
+---
+m m m
+ NMN
+ A@A
+---
+PromotesTo Berserker++
+--------------------
+Basilisk 2
+---
+N1N
+ @
+---
+RangedPetrify 1 5
+PromotesTo Dragon
+--------------------
+Basilisk+ 3
+---
+N1N
+ @
+ M
+---
+RangedPetrify 1 5
+PromotesTo Dragon+
+--------------------
+Basilisk++ 4
+---
+M   M
+ N1N
+  @
+  M
+---
+RangedPetrify 1 5
+PromotesTo Dragon++
+--------------------
+Bat 0
+---
+T   T
+ M@M
+T   T
+---
+//TODO uncomment when ready: PromotesTo Vampire
+--------------------
+Bomber+ 2
+---
+  M
+  N
+  @
+
+
+
+
+
+
+TT TT
+---
+SuicideOnKill
+OnMeleeDeathKillAttacker
+--------------------
+Drake 4
+---
+  A
+  N
+AN@NA
+  N
+  A
+---
+--------------------
+Drake+ 5
+---
+  N
+  N
+NN@NN
+  N
+  N
+---
+--------------------
+Drake++ 6
+---
+  J
+  N
+JN@NJ
+  N
+  J
+---
+--------------------
+Drake+++ 7
+---
+T J T
+  N
+JN@NJ
+  N
+T J T
+---
+--------------------
+Fireball 2
+---
+R
+R
+R
+@
+---
+SuicideOnKill
+ImmuneTo Poison Petrify
+DestroyedBy Freeze
+--------------------
+Fireball+ 3
+---
+  R
+R R R
+ RRR
+  @
+---
+SuicideOnKill
+ImmuneTo Poison Petrify
+DestroyedBy Freeze
+--------------------

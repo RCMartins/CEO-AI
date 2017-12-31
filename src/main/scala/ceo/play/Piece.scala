@@ -140,11 +140,13 @@ case class Piece(
 
   def isPoisoned: Boolean = effectStatus.collectFirst { case poison: EffectStatus.Poison => poison }.isDefined
 
-  def isNotFrozenOrPetrified: Boolean = {
+  def canAct(currentPlayer: Player): Boolean = {
     effectStatus.forall {
       case _: EffectStatus.Petrified => false
       case _: EffectStatus.Frozen => false
       case _ => true
+    } && {
+      !data.canOnlyActAfterPieceLost || currentPlayer.extraData.fallenPiecesPositions.nonEmpty
     }
   }
 

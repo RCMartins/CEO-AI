@@ -18,9 +18,11 @@ case class Player(
 
   def removePiece(piece: Piece): Player = {
     if (piece.data.isKing)
-      copy(pieces = pieces.filterNot(_ eq piece), piecesAffected = piecesAffected.filterNot(_ eq piece), numberOfPieces = numberOfPieces - 1, hasKing = false)
+      copy(pieces = pieces.filterNot(_ eq piece),
+        piecesAffected = piecesAffected.filterNot(_ eq piece), numberOfPieces = numberOfPieces - 1, hasKing = false)
     else
-      copy(pieces = pieces.filterNot(_ eq piece), piecesAffected = piecesAffected.filterNot(_ eq piece), numberOfPieces = numberOfPieces - 1)
+      copy(pieces = pieces.filterNot(_ eq piece),
+        piecesAffected = piecesAffected.filterNot(_ eq piece), numberOfPieces = numberOfPieces - 1)
   }
 
   def placePiece(piece: Piece): Player = {

@@ -112,7 +112,7 @@ case class GameState(board: Board, playerWhite: Player, playerBlack: Player, cur
     val currentPlayer: Player = getCurrentPlayer
 
     currentPlayer.pieces.flatMap { piece =>
-      if (piece.isNotFrozenOrPetrified)
+      if (piece.canAct(currentPlayer))
         piece.data.moves.flatMap {
           case single: SingleMove =>
             single.getValidMove(piece, this, currentPlayer)

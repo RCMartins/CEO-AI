@@ -62,4 +62,9 @@ case class PieceData(
     case _ => List.empty
   }.toSet
 
+  val canOnlyActAfterPieceLost: Boolean = powers.exists {
+    case CanOnlyActAfterPieceLost => true
+    case _ => false
+  }
+
 }

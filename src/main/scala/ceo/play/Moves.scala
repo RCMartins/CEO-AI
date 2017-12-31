@@ -234,7 +234,7 @@ object Moves {
   ): Option[PlayerMove] = {
     target.getPiece(state.board) match {
       case Some(targetPiece) if targetPiece.team != piece.team && !targetPiece.data.isImmuneTo(EffectType.Freeze) =>
-          Some(PlayerMove.MagicFreeze(piece, targetPiece, freezeDuration))
+        Some(PlayerMove.MagicFreeze(piece, targetPiece, freezeDuration))
       case _ =>
         None
     }
@@ -413,6 +413,21 @@ object Moves {
   case class MagicFreezePiece(dist: Distance, freezeDuration: Int) extends SingleMove {
     def getValidMove(piece: Piece, state: GameState, currentPlayer: Player): Option[PlayerMove] = {
       canFreeze(piece, piece.pos + dist, freezeDuration, state)
+    }
+  }
+
+  case class TeleportKingToLocation(distances: List[Distance]) extends MultipleMoves {
+    def getValidMoves(piece: Piece, state: GameState, currentPlayer: Player): List[PlayerMove] = {
+      currentPlayer.pieces.find(_.data.isKing).orElse(currentPlayer.piecesAffected.find(_.data.isKing)) match {
+        case Some(kingPiece) =>
+          distances.flatMap { dist =>
+            if ((kingPiece.pos + dist).isEmpty(state.board))
+              Some(PlayerMove.TeleportPiece(piece, kingPiece, piece.pos + dist))
+            else
+              None
+          }
+        case None => List.empty
+      }
     }
   }
 

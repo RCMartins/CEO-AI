@@ -51,14 +51,14 @@ King 0
     1
 
    NNN
-44 N@N 22
+11 N@N 11
    NNN
 
-    3
-    3
+    1
+    1
 ---
 PlayerChangeMoraleOnDeath -25
-KingCastling 1 2 3 4
+KingCastling 1
 --------------------
 Knight 6
 ---

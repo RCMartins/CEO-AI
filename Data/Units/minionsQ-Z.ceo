@@ -1,0 +1,230 @@
+Reaver 3
+---
+NAN
+A@A
+NAN
+---
+PlayerChangeMoraleOnKill -3
+--------------------
+Reaver+ 4
+---
+  A
+ NAN
+AA@AA
+ NAN
+  A
+---
+PlayerChangeMoraleOnKill -5
+--------------------
+Salamander+ 2
+---
+N1N
+ @
+---
+MagicDestroy 1
+PromotesTo FireElemental+
+--------------------
+Salamander++ 3
+---
+M   M
+ N1N
+  @
+---
+MagicDestroy 1
+PromotesTo FireElemental++
+--------------------
+Skeleton+ 3
+---
+MNM
+N@N
+MNM
+---
+StatusImmune
+--------------------
+Skeleton++ 4
+---
+  M
+ MNM
+MN@NM
+ MNM
+  M
+---
+StatusImmune
+--------------------
+Slime 2
+---
+N
+@
+N
+---
+OnKillTransformInto GiantSlime
+--------------------
+Slime+++ 6
+---
+  M
+  N
+MN@NM
+  N
+  M
+---
+OnKillTransformInto GiantSlime+++
+--------------------
+Spearman 1
+---
+A
+N
+@
+---
+PromotesTo Legionary
+--------------------
+Spearman+ 2
+---
+ A
+mNm
+ @
+---
+PromotesTo Legionary+
+--------------------
+Spearman+++ 5
+---
+ A
+ A
+MNM
+ @
+---
+PromotesTo Legionary+++
+--------------------
+Spider 0
+---
+M   M
+ M1M
+ 1@1
+ M1M
+M   M
+---
+MagicPoison 1 3
+--------------------
+Spider+ 1
+---
+M       M
+ M     M
+  M   M
+   M1M
+   1@1
+   M1M
+  M   M
+ M     M
+M       M
+---
+MagicPoison 1 3
+--------------------
+Swordsman 1
+---
+ N
+A@A
+---
+PromotesTo Warrior
+--------------------
+Swordsman+ 2
+---
+ N
+N@N
+---
+PromotesTo Warrior+
+--------------------
+Swordsman+++ 4
+---
+m m m
+ NNN
+ N@N
+  M
+---
+PromotesTo Warrior+++
+--------------------
+Sylph 0
+---
+1M1
+M@M
+1M1
+---
+RangedPush 1 1 3
+OnSpellPromoteTo Sylph+
+--------------------
+Sylph+ 1
+---
+  M
+ 1M1
+MM@MM
+ 1M1
+  M
+---
+RangedPush 1 1 3
+OnSpellPromoteTo Sylph++
+--------------------
+Sylph++ 3
+---
+1 M 1
+ 1M1
+MM@MM
+ 1M1
+1 M 1
+---
+RangedPush 1 1 3
+OnSpellPromoteTo Sylph+++
+--------------------
+Sylph+++ 5
+---
+1 M 1
+ 1N1
+MN@NM
+ 1N1
+1 M 1
+---
+RangedPush 1 1 3
+//TODO uncomment when ready: OnSpellPromoteTo AirElemental
+--------------------
+Tiger 1
+---
+1 1 1
+  M
+1M@M1
+  M
+1 1 1
+---
+JumpMinion 1
+--------------------
+Tiger+ 2
+---
+1 1 1
+ MMM
+1M@M1
+ MMM
+1 1 1
+---
+JumpMinion 1
+--------------------
+Undine 0
+---
+MNM
+1@1
+---
+//TODO uncomment when ready: PromotesTo WaterElemental
+MagicPushFreeze 1 1 2
+--------------------
+Undine+ 2
+---
+ MNM
+11@11
+---
+//TODO uncomment when ready: PromotesTo WaterElemental+
+MagicPushFreeze 1 1 2
+--------------------
+Undine++ 3
+---
+  1
+ MNM
+11@11
+---
+//TODO uncomment when ready: PromotesTo WaterElemental++
+MagicPushFreeze 1 1 2
+--------------------

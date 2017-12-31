@@ -197,9 +197,11 @@ object DataLoader {
       case "OnMeleeDeathKillAttacker" =>
         Powers.OnMeleeDeathKillAttacker
       case "StatusImmune" =>
-        Powers.ImmuneTo(EffectType.all)
+        Powers.ImmuneTo(List(EffectType.Petrify, EffectType.Freeze, EffectType.Poison))
       case "OnKillMercenary" =>
         Powers.OnKillMercenary
+      case "CanOnlyActAfterPieceLost" =>
+        Powers.CanOnlyActAfterPieceLost
       // 1-arg Powers:
       case str if str.startsWith("DummyNothingPower ") =>
         Powers.DummyNothingPower(getLetter(str.drop("DummyNothingPower ".length)))
@@ -254,15 +256,17 @@ object DataLoader {
         Powers.RangedPushMovePower(getLetter(letterStr), moraleCost.toInt, maxPushDistance.toInt)
       case str if str.startsWith("MagicPushFreeze ") =>
         val List(letterStr, maxPushDistance, freezeDuration) = str.drop("MagicPushFreeze ".length).split(" ").toList
-        Powers.MagicPushFreeze(getLetter(letterStr), maxPushDistance.toInt, freezeDuration.toInt)
+        Powers.MagicPushFreezeMovePower(getLetter(letterStr), maxPushDistance.toInt, freezeDuration.toInt)
       case str if str.startsWith("MagicFreeze ") =>
         val List(letterStr, freezeDuration) = str.drop("MagicFreeze ".length).split(" ").toList
-        Powers.MagicFreeze(getLetter(letterStr), freezeDuration.toInt)
+        Powers.MagicFreezeMovePower(getLetter(letterStr), freezeDuration.toInt)
       // Move Power Complete:
       case str if str.startsWith("KingCastling ") =>
         Powers.KingCastlingMovePowerComplete(str.drop("KingCastling ".length).split(" ").toList.map(getLetter))
       case str if str.startsWith("TeleportPiece ") =>
         Powers.TeleportPiecesMovePowerComplete(str.drop("TeleportPiece ".length).split(" ").toList.map(getLetter))
+      case str if str.startsWith("TeleportKingToLocation ") =>
+        Powers.TeleportKingToLocationMovePowerComplete(str.drop("TeleportKingToLocation ".length).split(" ").toList.map(getLetter))
       // Positional Powers:
       case str if str.startsWith("OnMeleeDeathSpawnPieces ") =>
         val List(letterStr, pieceToCheck) = str.drop("OnMeleeDeathSpawnPieces ".length).split(" ").toList

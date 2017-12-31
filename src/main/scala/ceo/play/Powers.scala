@@ -40,6 +40,8 @@ object Powers {
 
   case object OnKillMercenary extends Powers
 
+  case object CanOnlyActAfterPieceLost extends Powers
+
   case class PromoteTo(pieceName: String) extends Powers
 
   case class PlayerChangeMoraleOnDeath(moraleAmount: Int) extends Powers
@@ -54,7 +56,6 @@ object Powers {
 
   case class DecayAfterTurn(turnStarts: Int, moralePerTurn: Int) extends Powers
 
-  // TODO do this validation
   case class ImmuneTo(immuneList: List[EffectType]) extends Powers
 
   // TODO do this validation
@@ -102,11 +103,11 @@ object Powers {
     override def createMove(dist: Distance): Moves = PushPiece(dist, moraleCost, maxPushDistance)
   }
 
-  case class MagicPushFreeze(letterOfMove: Char, maxPushDistance: Int, freezeDuration: Int) extends MovePower {
+  case class MagicPushFreezeMovePower(letterOfMove: Char, maxPushDistance: Int, freezeDuration: Int) extends MovePower {
     override def createMove(dist: Distance): Moves = MagicPushFreezePiece(dist, maxPushDistance, freezeDuration)
   }
 
-  case class MagicFreeze(letterOfMove: Char, freezeDuration: Int) extends MovePower {
+  case class MagicFreezeMovePower(letterOfMove: Char, freezeDuration: Int) extends MovePower {
     override def createMove(dist: Distance): Moves = MagicFreezePiece(dist, freezeDuration)
   }
 
@@ -129,6 +130,12 @@ object Powers {
             dist2 <- distances(c2)
           } yield TeleportPiece(dist1, dist2)
       }
+    }
+  }
+
+  case class TeleportKingToLocationMovePowerComplete(lettersOfMoves: List[Char]) extends MovePowerComplete {
+    override def createMoves(distances: Map[Char, List[Distance]]): List[Moves] = {
+      List(TeleportKingToLocation(distances.values.flatten.toList))
     }
   }
 

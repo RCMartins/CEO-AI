@@ -19,7 +19,7 @@ object EffectType {
   }
 
   case object Displacement extends EffectType {
-    val name = "Push"
+    val name = "Displacement"
   }
 
   val all: List[EffectType] = List(Petrify, Poison, Freeze, Displacement)

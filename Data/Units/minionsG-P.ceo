@@ -1,0 +1,131 @@
+Ghost 3
+---
+ S
+S@S
+ S
+---
+GhostMovement
+--------------------
+Ghost+ 4
+---
+MSM
+S@S
+MSM
+---
+GhostMovement
+--------------------
+Ghost++ 5
+---
+NSN
+S@S
+NSN
+---
+GhostMovement
+--------------------
+Ghost+++ 6
+---
+SSS
+S@S
+SSS
+---
+GhostMovement
+--------------------
+Mercenary+ 3
+---
+  N
+ MNM
+NN@NN
+ MNM
+  N
+---
+OnKillMercenary
+--------------------
+Militia 1
+---
+NNN
+ @
+---
+PromotesTo Knight
+PlayerChangeMoraleOnDeath -3
+--------------------
+Militia+ 1
+---
+m m m
+ NNN
+  @
+---
+PromotesTo Knight+
+PlayerChangeMoraleOnDeath -4
+--------------------
+Militia++ 1
+---
+tmtmtmt
+  NNN
+   @
+---
+PromotesTo Knight++
+PlayerChangeMoraleOnDeath -5
+--------------------
+Pawn 0
+---
+ m
+AMA
+ @
+---
+PromotesTo Bishop
+--------------------
+Pawn+ 1
+---
+ m
+ m
+AMA
+ @
+---
+PromotesTo Bishop+
+--------------------
+Penguin 0
+---
+1N1
+ @
+
+
+
+
+
+
+ T
+---
+MagicFreeze 1 3
+--------------------
+Phantasm++ 5
+---
+   T
+ T   T
+   S
+T S@S T
+   S
+ T   T
+   T
+---
+GhostMovement
+--------------------
+Pikeman 2
+---
+ 1 1
+1ANA1
+  @
+  M
+---
+OnMeleeDeathKillAttackerPosition 1
+--------------------
+Pikeman++ 6
+---
+A1A1A
+1ANA1
+  @
+  M
+  M
+  M
+---
+OnMeleeDeathKillAttackerPosition 1
+--------------------
