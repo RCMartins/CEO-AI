@@ -16,6 +16,14 @@ AA@AA
 ---
 PlayerChangeMoraleOnKill -5
 --------------------
+RoyalGuard+ 4
+---
+MNM
+N@N
+MNM
+---
+AugmentedTeleportRoyalGuard
+--------------------
 Salamander+ 2
 ---
 N1N
@@ -33,13 +41,22 @@ M   M
 MagicDestroy 1
 PromotesTo FireElemental++
 --------------------
+Shieldsman++ 2
+---
+ MNM
+MM@MM
+  1
+---
+TriggerGuardian 1
+PromotesTo Guardian++
+--------------------
 Skeleton+ 3
 ---
 MNM
 N@N
 MNM
 ---
-StatusImmune
+ImmuneTo Status
 --------------------
 Skeleton++ 4
 ---
@@ -49,7 +66,7 @@ MN@NM
  MNM
   M
 ---
-StatusImmune
+ImmuneTo Status
 --------------------
 Slime 2
 ---
@@ -148,7 +165,7 @@ M@M
 1M1
 ---
 RangedPush 1 1 3
-OnSpellPromoteTo Sylph+
+PromoteOnSpellCastTo Sylph+
 --------------------
 Sylph+ 1
 ---
@@ -159,7 +176,7 @@ MM@MM
   M
 ---
 RangedPush 1 1 3
-OnSpellPromoteTo Sylph++
+PromoteOnSpellCastTo Sylph++
 --------------------
 Sylph++ 3
 ---
@@ -170,7 +187,7 @@ MM@MM
 1 M 1
 ---
 RangedPush 1 1 3
-OnSpellPromoteTo Sylph+++
+PromoteOnSpellCastTo Sylph+++
 --------------------
 Sylph+++ 5
 ---
@@ -181,7 +198,7 @@ MN@NM
 1 M 1
 ---
 RangedPush 1 1 3
-//TODO uncomment when ready: OnSpellPromoteTo AirElemental
+//TODO uncomment when ready: PromoteOnSpellCastTo AirElemental
 --------------------
 Tiger 1
 ---

@@ -12,6 +12,8 @@ class Distance private(val rowDiff: Int, val columnDiff: Int) {
 
   @inline def +(other: Distance): Distance = Distance(rowDiff + other.rowDiff, columnDiff + other.columnDiff)
 
+  @inline def +(other: BoardPos): BoardPos = BoardPos(rowDiff + other.row, columnDiff + other.column)
+
   @inline def -(other: Distance): Distance = Distance(rowDiff - other.rowDiff, columnDiff - other.columnDiff)
 
   @inline def *(multiplier: Int): Distance = Distance(rowDiff * multiplier, columnDiff * multiplier)
@@ -35,5 +37,9 @@ object Distance {
     }
   }
 
-  val adjacentDistances: List[Distance] = List(Distance(-1, 0), Distance(0, 1), Distance(1, 0), Distance(0, -1))
+  val adjacentDistances: List[Distance] = (for {
+    y <- -1 to 1
+    x <- -1 to 1
+    if x != 0 || y != 0
+  } yield Distance(y, x)).toList
 }

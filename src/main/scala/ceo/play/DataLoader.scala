@@ -128,7 +128,7 @@ object DataLoader {
 
     val simpleMoves: List[Moves] =
       for {
-        (line, y) <- movesStr.zipWithIndex
+        (line, y) <- movesStr.map(_.stripPrefix("-")).zipWithIndex
         (char, x) <- line.zipWithIndex
         if char != ' ' && char != '@'
         dist = Distance(y - iy, x - ix)
@@ -196,8 +196,6 @@ object DataLoader {
         Powers.GhostMovement
       case "OnMeleeDeathKillAttacker" =>
         Powers.OnMeleeDeathKillAttacker
-      case "StatusImmune" =>
-        Powers.ImmuneTo(List(EffectType.Petrify, EffectType.Freeze, EffectType.Poison))
       case "OnKillMercenary" =>
         Powers.OnKillMercenary
       case "CanOnlyActAfterPieceLost" =>
@@ -219,10 +217,10 @@ object DataLoader {
         val pieceToCheck = str.drop("OnKillTransformInto ".length)
         piecesToCheck = pieceToCheck :: piecesToCheck
         Powers.OnKillTransformInto(pieceToCheck)
-      case str if str.startsWith("OnSpellPromoteTo ") =>
-        val pieceToCheck = str.drop("OnSpellPromoteTo ".length)
+      case str if str.startsWith("PromoteOnSpellCastTo ") =>
+        val pieceToCheck = str.drop("PromoteOnSpellCastTo ".length)
         piecesToCheck = pieceToCheck :: piecesToCheck
-        Powers.OnSpellPromoteTo(pieceToCheck)
+        Powers.PromoteOnSpellCastTo(pieceToCheck)
       case str if str.startsWith("TriggerWrathOnAdjacentAllyDeath ") =>
         Powers.TriggerWrathOnAdjacentAllyDeath(str.drop("TriggerWrathOnAdjacentAllyDeath ".length).toInt)
       // Multiple-arg Powers:
@@ -230,7 +228,9 @@ object DataLoader {
         val List(turnStarts, moralePerTurn) = str.drop("DecayAfterTurn ".length).split(" ").toList
         Powers.DecayAfterTurn(turnStarts.toInt, moralePerTurn.toInt)
       case str if str.startsWith("ImmuneTo ") =>
-        Powers.ImmuneTo(str.drop("ImmuneTo ".length).split(" ").toList.map(EffectType.apply))
+        val list = str.drop("ImmuneTo ".length).split(" ").toList.flatMap(effect =>
+          if (effect == "Status") List(EffectType.Petrify, EffectType.Freeze, EffectType.Poison).map(_.name) else List(effect))
+        Powers.ImmuneTo(list.map(EffectType.apply))
       case str if str.startsWith("DestroyedBy ") =>
         Powers.DestroyedBy(str.drop("DestroyedBy ".length).split(" ").toList.map(EffectType.apply))
       // Move Powers:
@@ -284,6 +284,8 @@ object DataLoader {
       // Augmented Move Powers:
       case "AugmentedTeleportGhast" =>
         Powers.AugmentedTeleportGhastMovePower
+      case "AugmentedTeleportRoyalGuard" =>
+        Powers.AugmentedTeleportRoyalGuard
       case str =>
         throw new Exception("Unknown Power: " + str)
     }

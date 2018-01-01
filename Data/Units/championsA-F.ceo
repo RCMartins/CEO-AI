@@ -205,3 +205,15 @@ MagicDestroy 1
 PieceChangeMoraleOnKill +5
 DecayAfterTurn 25 1
 --------------------
+FrostMage+++ 14
+---
+  111
+ 1 N 1
+1 1N1 1
+1NN@NN1
+1 1N1 1
+ 1 N 1
+  111
+---
+MagicFreeze 1 3
+--------------------

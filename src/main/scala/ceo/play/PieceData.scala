@@ -25,6 +25,9 @@ case class PieceData(
 
   val isKing: Boolean = name.startsWith("King")
 
+  val isRoyalty: Boolean =
+    name.startsWith("King") || name.startsWith("Queen") || name.startsWith("Prince") || name.startsWith("Princess")
+
   val isChampion: Boolean = !isKing && !isMinion
 
   val isGhost: Boolean = powers.exists {

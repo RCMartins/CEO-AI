@@ -22,7 +22,15 @@ object EffectType {
     val name = "Displacement"
   }
 
-  val all: List[EffectType] = List(Petrify, Poison, Freeze, Displacement)
+  case object Magic extends EffectType {
+    val name = "Magic"
+  }
+
+  case object Ranged extends EffectType {
+    val name = "Ranged"
+  }
+
+  val all: List[EffectType] = List(Petrify, Poison, Freeze, Displacement, Magic, Ranged)
 
   def apply(name: String): EffectType = all.find(_.name == name) match {
     case Some(effectStatusType) => effectStatusType

@@ -113,13 +113,29 @@ Bomber+ 2
   M
   N
   @
-
-
-
-
-
-
+-
+-
+-
+-
+-
+-
 TT TT
+---
+SuicideOnKill
+OnMeleeDeathKillAttacker
+--------------------
+Bomber++ 3
+---
+   M
+  MNM
+   @
+-
+-
+-
+-
+-
+-
+TTT TTT
 ---
 SuicideOnKill
 OnMeleeDeathKillAttacker

@@ -451,6 +451,16 @@ object Moves {
     }
   }
 
+  case object TeleportToRoyalPieces extends MultipleMoves {
+    def getValidMoves(piece: Piece, state: GameState, currentPlayer: Player): List[PlayerMove] = {
+      val royalPieces = currentPlayer.pieces.filter(_.data.isRoyalty) ++ currentPlayer.piecesAffected.filter(_.data.isRoyalty)
+      royalPieces
+        .flatMap(piece => Distance.adjacentDistances.map(_ + piece.pos))
+        .distinct
+        .flatMap(boardPos => canMoveUnblockable(piece, boardPos, state))
+    }
+  }
+
   case object Empty extends Moves {
     val dx = 0
     val dy = 0

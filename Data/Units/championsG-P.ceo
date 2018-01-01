@@ -128,6 +128,18 @@ T111T
 ---
 MagicCharmMinion 1
 --------------------
+Nexus 0
+---
+  121
+ 1   1
+1  3  1
+2  @  2
+1     1
+ 1   1
+  121
+---
+TeleportPiece 2 3 3 1
+--------------------
 Nexus+++ 5
 ---
     1
@@ -181,4 +193,17 @@ SSSSSSS@SSSSSSS
       NNN
        N
 ---
+--------------------
+PoisonMage 5
+---
+   T
+ T 1 T
+  1M1
+T1M@M1T
+  1M1
+ T 1 T
+   T
+---
+MagicPoison 1 3
+ImmuneTo Poison
 --------------------

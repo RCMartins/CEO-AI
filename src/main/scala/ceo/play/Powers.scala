@@ -52,7 +52,7 @@ object Powers {
 
   case class OnKillTransformInto(pieceName: String) extends Powers
 
-  case class OnSpellPromoteTo(pieceName: String) extends Powers
+  case class PromoteOnSpellCastTo(pieceName: String) extends Powers
 
   case class DecayAfterTurn(turnStarts: Int, moralePerTurn: Int) extends Powers
 
@@ -163,6 +163,12 @@ object Powers {
   case object AugmentedTeleportGhastMovePower extends AugmentedMovePower {
     override def createMove: List[Moves] = List(
       TeleportToFallenAllyPosition
+    )
+  }
+
+  case object AugmentedTeleportRoyalGuard extends AugmentedMovePower {
+    override def createMove: List[Moves] = List(
+      TeleportToRoyalPieces
     )
   }
 
