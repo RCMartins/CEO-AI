@@ -118,7 +118,7 @@ case class GameState(
   def getCurrentPlayerMoves: List[PlayerMove] = {
     val currentPlayer: Player = getCurrentPlayer
 
-    currentPlayer.pieces.flatMap { piece =>
+    (currentPlayer.pieces ++ currentPlayer.piecesAffected).flatMap { piece =>
       if (piece.canAct(currentPlayer))
         piece.data.moves.flatMap {
           case single: SingleMove =>
@@ -134,10 +134,12 @@ case class GameState(
   }
 
   def winner: PlayerWinType = {
-    if (playerWhite.morale == 0 && playerBlack.morale == 0) {
-      PlayerWinType.Draw
-    } else if (playerWhite.morale == 0) {
-      PlayerWinType.PlayerBlack
+    if (playerWhite.morale == 0) {
+      if (playerBlack.morale == 0) {
+        PlayerWinType.Draw
+      } else {
+        PlayerWinType.PlayerBlack
+      }
     } else if (playerBlack.morale == 0) {
       PlayerWinType.PlayerWhite
     } else {
@@ -390,7 +392,6 @@ case class GameState(
   @inline private final val MaxValue: Int = 1e9.toInt
 
   def valueOfState(team: PlayerTeam): Int = {
-
     winner match {
       case PlayerWinType.NotFinished =>
         val whitePoints = playerWhite.morale * 10 + playerWhite.numberOfPieces

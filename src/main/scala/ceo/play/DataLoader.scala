@@ -311,12 +311,12 @@ object DataLoader {
       }
     }
 
-    gameState.playerWhite.pieces.foreach { piece =>
+    (gameState.playerWhite.pieces ++ gameState.playerWhite.piecesAffected).foreach { piece =>
       gameState = gameState
         .updatePlayer(gameState.playerWhite.updateGuardedPositions(None, Some(piece)))
     }
 
-    gameState.playerBlack.pieces.foreach { piece =>
+    (gameState.playerBlack.pieces ++ gameState.playerBlack.piecesAffected).foreach { piece =>
       gameState = gameState
         .updatePlayer(gameState.playerBlack.updateGuardedPositions(None, Some(piece)))
     }
