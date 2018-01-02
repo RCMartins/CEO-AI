@@ -45,6 +45,54 @@ M  M  M
 ---
 TriggerGuardian 1
 --------------------
+Guardian+ 8
+---
+M   M   M
+ M  M  M
+  M M M
+   NNN
+MMMN@NMMM
+  1NNN1
+  M1M1M
+ M  M  M
+M   M   M
+---
+TriggerGuardian 1
+--------------------
+Guardian++ 9
+---
+M    M    M
+ M   M   M
+  M  M  M
+   M M M
+   1NNN1
+MMMMN@NMMMM
+   1NNN1
+   M1M1M
+  M  M  M
+ M   M   M
+M    M    M
+---
+TriggerGuardian 1
+--------------------
+Guardian+++ 10
+---
+M     M     M
+ M    M    M
+  M   M   M
+   M  M  M
+    M1M1M
+    1NNN1
+MMMMMN@NMMMMM
+    1NNN1
+    M1M1M
+   M  M  M
+  M   M   M
+ M    M    M
+M     M     M
+---
+TriggerGuardian 1
+--------------------
 King 0
 ---
     1
