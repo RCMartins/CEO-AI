@@ -1,6 +1,6 @@
 package ceo.play
 
-import Util.random
+import ceo.play.Util.random
 
 import scala.collection.parallel.immutable.ParSeq
 
@@ -142,6 +142,80 @@ object Strategy {
       println(statesSorted.mkString("\n"))
       val endMove = statesSorted(random.nextInt(bestMoves))._2
       val endState = startingState.playPlayerMove(endMove)
+      Some(endState)
+    }
+  }
+
+  case class AlphaBetaPruning(movesToLookAhead: Int) extends Strategy {
+    private val MaxValue = 1e9.toInt
+
+    override def chooseMove(startingState: GameState): Option[GameState] = {
+      val currentPlayer = startingState.getCurrentPlayer.team
+
+      def createTree(state: GameState, depth: Int, maximize: Boolean, _alpha: Int, _beta: Int): (Int, Int) = {
+        if (depth == 0 || state.winner != PlayerWinType.NotFinished) {
+          val value = state.valueOfState(currentPlayer)
+          if (value == MaxValue)
+            (value + depth, -1)
+          else if (value == -MaxValue || value == -MaxValue / 2)
+            (value - depth, -1)
+          else
+            (value, -1)
+        } else {
+          val playerMoves = state.getCurrentPlayerMoves //Util.random.shuffle(state.getCurrentPlayerMoves)
+          val states = playerMoves.map(state.playPlayerMove)
+          if (states.isEmpty)
+            println(state)
+
+          def calcFinalValue(): (Int, Int) =
+            if (maximize) {
+              var alpha = _alpha
+              var v = Int.MinValue
+              var index = 0
+              var bestIndex = -1
+              states.foreach { state =>
+                val value = createTree(state, depth - 1, !maximize, alpha, _beta)._1
+                if (value > v) {
+                  v = value
+                  bestIndex = index
+                }
+                alpha = Math.max(alpha, v)
+                if (_beta <= alpha)
+                  return (v, -1)
+                index += 1
+              }
+              (v, bestIndex)
+            } else {
+              var beta = _beta
+              var v = Int.MaxValue
+              var index = 0
+              var bestIndex = -1
+              states.foreach { state =>
+                val value = createTree(state, depth - 1, !maximize, _alpha, beta)._1
+                if (value < v) {
+                  v = value
+                  bestIndex = index
+                }
+                beta = Math.min(beta, v)
+                if (beta <= _alpha)
+                  return (v, index)
+                index += 1
+              }
+              (v, bestIndex)
+            }
+
+          calcFinalValue()
+        }
+      }
+
+      val (value, moveIndex) =
+        createTree(startingState, movesToLookAhead, maximize = true, Int.MinValue, Int.MaxValue)
+
+      val playerMoves = startingState.getCurrentPlayerMoves
+      val states = playerMoves.map(startingState.playPlayerMove)
+
+      val endState = states(moveIndex)
+      println((value, endState.movesHistory.head.betterHumanString))
       Some(endState)
     }
   }
