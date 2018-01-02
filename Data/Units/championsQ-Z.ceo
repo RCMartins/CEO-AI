@@ -138,6 +138,19 @@ J  1  J
 TeleportKingToLocation 1
 CanOnlyActAfterPieceLost
 --------------------
+Valkyrie+ 9
+---
+  J J
+ 1   1
+J  1  J
+  1@1
+J  1  J
+ 1   1
+  J J
+---
+TeleportKingToLocation 1
+CanOnlyActAfterPieceLost
+--------------------
 Warrior 7
 ---
   N
