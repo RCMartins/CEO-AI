@@ -23,6 +23,15 @@ SP@PS
 P S P
 ---
 --------------------
+Apprentice+++ 9
+---
+S S S
+ PPP
+SP@PS
+ PPP
+S S S
+---
+--------------------
 Archer 0
 ---
  R
@@ -208,4 +217,24 @@ RR@RR
 SuicideOnKill
 ImmuneTo Poison Petrify
 DestroyedBy Freeze
+--------------------
+Fireball+++ 5
+---
+  R
+RtRtR
+tRRRt
+RR@RR
+---
+SuicideOnKill
+ImmuneTo Poison Petrify
+DestroyedBy Freeze
+--------------------
+FrostMephit 2
+---
+N N
+ @
+N N
+---
+ImmuneTo Freeze
+TriggerFrostMephit 1
 --------------------

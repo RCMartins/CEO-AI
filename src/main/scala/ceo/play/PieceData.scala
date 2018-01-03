@@ -13,7 +13,7 @@ case class PieceData(
 
   override def toString: String = s"$name"
 
-  def createPiece(pos: BoardPos): Piece = Piece(this, pos)
+  def createPiece(pos: BoardPos): Piece = Piece(this, pos, pos, initialMorale, effectStatus = List.empty)
 
   val simpleName: String = name.takeWhile(c => c.isLetter || c == '-')
 
@@ -69,5 +69,11 @@ case class PieceData(
     case CanOnlyActAfterPieceLost => true
     case _ => false
   }
+
+}
+
+object PieceData {
+
+  val UnknownPiece = PieceData("?", isMinion = false, 0, Nil, Nil, PlayerTeam.White)
 
 }

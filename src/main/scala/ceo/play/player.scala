@@ -14,6 +14,8 @@ case class Player(
 
   override def toString: String = s"Player$team($morale)"
 
+  def allPieces: List[Piece] = pieces ++ piecesAffected
+
   def changeMorale(diff: Int): Player = copy(morale = morale + diff)
 
   def removePiece(piece: Piece): Player = {

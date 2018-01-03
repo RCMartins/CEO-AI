@@ -101,6 +101,16 @@ TS ST
 ---
 MagicTransformIntoAlly 1 1 Ghost
 --------------------
+SoulKeeper+ 15
+---
+TSTST
+S 1 S
+T1@1T
+S 1 S
+TSTST
+---
+MagicTransformIntoAlly 1 1 Ghost
+--------------------
 Taurus+ 8
 ---
    1
@@ -124,6 +134,20 @@ Taurus+++ 12
    1
 ---
 TaurusRush 1 3
+--------------------
+ThunderMage+ 7
+---
+    1
+ 1     1
+    T
+  TNNNT
+1  N@N  1
+  TNNNT
+    T
+ 1     1
+    1
+---
+MagicLightningOnLocation 1 1 4
 --------------------
 Valkyrie 8
 ---
@@ -207,6 +231,19 @@ Wrath 5
 1  N  1
 
   1 1
+---
+MagicLightningOnLocation 1 1 4
+TriggerWrathOnAdjacentAllyDeath 4
+--------------------
+Wrath+++ 12
+---
+  111
+ 1   1
+1 NNN 1
+1 N@N 1
+1 NNN 1
+ 1   1
+  111
 ---
 MagicLightningOnLocation 1 1 4
 TriggerWrathOnAdjacentAllyDeath 4

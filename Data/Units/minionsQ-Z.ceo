@@ -49,6 +49,15 @@ M   M
 MagicDestroy 1
 PromotesTo FireElemental++
 --------------------
+Shieldsman+ 1
+---
+ MNM
+  @
+  1
+---
+TriggerGuardian 1
+PromotesTo Guardian+
+--------------------
 Shieldsman++ 2
 ---
  MNM

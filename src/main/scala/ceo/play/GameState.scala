@@ -10,6 +10,7 @@ case class GameState(
   movesHistory: List[PlayerMove],
   boardEffects: List[BoardEffect]
 ) {
+  def allPieces: List[Piece] = playerWhite.allPieces ++ playerBlack.allPieces
 
   def trimMorale: GameState = {
     if (playerWhite.morale < 0 || playerBlack.morale < 0) {
@@ -232,7 +233,7 @@ case class GameState(
       case TransformEnemyIntoAllyPiece(piece, _pieceToTransform, moraleCost, allyPieceData) =>
         val (updatedState1, pieceToTransform) = guardianSwapPiece(this, _pieceToTransform)
         val updatedState2 = piece.afterMagicKill(updatedState1, pieceToTransform)
-        val newPiece = Piece(allyPieceData, pieceToTransform.pos)
+        val newPiece = allyPieceData.createPiece(pieceToTransform.pos)
         updatedState2
           .changeMorale(piece.team, -moraleCost)
           .updatePiece(pieceToTransform, newPiece)

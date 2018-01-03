@@ -185,6 +185,38 @@ T111T
 ---
 MagicCharmMinion 1
 --------------------
+MageTower 9
+---
+     N
+     N
+     N
+     T
+     N
+NNNTN@NTNNN
+     N
+     T
+     N
+     N
+     N
+---
+ImmuneTo Status
+--------------------
+MageTower+ 10
+---
+     N
+     N
+     N
+     T
+     S
+NNNTS@STNNN
+     S
+     T
+     N
+     N
+     N
+---
+ImmuneTo Status
+--------------------
 Nexus 0
 ---
   121

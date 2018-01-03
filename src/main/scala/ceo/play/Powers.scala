@@ -69,6 +69,8 @@ object Powers {
 
   case class TriggerWrathOnAdjacentAllyDeath(turnsToLightUpLocation: Int) extends Powers
 
+  case class TriggerFrostMephit(freezeDuration: Int) extends Powers
+
   case class DummyNothingPower(letterOfMove: Char) extends MovePower {
     override def createMove(dist: Distance): Moves = DummyMove
   }
@@ -158,6 +160,11 @@ object Powers {
   case class TriggerGuardianPositionalPower(letterOfMove: Char) extends PositionalPower {
     def createPowers(distances: Map[Char, List[Distance]]): List[Powers] =
       List(TriggerGuardian(distances.values.flatten.toList))
+  }
+
+  case class TriggerFrostMephitPositionalPower(letterOfMove: Char, freezeDuration: Int) extends PositionalPower {
+    def createPowers(distances: Map[Char, List[Distance]]): List[Powers] =
+      List(TriggerFrostMephit(freezeDuration))
   }
 
   case object AugmentedTeleportGhastMovePower extends AugmentedMovePower {

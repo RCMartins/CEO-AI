@@ -24,8 +24,9 @@ case class Piece(
         case None =>
           this
         case Some(pieceUpgradeName) =>
-          val pieceData = DataLoader.getPieceData(pieceUpgradeName, data.team)
-          Piece(pieceData, pos)
+          DataLoader
+            .getPieceData(pieceUpgradeName, data.team)
+            .createPiece(pos)
       }
     } else {
       this
@@ -153,8 +154,9 @@ case class Piece(
       case None =>
         this
       case Some(pieceUpgradeName) =>
-        val pieceData = DataLoader.getPieceData(pieceUpgradeName, data.team)
-        Piece(pieceData, pos)
+        DataLoader
+          .getPieceData(pieceUpgradeName, data.team)
+          .createPiece(pos)
     }
   }
 
@@ -175,9 +177,4 @@ case class Piece(
     }
   }
 
-}
-
-object Piece {
-  def apply(data: PieceData, pos: BoardPos): Piece =
-    Piece(data, pos, pos, data.initialMorale, effectStatus = List.empty)
 }

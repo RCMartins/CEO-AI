@@ -10,41 +10,29 @@ import scala.util.{Failure, Success, Try}
 
 object DataLoader {
 
-  private val pieces: mutable.Map[String, PieceData] = mutable.Map[String, PieceData]()
+  private val pieces: mutable.Map[String, PieceData] =
+    mutable.Map[String, PieceData](PieceData.UnknownPiece.toString -> PieceData.UnknownPiece)
   private var piecesToCheck: List[String] = List[String]()
+
+  def clearPiecesToCheck(): Unit = {
+    piecesToCheck = Nil
+  }
 
   def getPieceData(name: String, team: PlayerTeam): PieceData = pieces(name + "_" + team)
 
   def main(args: Array[String]): Unit = {
+    loadPieceFiles()
     println(initialize())
   }
 
-  def initialize(boardToStart: String = "Data/boardTest.ceo"): GameState = {
-    loadFiles(new File("Data/Units"))
-    val board = loadBoard(new File(boardToStart))
-
-    val unknownPieces =
-      piecesToCheck.flatMap(piece => if (Try(getPieceData(piece, White)).isFailure) Some(piece) else None) ++
-        piecesToCheck.flatMap(piece => if (Try(getPieceData(piece, Black)).isFailure) Some(piece) else None)
-
-    if (unknownPieces.nonEmpty) {
-      System.err.println("Unknown pieces:")
-      System.err.println(unknownPieces.distinct.zipWithIndex.map {
-        case (piece, index) => s"${index + 1}) $piece"
-      }.mkString("\n"))
-      ???
-    } else
-      board
-  }
-
-  def loadFiles(file: File): Unit = {
+  def loadPieceFiles(file: File = new File("Data/Units")): Unit = {
     if (file.isDirectory)
-      file.listFiles().filter(_.getName.endsWith(".ceo")).foreach(loadFile)
+      file.listFiles().filter(_.getName.endsWith(".ceo")).foreach(loadPieceFile)
     else
       new RuntimeException(s"Not a directory: $file")
   }
 
-  def loadFile(file: File): Unit = {
+  def loadPieceFile(file: File): Unit = {
     val br = new BufferedReader(new StringReader(Source.fromFile(file).getLines.mkString("\n")))
 
     var names: List[PieceData] = List.empty
@@ -281,6 +269,8 @@ object DataLoader {
         Powers.OnMeleeDeathKillAttackerPositionalPower(getLetter(str.drop("OnMeleeDeathKillAttackerPosition ".length)))
       case str if str.startsWith("TriggerGuardian ") =>
         Powers.TriggerGuardianPositionalPower(getLetter(str.drop("TriggerGuardian ".length)))
+      case str if str.startsWith("TriggerFrostMephit ") =>
+        Powers.TriggerFrostMephitPositionalPower('\0', str.drop("TriggerFrostMephit ".length).toInt)
       // Augmented Move Powers:
       case "AugmentedTeleportGhast" =>
         Powers.AugmentedTeleportGhastMovePower
@@ -289,6 +279,29 @@ object DataLoader {
       case str =>
         throw new Exception("Unknown Power: " + str)
     }
+  }
+
+  def initialize(boardFileName: String = "Data/boardTest.ceo", showErrors: Boolean = true): GameState = {
+    initialize(new File(boardFileName), showErrors)._1
+  }
+
+  def initialize(boardFile: File, showErrors: Boolean): (GameState, List[String]) = {
+    val board = loadBoard(boardFile)
+
+    val unknownPieces =
+      (piecesToCheck.flatMap(piece => if (Try(getPieceData(piece, White)).isFailure) Some(piece) else None) ++
+        piecesToCheck.flatMap(piece => if (Try(getPieceData(piece, Black)).isFailure) Some(piece) else None))
+        .distinct
+        .sorted
+
+    if (unknownPieces.nonEmpty && showErrors) {
+      System.err.println("Unknown pieces:")
+      System.err.println(unknownPieces.distinct.zipWithIndex.map {
+        case (piece, index) => s"${index + 1}) $piece"
+      }.mkString("\n"))
+      ???
+    } else
+      (board, unknownPieces)
   }
 
   def loadBoard(file: File): GameState = {
@@ -301,13 +314,16 @@ object DataLoader {
       val line = lines(row).replaceAll("""\s+""", " ")
       val pieceNames = line.split(" ")
       for ((pieceName, column) <- pieceNames.zipWithIndex) {
-        if (pieceName.length > 1) {
+        if (pieceName == "?")
+          gameState = gameState.placePiece(PieceData.UnknownPiece.createPiece(BoardPos(row, column)))
+        else if (pieceName.length > 1) {
           val List(name, team) = pieceName.split("_").toList
           Try(getPieceData(name, PlayerTeam(team))) match {
             case Failure(_) =>
               piecesToCheck = name :: piecesToCheck
+              gameState = gameState.placePiece(PieceData.UnknownPiece.createPiece(BoardPos(row, column)))
             case Success(pieceData) =>
-              gameState = gameState.placePiece(Piece(pieceData, BoardPos(row, column)))
+              gameState = gameState.placePiece(pieceData.createPiece(BoardPos(row, column)))
           }
         }
       }
