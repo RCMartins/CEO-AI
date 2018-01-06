@@ -110,6 +110,34 @@ case class PieceData(
     }
   }
 
+  val afterMagicCastRunners: List[DynamicRunner[
+    (GameState, Option[Piece] /* piece updated */ ),
+    Piece /* this piece */ ]] = powers.collect {
+    case OnMagicCastDecayTo(decayAmount, limitToDevolve, pieceName) => new DynamicRunner[(GameState, Option[Piece]), Piece] {
+      override def update(state: (GameState, Option[Piece]), thisPiece: Piece): (GameState, Option[Piece]) = {
+        state._2 match {
+          case None => state
+          case Some(piece) =>
+            val updatedPiece = piece.changeMorale(-decayAmount)
+            if (updatedPiece.currentMorale == limitToDevolve) {
+              state.copy(_2 = Some(DataLoader.getPieceData(pieceName, piece.team).createPiece(piece.pos)))
+            } else {
+              state.copy(_2 = Some(updatedPiece))
+            }
+        }
+      }
+    }
+    case PromoteOnSpellCastTo(pieceName) => new DynamicRunner[(GameState, Option[Piece]), Piece] {
+      override def update(state: (GameState, Option[Piece]), thisPiece: Piece): (GameState, Option[Piece]) = {
+        state._2 match {
+          case None => state
+          case Some(piece) =>
+            state.copy(_2 = Some(DataLoader.getPieceData(pieceName, piece.team).createPiece(piece.pos)))
+        }
+      }
+    }
+  }
+
   val isKing: Boolean = name.startsWith("King")
 
   val isRoyalty: Boolean =
@@ -158,11 +186,6 @@ case class PieceData(
 
   val canMinionPromote: Boolean = powers.exists {
     case PromoteTo(_) => true
-    case _ => false
-  }
-
-  val onMagicPromotes: Boolean = powers.exists {
-    case PromoteOnSpellCastTo(_) => true
     case _ => false
   }
 

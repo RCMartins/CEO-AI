@@ -10,6 +10,9 @@ case class Piece(
   currentMorale: Int,
   effectStatus: List[EffectStatus]
 ) {
+  def afterMagicCast(startingState: GameState): (GameState, Option[Piece]) = {
+    DynamicRunner.foldLeft((startingState, Some(this)), this, data.afterMagicCastRunners)
+  }
 
   def onSuicide(state: GameState): GameState = {
     state
@@ -17,15 +20,15 @@ case class Piece(
 
   override def toString: String = s"${data.name}$pos"
 
-  def team: PlayerTeam = data.team
+  @inline final def team: PlayerTeam = data.team
 
   def setMorale(morale: Int): Piece = copy(currentMorale = morale)
 
   def changeMorale(moraleDiff: Int): Piece = copy(currentMorale = currentMorale + moraleDiff)
 
   private def promoteIfPossible(gameState: GameState): Piece = {
-    if (data.canMinionPromote && gameState.getPlayer(data.team.enemy).inBaseRow(pos)) {
-      data.powers.collectFirst { case PromoteTo(pieceName) => DataLoader.getPieceData(pieceName, data.team).createPiece(pos) }.get
+    if (data.canMinionPromote && gameState.getPlayer(team.enemy).inBaseRow(pos)) {
+      data.powers.collectFirst { case PromoteTo(pieceName) => DataLoader.getPieceData(pieceName, team).createPiece(pos) }.get
     } else {
       this
     }
@@ -102,14 +105,10 @@ case class Piece(
     val (updatedState2, updatedPiece) =
       DynamicRunner.foldLeft((updatedState1, Some(this)), pieceToKill, data.afterKillRunners)
 
-    (updatedState2, updatedPiece.map { piece =>
-      if (data.onMagicPromotes)
-        data.powers.collectFirst {
-          case PromoteOnSpellCastTo(pieceName) => DataLoader.getPieceData(pieceName, team).createPiece(pos)
-        }.get
-      else
-        piece
-    })
+    updatedPiece match {
+      case Some(piece) => piece.afterMagicCast(updatedState2)
+      case None => (updatedState2, None)
+    }
   }
 
   def afterPoisonDeath(startingState: GameState): GameState = {

@@ -360,6 +360,19 @@ case class GameState(
         val newTransformedPiece = pieceData.createPiece(target)
         updatedState
           .updatePiece(piece, newTransformedPiece)
+      case MagicCreatePiece(piece, target, moraleCost, pieceData) =>
+        val (updatedState1, maybeUpdatedPiece) = piece.afterMagicCast(this)
+        val updatedState2 =
+          updatedState1
+            .changeMorale(piece.team, -moraleCost)
+            .placePiece(pieceData.createPiece(target))
+            .removePiece(piece)
+        maybeUpdatedPiece match {
+          case Some(updatedPiece) =>
+            updatedState2.placePiece(updatedPiece)
+          case None =>
+            updatedState2
+        }
       case MultiMove(move1, move2, _, _) =>
         playPlayerMove(move1).playPlayerMove(move2)
       case DummyMove(_) => this
@@ -397,6 +410,10 @@ case class GameState(
                 return (piece :: deadPieces, updatedPieces)
               } else
                 List(effect)
+            case blockAttacks: EffectStatus.BlocksAttacksFrom =>
+              List(blockAttacks)
+            case _ =>
+              ???
           }
           (deadPieces, piece.copy(effectStatus = updatedEffectStatus) :: updatedPieces)
       }

@@ -75,6 +75,8 @@ object Powers {
 
   case class BlockAttacksFrom(positionsToBlockAttacks: Set[Distance]) extends Powers
 
+  case class OnMagicCastDecayTo(decayAmount: Int, limitToDevolve: Int, pieceName: String) extends Powers
+
   case class DummyNothingPower(letterOfMove: Char) extends MovePower {
     override def createMove(dist: Distance): Moves = DummyMove
   }
@@ -125,6 +127,10 @@ object Powers {
 
   case class UnstoppableTeleportTransformIntoMovePower(letterOfMove: Char, pieceName: String) extends MovePower {
     override def createMove(dist: Distance): Moves = UnstoppableTeleportTransformInto(dist, pieceName)
+  }
+
+  case class MagicStonePillarMovePower(letterOfMove: Char, moraleCost: Int, durationTurns: Int) extends MovePower {
+    override def createMove(dist: Distance): Moves = MagicStonePillar(dist, moraleCost, durationTurns)
   }
 
   case class KingCastlingMovePowerComplete(lettersOfMoves: List[Char]) extends MovePowerComplete {

@@ -233,6 +233,60 @@ JNNNJ
 JJJJJ
 ---
 --------------------
+EarthElemental 4
+---
+   1
+
+  NNN
+1 N@N 1
+  NNN
+
+   1
+---
+MagicStonePillar 1 1 4
+OnMagicCastDecayTo 1 3 Gnome
+--------------------
+EarthElemental+ 8
+---
+   1
+ 1   1
+  NNN
+1 N@N 1
+  NNN
+ 1   1
+   1
+---
+MagicStonePillar 1 1 4
+OnMagicCastDecayTo 1 4 Gnome+
+--------------------
+EarthElemental++ 10
+---
+   1
+ 1 N 1
+  NNN
+1NN@NN1
+  NNN
+ 1 N 1
+   1
+---
+MagicStonePillar 1 1 4
+OnMagicCastDecayTo 1 5 Gnome++
+--------------------
+EarthElemental+++ 12
+---
+    1
+    1
+  1 N 1
+   NNN
+11NN@NN11
+   NNN
+  1 N 1
+    1
+    1
+---
+MagicStonePillar 1 1 4
+OnMagicCastDecayTo 1 7 Gnome+++
+--------------------
 Fencer 5
 ---
 M     M

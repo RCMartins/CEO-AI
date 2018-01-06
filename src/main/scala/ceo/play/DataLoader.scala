@@ -233,6 +233,10 @@ object DataLoader {
       case str if str.startsWith("OnKillVampireAbility ") =>
         val List(moraleTakenFromEnemy, moraleToKing) = str.drop("OnKillVampireAbility ".length).split(" ").toList
         Powers.OnKillVampireAbility(moraleTakenFromEnemy.toInt, moraleToKing.toInt)
+      case str if str.startsWith("OnMagicCastDecayTo ") =>
+        val List(decayAmount, limitToDevolve, pieceName) = str.drop("OnMagicCastDecayTo ".length).split(" ").toList
+        piecesToCheck = pieceName :: piecesToCheck
+        Powers.OnMagicCastDecayTo(decayAmount.toInt, limitToDevolve.toInt, pieceName)
       // Move Powers:
       case str if str.startsWith("MagicDestroy ") =>
         Powers.MagicDestroyMovePower(getLetter(str.drop("MagicDestroy ".length)))
@@ -269,6 +273,9 @@ object DataLoader {
         val List(letterStr, pieceName) = str.drop("UnstoppableTeleportTransformInto ".length).split(" ").toList
         piecesToCheck = pieceName :: piecesToCheck
         Powers.UnstoppableTeleportTransformIntoMovePower(getLetter(letterStr), pieceName)
+      case str if str.startsWith("MagicStonePillar ") =>
+        val List(letterStr, moraleCost, durationTurns) = str.drop("MagicStonePillar ".length).split(" ").toList
+        Powers.MagicStonePillarMovePower(getLetter(letterStr), moraleCost.toInt, durationTurns.toInt)
       // Move Power Complete:
       case str if str.startsWith("KingCastling ") =>
         Powers.KingCastlingMovePowerComplete(str.drop("KingCastling ".length).split(" ").toList.map(getLetter))

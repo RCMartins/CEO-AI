@@ -10,13 +10,13 @@ class Distance private(val rowDiff: Int, val columnDiff: Int) {
     Distance(unitRow, unitColumn)
   }
 
-  @inline def +(other: Distance): Distance = Distance(rowDiff + other.rowDiff, columnDiff + other.columnDiff)
+  @inline final def +(other: Distance): Distance = Distance(rowDiff + other.rowDiff, columnDiff + other.columnDiff)
 
-  @inline def +(other: BoardPos): BoardPos = BoardPos(rowDiff + other.row, columnDiff + other.column)
+  @inline final def +(other: BoardPos): BoardPos = BoardPos(rowDiff + other.row, columnDiff + other.column)
 
-  @inline def -(other: Distance): Distance = Distance(rowDiff - other.rowDiff, columnDiff - other.columnDiff)
+  @inline final def -(other: Distance): Distance = Distance(rowDiff - other.rowDiff, columnDiff - other.columnDiff)
 
-  @inline def *(multiplier: Int): Distance = Distance(rowDiff * multiplier, columnDiff * multiplier)
+  @inline final def *(multiplier: Int): Distance = Distance(rowDiff * multiplier, columnDiff * multiplier)
 }
 
 object Distance {

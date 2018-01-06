@@ -10,7 +10,7 @@ abstract class PlayerMove(from: BoardPos, to: BoardPos) {
 
   def betterHumanString: String
 
-  @inline def and(other: PlayerMove, realMoveFrom: BoardPos, realMoveTo: BoardPos): PlayerMove = MultiMove(self, other, realMoveFrom, realMoveTo)
+  @inline final def and(other: PlayerMove, realMoveFrom: BoardPos, realMoveTo: BoardPos): PlayerMove = MultiMove(self, other, realMoveFrom, realMoveTo)
 
 }
 
@@ -57,6 +57,11 @@ object PlayerMove {
   case class MagicPoison(piece: Piece, pieceToPoison: Piece, turnsToDeath: Int) extends PlayerMove(piece.pos, pieceToPoison.pos) {
     def betterHumanString: String = s"$piece magic-poisoned $pieceToPoison " +
       s"killing it in $turnsToDeath turns   ${pieceToPoison.pos - piece.pos}"
+  }
+
+  case class MagicPetrify(piece: Piece, pieceToPetrify: Piece, turnsPetrified: Int) extends PlayerMove(piece.pos, pieceToPetrify.pos) {
+    def betterHumanString: String = s"$piece magic-petrifies $pieceToPetrify " +
+      s"for $turnsPetrified turns   ${pieceToPetrify.pos - piece.pos}"
   }
 
   case class TransformEnemyIntoAllyPiece(
@@ -114,6 +119,11 @@ object PlayerMove {
 
   case class TeleportTransformInto(piece: Piece, target: BoardPos, pieceData: PieceData) extends PlayerMove(piece.pos, target) {
     def betterHumanString: String = s"$piece fly-transforms into ${pieceData.name} " +
+      s"at $target   ${target - piece.pos}"
+  }
+
+  case class MagicCreatePiece(piece: Piece, target: BoardPos, moraleCost: Int, pieceData: PieceData) extends PlayerMove(piece.pos, target) {
+    def betterHumanString: String = s"$piece magic-creates[$moraleCost cost] ${pieceData.name} " +
       s"at $target   ${target - piece.pos}"
   }
 

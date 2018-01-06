@@ -85,7 +85,7 @@ object Moves {
 
   private def canSwapUnblockable(piece: Piece, target: BoardPos, state: GameState): Option[PlayerMove] = {
     target.getPiece(state.board) match {
-      case Some(targetPiece) if targetPiece.team == piece.team =>
+      case Some(targetPiece) if targetPiece.team == piece.team && !targetPiece.data.isImmuneTo(EffectType.Displacement) =>
         Some(PlayerMove.Swap(piece, targetPiece))
       case _ =>
         None
@@ -133,6 +133,20 @@ object Moves {
     target.getPiece(state.board) match {
       case Some(targetPiece) if targetPiece.team != piece.team && !targetPiece.data.isImmuneTo(EffectType.Poison) && !targetPiece.isPoisoned =>
         Some(PlayerMove.MagicPoison(piece, targetPiece, durationTurns))
+      case _ =>
+        None
+    }
+  }
+
+  private def canMagicPetrify(
+    piece: Piece,
+    target: BoardPos,
+    durationTurns: Int,
+    state: GameState
+  ): Option[PlayerMove] = {
+    target.getPiece(state.board) match {
+      case Some(targetPiece) if !targetPiece.data.isImmuneTo(EffectType.Petrify) && !targetPiece.data.isImmuneTo(EffectType.Magic) =>
+        Some(PlayerMove.MagicPetrify(piece, targetPiece, durationTurns))
       case _ =>
         None
     }
@@ -365,7 +379,7 @@ object Moves {
 
   case class TransformEnemyIntoAllyPiece(dist: Distance, moraleCost: Int, allyPieceName: String) extends SingleMove {
     def getValidMove(piece: Piece, state: GameState, currentPlayer: Player): Option[PlayerMove] = {
-      val allyUnitPieceData = DataLoader.getPieceData(allyPieceName, piece.data.team)
+      val allyUnitPieceData = DataLoader.getPieceData(allyPieceName, piece.team)
       canTransformEnemyIntoAllyPiece(piece, piece.pos + dist, moraleCost, allyUnitPieceData, state)
     }
   }
@@ -384,12 +398,22 @@ object Moves {
 
   case class UnstoppableTeleportTransformInto(dist: Distance, pieceName: String) extends SingleMove {
     def getValidMove(piece: Piece, state: GameState, currentPlayer: Player): Option[PlayerMove] = {
-      val pieceData = DataLoader.getPieceData(pieceName, piece.data.team)
+      val pieceData = DataLoader.getPieceData(pieceName, piece.team)
       val target = piece.pos + dist
       if (target.isEmpty(state.board))
         Some(PlayerMove.TeleportTransformInto(piece, target, pieceData))
       else
         None
+    }
+  }
+
+  case class MagicStonePillar(dist: Distance, moraleCost: Int, durationTurns: Int) extends SingleMove {
+    def getValidMove(piece: Piece, state: GameState, currentPlayer: Player): Option[PlayerMove] = {
+      val target = piece.pos + dist
+      if (target.isEmpty(state.board))
+        Some(PlayerMove.MagicCreatePiece(piece, target, moraleCost, DataLoader.getPieceData("StonePillar", piece.team)))
+      else
+        canMagicPetrify(piece, target, durationTurns, state)
     }
   }
 

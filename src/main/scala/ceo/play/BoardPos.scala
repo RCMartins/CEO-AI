@@ -6,23 +6,23 @@ class BoardPos private(val row: Int, val column: Int) {
 
   import BoardPos.List1to8
 
-  @inline def +(other: Distance): BoardPos = BoardPos(row + other.rowDiff, column + other.columnDiff)
+  @inline final def +(other: Distance): BoardPos = BoardPos(row + other.rowDiff, column + other.columnDiff)
 
-  @inline def -(other: Distance): BoardPos = BoardPos(row - other.rowDiff, column - other.columnDiff)
+  @inline final def -(other: Distance): BoardPos = BoardPos(row - other.rowDiff, column - other.columnDiff)
 
-  @inline def -(other: BoardPos): Distance = Distance(row - other.row, column - other.column)
+  @inline final def -(other: BoardPos): Distance = Distance(row - other.row, column - other.column)
 
   override def toString: String = s"($row, $column)"
 
-  @inline def isValid: Boolean = row >= 0
+  @inline final def isValid: Boolean = row >= 0
 
-  @inline def getPiece(board: Board): Option[Piece] = if (isValid) board(row, column) else None
+  @inline final def getPiece(board: Board): Option[Piece] = if (isValid) board(row, column) else None
 
-  @inline def isEmpty(board: Board): Boolean = isValid && getPiece(board).isEmpty
+  @inline final def isEmpty(board: Board): Boolean = isValid && getPiece(board).isEmpty
 
-  @inline def nonEmpty(board: Board): Boolean = !isValid || getPiece(board).nonEmpty
+  @inline final def nonEmpty(board: Board): Boolean = !isValid || getPiece(board).nonEmpty
 
-  @inline def allPosUntilAreEmpty(target: BoardPos, board: Board): Boolean = {
+  @inline final def allPosUntilAreEmpty(target: BoardPos, board: Board): Boolean = {
     val rowDiff = target.row - row
     val colDiff = target.column - column
     val dx = if (colDiff == 0) 0 else if (colDiff < 0) -1 else 1
@@ -31,7 +31,7 @@ class BoardPos private(val row: Int, val column: Int) {
     List1to8.view(0, maxDist).forall(distance => BoardPos(row + dy * distance, column + dx * distance).isEmpty(board))
   }
 
-  @inline def allPosUntilAreEmptyOrGhost(target: BoardPos, board: Board): Boolean = {
+  @inline final def allPosUntilAreEmptyOrGhost(target: BoardPos, board: Board): Boolean = {
     val rowDiff = target.row - row
     val colDiff = target.column - column
     val dx = if (colDiff == 0) 0 else if (colDiff < 0) -1 else 1

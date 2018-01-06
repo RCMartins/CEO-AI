@@ -30,6 +30,48 @@ SSS
 ---
 GhostMovement
 --------------------
+Gnome 3
+---
+M1M
+1@1
+M1M
+---
+RangedPetrify 1 5
+PromoteOnSpellCastTo EarthElemental
+--------------------
+Gnome+ 4
+---
+M   M
+ M1M
+ 1@1
+ M1M
+M   M
+---
+RangedPetrify 1 5
+PromoteOnSpellCastTo EarthElemental+
+--------------------
+Gnome++ 5
+---
+T   T
+ M1M
+ 1@1
+ M1M
+T   T
+---
+RangedPetrify 1 5
+PromoteOnSpellCastTo EarthElemental++
+--------------------
+Gnome+++ 7
+---
+T   T
+ N1N
+ 1@1
+ N1N
+T   T
+---
+RangedPetrify 1 5
+PromoteOnSpellCastTo EarthElemental+++
+--------------------
 Mercenary 1
 ---
 MNM
