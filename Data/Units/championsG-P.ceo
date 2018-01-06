@@ -305,6 +305,54 @@ SSSSSSS@SSSSSSS
        N
 ---
 --------------------
+Phalanx 14
+---
+ 1A1
+1BBB1
+AB@BA
+1BBB1
+ 1A1
+---
+ImmuneTo Displacement
+OnMeleeDeathKillAttackerPosition 1
+--------------------
+Phalanx+ 16
+---
+A1A1A
+1BBB1
+AB@BA
+1BBB1
+A1A1A
+---
+ImmuneTo Displacement
+OnMeleeDeathKillAttackerPosition 1
+--------------------
+Phalanx++ 18
+---
+   A
+ A1A1A
+ 1BBB1
+AAB@BAA
+ 1BBB1
+ A1A1A
+   A
+---
+ImmuneTo Displacement
+OnMeleeDeathKillAttackerPosition 1
+--------------------
+Phalanx+++ 21
+---
+A  A  A
+ A1A1A
+ 1BBB1
+AAB@BAA
+ 1BBB1
+ A1A1A
+A  A  A
+---
+ImmuneTo Displacement
+OnMeleeDeathKillAttackerPosition 1
+--------------------
 PoisonMage 5
 ---
    T

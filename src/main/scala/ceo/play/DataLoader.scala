@@ -113,6 +113,7 @@ object DataLoader {
     var maybeCompleteMovePower = Option.empty[MovePowerComplete]
     var positionalPowerPos = List[(Char, Distance)]()
     var maybePositionalPower = Option.empty[PositionalPower]
+    var positionsToBlockAttacks = List[Distance]()
 
     val simpleMoves: List[Moves] =
       for {
@@ -131,6 +132,9 @@ object DataLoader {
         case 'S' => Moves.MoveOrAttackOrSwapAlly(dist)
         case 'P' => Moves.MoveOrSwapAlly(dist)
         case 'R' => Moves.RangedDestroy(dist)
+        case 'B' =>
+          positionsToBlockAttacks = dist :: positionsToBlockAttacks
+          Moves.MoveOrAttack(dist)
         case '1' | '2' | '3' | '4' =>
           powers.collectFirst {
             case move: MovePower if move.letterOfMove == char => move
@@ -165,7 +169,12 @@ object DataLoader {
       maybePositionalPower.map {
         positionalPower =>
           positionalPower.createPowers(positionalPowerPos.groupBy(_._1).mapValues(_.map(_._2)))
-      }.getOrElse(List.empty[Powers])
+      }.getOrElse(List.empty[Powers]) ++ {
+        if (positionsToBlockAttacks.isEmpty)
+          List.empty
+        else
+          List(Powers.BlockAttacksFrom(positionsToBlockAttacks.toSet))
+      }
 
     (moves, extraPowers)
   }

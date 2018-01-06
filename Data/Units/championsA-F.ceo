@@ -233,6 +233,54 @@ JNNNJ
 JJJJJ
 ---
 --------------------
+Fencer 5
+---
+M     M
+ M   M
+  MBM
+  B@B
+  MBM
+ M   M
+M     M
+---
+--------------------
+Fencer+ 8
+---
+M     M
+ M N M
+  MBM
+ NB@BN
+  MBM
+ M N M
+M     M
+---
+--------------------
+Fencer++ 10
+---
+M       M
+ M     M
+  M B M
+   MBM
+  BB@BB
+   MBM
+  M B M
+ M     M
+M       M
+---
+--------------------
+Fencer+++ 12
+---
+M       M
+ M     M
+  MTBTM
+  TMBMT
+  BB@BB
+  TMBMT
+  MTBTM
+ M     M
+M       M
+---
+--------------------
 FireElemental 15
 ---
 1 1 1

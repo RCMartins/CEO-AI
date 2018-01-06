@@ -197,6 +197,15 @@ case class GameState(
           case Some(pieceNewPos) => updatedStateAfterRemoves.placePiece(pieceNewPos)
           case _ => updatedStateAfterRemoves
         }
+      case AttackCanBeBlocked(piece, _pieceToKill) =>
+        val (updatedState, pieceToKill) = guardianSwapPiece(this, _pieceToKill)
+        if (pieceToKill == _pieceToKill) {
+          val pieceToKillUpdated = pieceToKill.removeBlockEffect
+          updatedState
+            .updatePiece(pieceToKill, pieceToKillUpdated)
+        } else {
+          playPlayerMove(Attack(piece, _pieceToKill))
+        }
       case Swap(piece, pieceToSwap) =>
         val updatedState1 = this.removePiece(piece).removePiece(pieceToSwap)
 

@@ -16,3 +16,5 @@ S: Attack or Move or Swap
 P: Move or Swap [Unblockable]
 
 R: Destroy Target [Ranged]
+
+B: Block One Normal Attack (and lose this Ability) [Passive] or Attack or Move

@@ -30,9 +30,13 @@ object EffectType {
     val name = "Ranged"
   }
 
-  val all: List[EffectType] = List(Petrify, Poison, Freeze, Displacement, Magic, Ranged)
+  case object BlockAttacks extends EffectType {
+    val name = "BlockAttacks"
+  }
 
-  def apply(name: String): EffectType = all.find(_.name == name) match {
+  val allNormalEffects: List[EffectType] = List(Petrify, Poison, Freeze, Displacement, Magic, Ranged)
+
+  def apply(name: String): EffectType = allNormalEffects.find(_.name == name) match {
     case Some(effectStatusType) => effectStatusType
     case None => throw new Exception(s"Unknown status effect: $name")
   }
@@ -56,5 +60,8 @@ object EffectStatus {
     override val effectType: EffectType = EffectType.Freeze
   }
 
-}
+  case class BlocksAttacksFrom(distances: Set[Distance]) extends EffectStatus {
+    override val effectType: EffectType = EffectType.BlockAttacks
+  }
 
+}

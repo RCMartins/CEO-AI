@@ -33,6 +33,10 @@ object PlayerMove {
     def betterHumanString: String = s"$piece attacks $pieceToKill   ${pieceToKill.pos - piece.pos}"
   }
 
+  case class AttackCanBeBlocked(piece: Piece, pieceToKill: Piece) extends PlayerMove(piece.pos, pieceToKill.pos) {
+    def betterHumanString: String = s"$piece attack-blocked-by $pieceToKill   ${pieceToKill.pos - piece.pos}"
+  }
+
   case class Swap(piece: Piece, pieceToSwap: Piece) extends PlayerMove(piece.pos, pieceToSwap.pos) {
     def betterHumanString: String = s"$piece swaps with $pieceToSwap   ${pieceToSwap.pos - piece.pos}"
   }

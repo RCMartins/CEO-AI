@@ -151,4 +151,15 @@ case class Piece(
     }
   }
 
+  def canBlockFrom(target: BoardPos): Boolean = {
+    data.isABlockerPiece && {
+      effectStatus.exists {
+        case EffectStatus.BlocksAttacksFrom(distances) => distances(target - pos)
+        case _ => false
+      }
+    }
+  }
+
+  def removeBlockEffect: Piece = copy(effectStatus = effectStatus.filterNot(_.effectType == EffectType.BlockAttacks))
+
 }

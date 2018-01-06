@@ -65,13 +65,15 @@ object Powers {
 
   case class OnMeleeDeathKillAttackerFromPosition(distances: Set[Distance]) extends Powers
 
-  case class TriggerGuardian(distances: List[Distance]) extends Powers
+  case class TriggerGuardian(distances: Set[Distance]) extends Powers
 
   case class TriggerWrathOnAdjacentAllyDeath(turnsToLightUpLocation: Int) extends Powers
 
   case class TriggerFrostMephit(freezeDuration: Int) extends Powers
 
   case class OnKillVampireAbility(moraleTakenFromEnemy: Int, moraleToKing: Int) extends Powers
+
+  case class BlockAttacksFrom(positionsToBlockAttacks: Set[Distance]) extends Powers
 
   case class DummyNothingPower(letterOfMove: Char) extends MovePower {
     override def createMove(dist: Distance): Moves = DummyMove
@@ -121,6 +123,10 @@ object Powers {
     override def createMove(dist: Distance): Moves = MagicLightning(dist, moraleCost, turnsToLightUpLocation)
   }
 
+  case class UnstoppableTeleportTransformIntoMovePower(letterOfMove: Char, pieceName: String) extends MovePower {
+    override def createMove(dist: Distance): Moves = UnstoppableTeleportTransformInto(dist, pieceName)
+  }
+
   case class KingCastlingMovePowerComplete(lettersOfMoves: List[Char]) extends MovePowerComplete {
     override def createMoves(distances: Map[Char, List[Distance]]): List[Moves] = {
       distances.values.flatten.toList.map {
@@ -161,7 +167,7 @@ object Powers {
 
   case class TriggerGuardianPositionalPower(letterOfMove: Char) extends PositionalPower {
     def createPowers(distances: Map[Char, List[Distance]]): List[Powers] =
-      List(TriggerGuardian(distances.values.flatten.toList))
+      List(TriggerGuardian(distances.values.flatten.toSet))
   }
 
   case class TriggerFrostMephitPositionalPower(letterOfMove: Char, freezeDuration: Int) extends PositionalPower {

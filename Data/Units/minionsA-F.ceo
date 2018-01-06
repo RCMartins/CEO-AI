@@ -256,6 +256,43 @@ JN@NJ
 T J T
 ---
 --------------------
+Duelist 0
+---
+MBM
+ @
+M M
+---
+PromotesTo Fencer
+--------------------
+Duelist+ 1
+---
+M   M
+ MBM
+  @
+ M M
+---
+PromotesTo Fencer+
+--------------------
+Duelist++ 2
+---
+M   M
+ MBM
+ M@M
+ M M
+M   M
+---
+PromotesTo Fencer++
+--------------------
+Duelist+++ 4
+---
+M   M
+ MBM
+ N@N
+ M M
+M   M
+---
+PromotesTo Fencer+++
+--------------------
 Fireball 2
 ---
 R

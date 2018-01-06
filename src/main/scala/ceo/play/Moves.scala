@@ -50,7 +50,11 @@ object Moves {
   private def canAttack(piece: Piece, target: BoardPos, state: GameState): Option[PlayerMove] = {
     canRangedReachEnemy(piece, target, state) match {
       case Some(targetPiece) =>
-        Some(PlayerMove.Attack(piece, targetPiece))
+        if (targetPiece.canBlockFrom(piece.pos)) {
+          Some(PlayerMove.AttackCanBeBlocked(piece, targetPiece))
+        } else {
+          Some(PlayerMove.Attack(piece, targetPiece))
+        }
       case _ =>
         None
     }

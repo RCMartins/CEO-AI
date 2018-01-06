@@ -70,7 +70,7 @@ case class PieceData(
 
   val afterKillRunners: List[DynamicRunner[
     (GameState, Option[Piece] /* killer piece updated */ ),
-    Piece /* piece to kill */]] = powers.collect {
+    Piece /* piece to kill */ ]] = powers.collect {
     case OnAnyKillSuicides => new DynamicRunner[(GameState, Option[Piece]), Piece] {
       override def update(state: (GameState, Option[Piece]), pieceToKill: Piece): (GameState, Option[Piece]) = {
         state.copy(_2 = None)
@@ -151,6 +151,8 @@ case class PieceData(
     powers.collect {
       case BeginsGameEnchanted(enchantedDuration) =>
         EffectStatus.Enchanted(1 + enchantedDuration) //TODO check if the un-enchanted turn is correct!
+      case BlockAttacksFrom(distances) =>
+        EffectStatus.BlocksAttacksFrom(distances)
     }
   }
 
@@ -169,6 +171,10 @@ case class PieceData(
     case _ => false
   }
 
+  val isABlockerPiece: Boolean = powers.exists {
+    case BlockAttacksFrom(_) => true
+    case _ => false
+  }
 }
 
 object PieceData {
