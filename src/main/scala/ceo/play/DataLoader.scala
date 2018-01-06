@@ -197,6 +197,8 @@ object DataLoader {
         Powers.OnKillMercenary
       case "CanOnlyActAfterPieceLost" =>
         Powers.CanOnlyActAfterPieceLost
+      case "OnMagicVanish" =>
+        Powers.OnMagicVanish
       // 1-arg Powers:
       case str if str.startsWith("DummyNothingPower ") =>
         Powers.DummyNothingPower(getLetter(str.drop("DummyNothingPower ".length)))

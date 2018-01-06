@@ -185,6 +185,58 @@ MN@NM
 ---
 OnKillTransformInto GiantSlime+++
 --------------------
+SoulFlare 0
+---
+  1
+  1
+11@11
+  1
+  1
+---
+MagicCharmMinion 1
+OnMagicVanish
+ImmuneTo Status
+--------------------
+SoulFlare+ 2
+---
+  1
+ M1M
+11@11
+ M1M
+  1
+---
+MagicCharmMinion 1
+OnMagicVanish
+ImmuneTo Status
+--------------------
+SoulFlare++ 3
+---
+   1
+   1
+  M1M
+111@111
+  M1M
+   1
+   1
+---
+MagicCharmMinion 1
+OnMagicVanish
+ImmuneTo Status
+--------------------
+SoulFlare+++ 4
+---
+   1
+  T1T
+ TM1MT
+111@111
+ TM1MT
+  T1T
+   1
+---
+MagicCharmMinion 1
+OnMagicVanish
+ImmuneTo Status
+--------------------
 Spearman 1
 ---
 A

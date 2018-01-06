@@ -136,6 +136,11 @@ case class PieceData(
         }
       }
     }
+    case OnMagicVanish => new DynamicRunner[(GameState, Option[Piece]), Piece] {
+      override def update(state: (GameState, Option[Piece]), thisPiece: Piece): (GameState, Option[Piece]) = {
+        state.copy(_2 = None)
+      }
+    }
   }
 
   val isKing: Boolean = name.startsWith("King")

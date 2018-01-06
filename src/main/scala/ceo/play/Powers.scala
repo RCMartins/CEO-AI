@@ -42,6 +42,8 @@ object Powers {
 
   case object CanOnlyActAfterPieceLost extends Powers
 
+  case object OnMagicVanish extends Powers
+
   case class PromoteTo(pieceName: String) extends Powers
 
   case class OnAnyDeathPlayerChangeMorale(moraleAmount: Int) extends Powers
