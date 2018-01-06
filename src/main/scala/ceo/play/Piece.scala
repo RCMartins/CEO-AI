@@ -11,6 +11,9 @@ case class Piece(
   effectStatus: List[EffectStatus]
 ) {
 
+  def onSuicide(state: GameState): GameState = {
+    state
+  }
 
   override def toString: String = s"${data.name}$pos"
 
@@ -28,13 +31,6 @@ case class Piece(
     }
   }
 
-  private def checkPlayerLosesMoraleOnDeath(currentState: GameState): GameState = {
-    data.powers.collectFirst { case PlayerChangeMoraleOnDeath(amount) => amount } match {
-      case None => currentState
-      case Some(amount) => currentState.changeMorale(team, amount)
-    }
-  }
-
   def moveTo(currentState: GameState, target: BoardPos): (GameState, Piece) = {
     val updatedPiece = copy(pos = target).promoteIfPossible(currentState)
     val updatedState =
@@ -46,100 +42,80 @@ case class Piece(
   }
 
   def afterMeleeKill(startingState: GameState, pieceToKill: Piece): (GameState, Option[Piece]) = {
-    val updatedState1 = pieceToKill.checkPlayerLosesMoraleOnDeath(startingState)
+    //    val updatedState1 = startingState
+    //      if (data.isGuardian) {
+    //        startingState.updatePlayer(startingState.getPlayer(team).updateGuardedPositions(Some(this), None))
+    //      } else { // TODO Use a gameState level runner for the wrath power:
+    //        //        var kingPieceLocation: BoardPos = null
+    //        //        var wrathDuration: Int = 0
+    //        //        val thisDeathTriggersWrath =
+    //        //          Distance.adjacentDistances.map(pieceToKill.pos + _).exists { adjacentPos =>
+    //        //            adjacentPos.getPiece(startingState.board).exists { piece =>
+    //        //              piece.team == pieceToKill.team && piece.data.powers.collectFirst {
+    //        //                case Powers.TriggerWrathOnAdjacentAllyDeath(turnsToLightUpLocation) =>
+    //        //                  wrathDuration = turnsToLightUpLocation
+    //        //                  true
+    //        //              }.isDefined
+    //        //            }
+    //        //          } && {
+    //        //            val player = startingState.getPlayer(pieceToKill.team)
+    //        //            player.pieces.find(_.data.isKing).orElse(player.piecesAffected.find(_.data.isKing)) match {
+    //        //              case Some(kingPiece) =>
+    //        //                kingPieceLocation = kingPiece.pos
+    //        //                !startingState.boardEffects.exists {
+    //        //                  case BoardEffect.Lightning(boardPos, _) if boardPos == kingPiece.pos => true
+    //        //                  case _ => false
+    //        //                }
+    //        //              case _ => false
+    //        //            }
+    //        //          }
+    //        //        if (thisDeathTriggersWrath) {
+    //        //          val lightning = BoardEffect.Lightning(kingPieceLocation, startingState.currentTurn + wrathDuration)
+    //        //          startingState.copy(boardEffects = lightning :: startingState.boardEffects)
+    //        //        } else {
+    //        startingState
+    //        //        }
+    //      }
 
-    var attackerPieceDies = false
+    val updatedState1 =
+      DynamicRunner.foldLeft(startingState, pieceToKill, pieceToKill.data.afterAnyDeathRunners)
 
-    val updatedState2 =
-      if (pieceToKill.data.hasOnMeleeDeathEffects) {
-        pieceToKill.data.powers.foldLeft(updatedState1) { (state, power) =>
-          power match {
-            case OnMeleeDeathKillAttacker =>
-              attackerPieceDies = true
-              state
-            case OnMeleeDeathKillAttackerFromPosition(distances) if distances.contains(pos - pieceToKill.pos) =>
-              attackerPieceDies = true
-              state
-            case OnMeleeDeathSpawnPieces(distances, pieceName) =>
-              distances.foldLeft(state) { (state2, dist) =>
-                val spawnPos = pos + dist
-                if (spawnPos.isEmpty(state2.board))
-                  state2.placePiece(DataLoader.getPieceData(pieceName, team).createPiece(spawnPos))
-                else state2
-              }
-            case _ => state
-          }
-        } // Order of power processing should not matter: a Vampire killing a fireball should still steal 2 morale from enemy
-      } else if (data.isGuardian) {
-        updatedState1.updatePlayer(startingState.getPlayer(team).updateGuardedPositions(Some(this), None))
-      } else { // TODO Use a runner for this:
-        var kingPieceLocation: BoardPos = null
-        var wrathDuration: Int = 0
-        val thisDeathTriggersWrath =
-          Distance.adjacentDistances.map(pieceToKill.pos + _).exists { adjacentPos =>
-            adjacentPos.getPiece(updatedState1.board).exists { piece =>
-              piece.team == pieceToKill.team && piece.data.powers.collectFirst {
-                case Powers.TriggerWrathOnAdjacentAllyDeath(turnsToLightUpLocation) =>
-                  wrathDuration = turnsToLightUpLocation
-                  true
-              }.isDefined
-            }
-          } && {
-            val player = updatedState1.getPlayer(pieceToKill.team)
-            player.pieces.find(_.data.isKing).orElse(player.piecesAffected.find(_.data.isKing)) match {
-              case Some(kingPiece) =>
-                kingPieceLocation = kingPiece.pos
-                !updatedState1.boardEffects.exists {
-                  case BoardEffect.Lightning(boardPos, _) if boardPos == kingPiece.pos => true
-                  case _ => false
-                }
-              case _ => false
-            }
-          }
-        if (thisDeathTriggersWrath) {
-          val lightning = BoardEffect.Lightning(kingPieceLocation, updatedState1.currentTurn + wrathDuration)
-          updatedState1.copy(boardEffects = lightning :: updatedState1.boardEffects)
-        } else {
-          updatedState1
-        }
-      }
+    val (updatedState2, updatedPiece1) =
+      DynamicRunner.foldLeft((updatedState1, Some(this)), (this, pieceToKill), pieceToKill.data.afterMeleeDeathRunners)
 
-    val (updatedState3, updatedPiece) =
-      DynamicRunner.foldLeft((updatedState2, this), pieceToKill, data.afterKillRunners)
+    val (updatedState3, updatedPiece2) =
+      DynamicRunner.foldLeft((updatedState2, updatedPiece1), pieceToKill, data.afterKillRunners)
 
-    if (data.onAnyKillSuicides || attackerPieceDies)
-      (updatedState3, None)
-    else {
-      val (updatedState4, piece) = updatedPiece.moveTo(updatedState3, pieceToKill.pos)
-      (updatedState4, Some(piece))
+    updatedPiece2 match {
+      case None =>
+        (updatedState3, None)
+      case Some(finalPiece) =>
+        val (updatedState4, piece) = finalPiece.moveTo(updatedState3, pieceToKill.pos)
+        (updatedState4, Some(piece))
     }
   }
 
-  def afterMagicKill(currentState: GameState, pieceToKill: Piece): (GameState, Option[Piece]) = {
-    val updatedState = checkPlayerLosesMoraleOnDeath(currentState)
-    val finalState =
-      if (data.isGuardian)
-        updatedState.updatePlayer(currentState.getPlayer(team).updateGuardedPositions(Some(this), None))
-      else
-        updatedState
-    (finalState, {
-      if (data.onAnyKillSuicides)
-        None
-      else if (data.onMagicPromotes)
-        Some(data.powers.collectFirst {
+  def afterMagicKill(startingState: GameState, pieceToKill: Piece): (GameState, Option[Piece]) = {
+    val updatedState1 =
+      DynamicRunner.foldLeft(startingState, pieceToKill, pieceToKill.data.afterAnyDeathRunners)
+
+    val (updatedState2, updatedPiece) =
+      DynamicRunner.foldLeft((updatedState1, Some(this)), pieceToKill, data.afterKillRunners)
+
+    (updatedState2, updatedPiece.map { piece =>
+      if (data.onMagicPromotes)
+        data.powers.collectFirst {
           case PromoteOnSpellCastTo(pieceName) => DataLoader.getPieceData(pieceName, team).createPiece(pos)
-        }.get)
+        }.get
       else
-        Some(this)
+        piece
     })
   }
 
-  def afterPoisonDeath(currentState: GameState): GameState = {
-    val updatedState = checkPlayerLosesMoraleOnDeath(currentState)
-    if (data.isGuardian)
-      updatedState.updatePlayer(currentState.getPlayer(team).updateGuardedPositions(Some(this), None))
-    else
-      updatedState
+  def afterPoisonDeath(startingState: GameState): GameState = {
+    val updatedState =
+      DynamicRunner.foldLeft(startingState, this, data.afterAnyDeathRunners)
+    updatedState
   }
 
   def afterPoisonPiece(pieceToPoison: Piece, turnsToDeath: Int, currentState: GameState): (GameState, Piece, Piece) = {
@@ -153,28 +129,17 @@ case class Piece(
   def freeze(currentState: GameState, turnsFrozen: Int): Piece =
     addEffect(Frozen(currentState.currentTurn + turnsFrozen))
 
-  // TODO use this ...
-  def onKillTransformIfPossible(): Piece = {
-    data.powers.collectFirst { case OnKillTransformInto(pieceUpgradeName) => pieceUpgradeName } match {
-      case None =>
-        this
-      case Some(pieceUpgradeName) =>
-        DataLoader
-          .getPieceData(pieceUpgradeName, data.team)
-          .createPiece(pos)
-    }
-  }
-
   def swapTeams: Piece =
     copy(data = DataLoader.getPieceData(data.officialName, team.enemy))
 
   def addEffect(newEffect: EffectStatus): Piece = copy(effectStatus = newEffect :: effectStatus)
 
-  def addAllEffects(newEffects: List[EffectStatus]) = copy(effectStatus = newEffects ++ effectStatus)
+  def addAllEffects(newEffects: List[EffectStatus]): Piece = copy(effectStatus = newEffects ++ effectStatus)
 
-  def isPoisoned: Boolean = effectStatus.collectFirst {
-    case poison: EffectStatus.Poison => poison
-  }.isDefined
+  def isPoisoned: Boolean = effectStatus.exists {
+    case _: EffectStatus.Poison => true
+    case _ => false
+  }
 
   def canAct(currentPlayer: Player): Boolean = {
     effectStatus.forall {

@@ -44,7 +44,7 @@ object Powers {
 
   case class PromoteTo(pieceName: String) extends Powers
 
-  case class PlayerChangeMoraleOnDeath(moraleAmount: Int) extends Powers
+  case class OnAnyDeathPlayerChangeMorale(moraleAmount: Int) extends Powers
 
   case class PieceChangeMoraleOnKill(moraleAmount: Int) extends Powers
 

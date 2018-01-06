@@ -195,8 +195,8 @@ object DataLoader {
         val pieceToCheck = str.drop("PromotesTo ".length)
         piecesToCheck = pieceToCheck :: piecesToCheck
         Powers.PromoteTo(pieceToCheck)
-      case str if str.startsWith("PlayerChangeMoraleOnDeath ") =>
-        Powers.PlayerChangeMoraleOnDeath(str.drop("PlayerChangeMoraleOnDeath ".length).toInt)
+      case str if str.startsWith("OnAnyDeathPlayerChangeMorale ") =>
+        Powers.OnAnyDeathPlayerChangeMorale(str.drop("OnAnyDeathPlayerChangeMorale ".length).toInt)
       case str if str.startsWith("PieceChangeMoraleOnKill ") =>
         Powers.PieceChangeMoraleOnKill(str.drop("PieceChangeMoraleOnKill ".length).toInt)
       case str if str.startsWith("PlayerChangeMoraleOnKill ") =>

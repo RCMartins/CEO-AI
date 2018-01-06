@@ -271,12 +271,11 @@ case class GameState(
           case None => updatedState3
         }
       case KingDoesCastling(kingPiece, allyPiece, kingTarget, allyTarget) =>
-        // TODO: for now this is simplified because it can only affect champions?
         val kingWithoutCastling = DataLoader
           .getPieceData("King-no-Cas", kingPiece.team)
           .createPiece(kingTarget)
           .setMorale(kingPiece.currentMorale)
-          .addAllEfects(kingPiece.effectStatus)
+          .addAllEffects(kingPiece.effectStatus)
         this
           .updatePiece(allyPiece, allyPiece.copy(pos = allyTarget))
           .updatePiece(kingPiece, kingWithoutCastling)

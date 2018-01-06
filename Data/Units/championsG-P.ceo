@@ -136,7 +136,7 @@ King 0
     1
     1
 ---
-PlayerChangeMoraleOnDeath -25
+OnAnyDeathPlayerChangeMorale -25
 KingCastling 1
 --------------------
 Knight 6

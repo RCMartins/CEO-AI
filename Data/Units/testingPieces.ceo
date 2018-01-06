@@ -7,7 +7,7 @@ King-Frozen 0
 ---
 @
 ---
-PlayerChangeMoraleOnDeath -25
+OnAnyDeathPlayerChangeMorale -25
 --------------------
 King-Weak 0
 ---
@@ -15,7 +15,7 @@ King-Weak 0
 N@N
  N
 ---
-PlayerChangeMoraleOnDeath -25
+OnAnyDeathPlayerChangeMorale -25
 --------------------
 Morale10 10
 ---

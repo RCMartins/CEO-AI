@@ -25,39 +25,87 @@ case class PieceData(
 
   val isUnknown: Boolean = name.startsWith("?")
 
-  val afterKillRunners: List[DynamicRunner[(GameState, Piece), Piece]] = powers.collect {
-    case OnKillMercenary => new DynamicRunner[(GameState, Piece), Piece] {
-      override def update(value: (GameState, Piece), pieceToKill: Piece): (GameState, Piece) = {
-        if (pieceToKill.data.isChampion) {
-          (value._1.changeMorale(team.enemy, -1), value._2.swapTeams)
-        } else
-          value
+  val afterAnyDeathRunners: List[DynamicRunner[GameState, Piece /* this piece */ ]] = powers.collect {
+    case OnAnyDeathPlayerChangeMorale(amount) => new DynamicRunner[GameState, Piece] {
+      override def update(state: GameState, deathPiece: Piece): GameState = {
+        state.changeMorale(team, amount)
       }
     }
-    case OnKillTransformInto(pieceName) => new DynamicRunner[(GameState, Piece), Piece] {
-      override def update(value: (GameState, Piece), pieceToKill: Piece): (GameState, Piece) = {
-        val updatedPiece = DataLoader.getPieceData(pieceName, team).createPiece(value._2.pos)
-        (value._1, updatedPiece)
+    case TriggerGuardian(_) => new DynamicRunner[GameState, Piece] {
+      override def update(startingState: GameState, deathPiece: Piece): GameState = {
+        startingState.updatePlayer(startingState.getPlayer(team).updateGuardedPositions(Some(deathPiece), None))
       }
     }
-    case OnKillVampireAbility(moraleTakenFromEnemy, moraleToKing) => new DynamicRunner[(GameState, Piece), Piece] {
-      override def update(value: (GameState, Piece), pieceToKill: Piece): (GameState, Piece) = {
-        val (state, piece) = value
-        val state2 =
-          state
-            .changeMorale(piece.team.enemy, -moraleTakenFromEnemy)
+  }
 
-        val player = state2.getPlayer(piece.team)
-        val (state3, updatedPiece) =
+  val afterMeleeDeathRunners: List[DynamicRunner[
+    (GameState, Option[Piece] /* killer piece updated */ ),
+    (Piece /* killer piece */ , Piece /* this piece */ )]] = powers.collect {
+    case OnMeleeDeathKillAttacker => new DynamicRunner[(GameState, Option[Piece]), (Piece, Piece)] {
+      override def update(state: (GameState, Option[Piece]), pieces: (Piece, Piece)): (GameState, Option[Piece]) = {
+        state.copy(_2 = None)
+      }
+    }
+    case OnMeleeDeathKillAttackerFromPosition(distances) => new DynamicRunner[(GameState, Option[Piece]), (Piece, Piece)] {
+      override def update(state: (GameState, Option[Piece]), pieces: (Piece, Piece)): (GameState, Option[Piece]) = {
+        if (distances.contains(pieces._1.pos - pieces._2.pos))
+          state.copy(_2 = None)
+        else
+          state
+      }
+    }
+    case OnMeleeDeathSpawnPieces(distances, pieceName) => new DynamicRunner[(GameState, Option[Piece]), (Piece, Piece)] {
+      override def update(state: (GameState, Option[Piece]), pieces: (Piece, Piece)): (GameState, Option[Piece]) = {
+        val pos = pieces._2.pos
+        distances.foldLeft(state) { case ((gameState, updatedPiece), dist) =>
+          val spawnPos = pos + dist
+          if (spawnPos.isEmpty(gameState.board))
+            (gameState.placePiece(DataLoader.getPieceData(pieceName, team).createPiece(spawnPos)), updatedPiece)
+          else
+            (gameState, updatedPiece)
+        }
+      }
+    }
+  }
+
+  val afterKillRunners: List[DynamicRunner[
+    (GameState, Option[Piece] /* killer piece updated */ ),
+    Piece /* piece to kill */]] = powers.collect {
+    case OnAnyKillSuicides => new DynamicRunner[(GameState, Option[Piece]), Piece] {
+      override def update(state: (GameState, Option[Piece]), pieceToKill: Piece): (GameState, Option[Piece]) = {
+        state.copy(_2 = None)
+      }
+    }
+    case OnKillMercenary => new DynamicRunner[(GameState, Option[Piece]), Piece] {
+      override def update(state: (GameState, Option[Piece]), pieceToKill: Piece): (GameState, Option[Piece]) = {
+        if (pieceToKill.data.isChampion) {
+          (state._1.changeMorale(team.enemy, -1), state._2.map(_.swapTeams))
+        } else
+          state
+      }
+    }
+    case OnKillTransformInto(pieceName) => new DynamicRunner[(GameState, Option[Piece]), Piece] {
+      override def update(state: (GameState, Option[Piece]), pieceToKill: Piece): (GameState, Option[Piece]) = {
+        val updatedPiece = state._2.map(killerPiece => DataLoader.getPieceData(pieceName, team).createPiece(killerPiece.pos))
+        (state._1, updatedPiece)
+      }
+    }
+    case OnKillVampireAbility(moraleTakenFromEnemy, moraleToKing) => new DynamicRunner[(GameState, Option[Piece]), Piece] {
+      override def update(state: (GameState, Option[Piece]), pieceToKill: Piece): (GameState, Option[Piece]) = {
+        val (gameState1, maybePiece) = state
+        val gameState2 = gameState1.changeMorale(team.enemy, -moraleTakenFromEnemy)
+
+        val player = gameState2.getPlayer(team)
+        val (gameState3, updatedPiece) =
           if (player.hasKing) {
             val king = player.allPieces.find(_.data.isKing).get
             val kingUpdated = king.changeMorale(moraleToKing)
-            (state2.updatePiece(king, kingUpdated), piece)
+            (gameState2.updatePiece(king, kingUpdated), maybePiece)
           } else {
-            (state2, piece.changeMorale(moraleToKing))
+            (gameState2, maybePiece.map(_.changeMorale(moraleToKing)))
           }
 
-        (state3, updatedPiece)
+        (gameState3, updatedPiece)
       }
     }
   }
@@ -84,16 +132,6 @@ case class PieceData(
     case _ => List.empty
   }.toSet
 
-  val onAnyKillSuicides: Boolean = powers.exists {
-    case OnAnyKillSuicides => true
-    case _ => false
-  }
-
-  val hasOnMeleeDeathEffects: Boolean = powers.exists {
-    case OnMeleeDeathKillAttacker | OnMeleeDeathSpawnPieces(_, _) => true
-    case _ => false
-  }
-
   val isGuardian: Boolean = powers.exists {
     case TriggerGuardian(_) => true
     case _ => false
@@ -107,6 +145,13 @@ case class PieceData(
   val canOnlyActAfterPieceLost: Boolean = powers.exists {
     case CanOnlyActAfterPieceLost => true
     case _ => false
+  }
+
+  val initialStatusEffects: List[EffectStatus] = {
+    powers.collect {
+      case BeginsGameEnchanted(enchantedDuration) =>
+        EffectStatus.Enchanted(1 + enchantedDuration) //TODO check if the un-enchanted turn is correct!
+    }
   }
 
   val canMinionPromote: Boolean = powers.exists {

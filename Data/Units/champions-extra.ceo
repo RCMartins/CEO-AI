@@ -4,5 +4,5 @@ NNN
 N@N
 NNN
 ---
-PlayerChangeMoraleOnDeath -25
+OnAnyDeathPlayerChangeMorale -25
 --------------------

@@ -14,7 +14,8 @@ object PlayGame {
       Player(Black, 0, Nil, Nil, 0, hasKing = false, PlayerExtraData.empty),
       1,
       Nil,
-      Nil
+      Nil,
+      GameRunner.empty
     )
 
   def playSomeMatches(startingState: GameState, playerWhiteStrategy: Strategy, playerBlackStrategy: Strategy, numberOfGames: Int): Unit = {
