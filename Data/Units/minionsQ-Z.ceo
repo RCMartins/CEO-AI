@@ -85,6 +85,43 @@ M   M
 MagicDestroy 1
 PromotesTo FireElemental+++
 --------------------
+Samurai 3
+---
+N1N
+ @
+---
+TriggerInstantKill 1
+PromotesTo Ninja
+--------------------
+Samurai+ 4
+---
+m   m
+ N1N
+  @
+---
+TriggerInstantKill 1
+PromotesTo Ninja+
+--------------------
+Samurai++ 5
+---
+m   m
+ N1N
+  @
+  M
+---
+TriggerInstantKill 1
+PromotesTo Ninja++
+--------------------
+Samurai+++ 6
+---
+M   M
+ N1N
+  @
+  M
+---
+TriggerInstantKill 1
+PromotesTo Ninja+++
+--------------------
 Shieldsman 0
 ---
  MAM

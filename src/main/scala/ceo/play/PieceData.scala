@@ -181,6 +181,8 @@ case class PieceData(
         EffectStatus.Enchanted(1 + enchantedDuration) //TODO check if the un-enchanted turn is correct!
       case BlockAttacksFrom(distances) =>
         EffectStatus.BlocksAttacksFrom(distances)
+      case TriggerInstantKill(distance) =>
+        EffectStatus.InstantKillPositional(distance)
     }
   }
 

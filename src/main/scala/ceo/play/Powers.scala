@@ -77,6 +77,8 @@ object Powers {
 
   case class OnMagicCastDecayTo(decayAmount: Int, limitToDevolve: Int, pieceName: String) extends Powers
 
+  case class TriggerInstantKill(distance: Distance) extends Powers
+
   case class DummyNothingPower(letterOfMove: Char) extends MovePower {
     override def createMove(dist: Distance): Moves = DummyMove
   }
@@ -179,6 +181,11 @@ object Powers {
   case class TriggerFrostMephitPositionalPower(letterOfMove: Char, freezeDuration: Int) extends PositionalPower {
     def createPowers(distances: Map[Char, List[Distance]]): List[Powers] =
       List(TriggerFrostMephit(freezeDuration))
+  }
+
+  case class TriggerInstantKillPositionalPower(letterOfMove: Char) extends PositionalPower {
+    def createPowers(distances: Map[Char, List[Distance]]): List[Powers] =
+      List(TriggerInstantKill(distances.values.flatten.head))
   }
 
   case object AugmentedTeleportGhastMovePower extends AugmentedMovePower {

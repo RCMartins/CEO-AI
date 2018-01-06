@@ -34,6 +34,10 @@ object EffectType {
     val name = "BlockAttacks"
   }
 
+  case object InstantKillPositional extends EffectType {
+    val name = "InstantKillPositional"
+  }
+
   val allNormalEffects: List[EffectType] = List(Petrify, Poison, Freeze, Displacement, Magic, Ranged)
 
   def apply(name: String): EffectType = allNormalEffects.find(_.name == name) match {
@@ -62,6 +66,10 @@ object EffectStatus {
 
   case class BlocksAttacksFrom(distances: Set[Distance]) extends EffectStatus {
     override val effectType: EffectType = EffectType.BlockAttacks
+  }
+
+  case class InstantKillPositional(distance: Distance) extends EffectStatus {
+    override val effectType: EffectType = EffectType.InstantKillPositional
   }
 
 }

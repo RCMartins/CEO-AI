@@ -197,14 +197,14 @@ case class GameState(
           case Some(pieceNewPos) => updatedStateAfterRemoves.placePiece(pieceNewPos)
           case _ => updatedStateAfterRemoves
         }
-      case AttackCanBeBlocked(piece, _pieceToKill) =>
-        val (updatedState, pieceToKill) = guardianSwapPiece(this, _pieceToKill)
-        if (pieceToKill == _pieceToKill) {
-          val pieceToKillUpdated = pieceToKill.removeBlockEffect
+      case AttackCanBeBlocked(piece, _pieceToAttack) =>
+        val (updatedState, pieceToAttack) = guardianSwapPiece(this, _pieceToAttack)
+        if (pieceToAttack == _pieceToAttack) {
+          val pieceToKillUpdated = pieceToAttack.removeBlockEffect
           updatedState
-            .updatePiece(pieceToKill, pieceToKillUpdated)
+            .updatePiece(pieceToAttack, pieceToKillUpdated)
         } else {
-          playPlayerMove(Attack(piece, _pieceToKill))
+          playPlayerMove(Attack(piece, pieceToAttack))
         }
       case Swap(piece, pieceToSwap) =>
         val updatedState1 = this.removePiece(piece).removePiece(pieceToSwap)
@@ -397,33 +397,62 @@ case class GameState(
 
   private def startingTurnStatusEffectUpdate: GameState = {
 
-    def updatePieces(pieces: List[Piece]): (List[Piece], List[Piece]) =
-      pieces.foldLeft((List.empty[Piece], List.empty[Piece])) {
-        case ((deadPieces, updatedPieces), piece) =>
-          val updatedEffectStatus = piece.effectStatus.flatMap {
-            case effect @ EffectStatus.Petrified(untilTurn) =>
-              if (untilTurn == currentTurn) Nil else List(effect)
-            case effect @ EffectStatus.Frozen(untilTurn) =>
-              if (untilTurn == currentTurn) Nil else List(effect)
-            case effect @ EffectStatus.Poison(turnOfDeath) =>
-              if (turnOfDeath == currentTurn) {
-                return (piece :: deadPieces, updatedPieces)
-              } else
-                List(effect)
-            case blockAttacks: EffectStatus.BlocksAttacksFrom =>
-              List(blockAttacks)
-            case _ =>
-              ???
+    def updatePiece(gameState: GameState, piece: Piece): (GameState, Option[Piece]) = {
+      val (updatedState, pieceIsAlive, updatedEffectStatus) =
+        piece.effectStatus.foldLeft((gameState, true, List.empty[EffectStatus])) {
+          case (s, effect @ EffectStatus.Petrified(untilTurn)) =>
+            s.copy(_3 = (if (untilTurn == currentTurn) Nil else List(effect)) ++ s._3)
+          case (s, effect @ EffectStatus.Frozen(untilTurn)) =>
+            s.copy(_3 = (if (untilTurn == currentTurn) Nil else List(effect)) ++ s._3)
+          case (s, effect @ EffectStatus.Enchanted(untilTurn)) =>
+            s.copy(_3 = (if (untilTurn == currentTurn) Nil else List(effect)) ++ s._3)
+          case (s, effect @ EffectStatus.Poison(turnOfDeath)) =>
+            if (turnOfDeath == currentTurn) {
+              s.copy(_2 = false)
+            } else
+              s.copy(_3 = effect :: s._3)
+          case (s, effect @ EffectStatus.InstantKillPositional(distance)) if gameState.getCurrentPlayer.team == piece.team =>
+            val gameState = s._1
+            (piece.pos + distance).getPiece(gameState.board) match {
+              case None =>
+                s
+              case Some(targetPiece) if targetPiece.team != piece.team => // TODO is there trigger immune?
+                val playerMove =
+                  if (targetPiece.canBlockFrom(piece.pos)) {
+                    PlayerMove.AttackCanBeBlocked(piece, targetPiece)
+                  } else {
+                    PlayerMove.Attack(piece, targetPiece)
+                  }
+
+                s.copy(_1 = gameState.playPlayerMove(playerMove), _3 = effect :: s._3)
+            }
+          case (s, effect) =>
+            s.copy(_3 = effect :: s._3)
+        }
+      if (pieceIsAlive)
+        (updatedState, Some(piece.copy(effectStatus = updatedEffectStatus)))
+      else
+        (updatedState, None)
+    }
+
+    def updatePieces(startingState: GameState, pieces: List[Piece]): (GameState, List[Piece], List[Piece]) =
+      pieces.foldLeft((startingState, List.empty[Piece], List.empty[Piece])) {
+        case ((state, deadPieces, updatedPieces), piece) =>
+          val (updatedGameState, maybeUpdatedPiece) = updatePiece(state, piece)
+          maybeUpdatedPiece match {
+            case None =>
+              (updatedGameState, piece :: deadPieces, updatedPieces)
+            case Some(updatedPiece) =>
+              (updatedGameState, deadPieces, updatedPiece :: updatedPieces)
           }
-          (deadPieces, piece.copy(effectStatus = updatedEffectStatus) :: updatedPieces)
       }
 
-    def updatePlayer(currentState: GameState, player: Player): (GameState, Player) = {
-      val (deadPieces, updatedPieces) = updatePieces(player.piecesAffected)
+    def updatePlayer(startingState: GameState, player: Player): (GameState, Player) = {
+      val (updatedState, deadPieces, updatedPieces) = updatePieces(startingState, player.piecesAffected)
 
       // remove all pieces that have effects
       val stateRemovedAll =
-        player.piecesAffected.foldLeft(currentState)((state, piece) => state.removePiece(piece))
+        player.piecesAffected.foldLeft(updatedState)((state, piece) => state.removePiece(piece))
       // update state with possible side effects from dead pieces
       val stateAfterDeadSideEffects =
         deadPieces.foldLeft(stateRemovedAll)((state, deadPiece) => deadPiece.afterPoisonDeath(state))
