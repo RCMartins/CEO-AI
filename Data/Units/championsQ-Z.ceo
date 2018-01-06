@@ -111,6 +111,40 @@ TSTST
 ---
 MagicTransformIntoAlly 1 1 Ghost
 --------------------
+SoulKeeper++ 20
+---
+TSTST
+S111S
+T1@1T
+S111S
+TSTST
+---
+MagicTransformIntoAlly 1 1 Ghost
+--------------------
+SoulKeeper+++ 22
+---
+  T T
+ TSTST
+TS111ST
+ T1@1T
+TS111ST
+ TSTST
+  T T
+---
+MagicTransformIntoAlly 1 1 Ghost
+--------------------
+Taurus 6
+---
+   1
+ 1   1
+   N
+1 N@N 1
+   N
+ 1   1
+   1
+---
+TaurusRush 1 3
+--------------------
 Taurus+ 8
 ---
    1
@@ -119,6 +153,18 @@ Taurus+ 8
 1 N@N 1
   MNM
  1   1
+   1
+---
+TaurusRush 1 3
+--------------------
+Taurus++ 10
+---
+   1
+ 1 N 1
+  MNM
+1NN@NN1
+  MNM
+ 1 N 1
    1
 ---
 TaurusRush 1 3
@@ -174,6 +220,70 @@ J  1  J
 ---
 TeleportKingToLocation 1
 CanOnlyActAfterPieceLost
+--------------------
+Vampire 15
+---
+A  A  A
+ A1A1A
+ 1NNN1
+AAN@NAA
+ 1NNN1
+ A1A1A
+A  A  A
+---
+UnstoppableTeleportTransformInto 1 Bat
+OnKillVampireAbility 2 2
+--------------------
+Vampire+ 18
+---
+A   A   A
+ A  A  A
+  A1A1A
+  1NNN1
+AAAN@NAAA
+  1NNN1
+  A1A1A
+ A  A  A
+A   A   A
+---
+UnstoppableTeleportTransformInto 1 Bat+
+OnKillVampireAbility 3 3
+--------------------
+Vampire++ 21
+---
+A    A    A
+ A   A   A
+  A  A  A
+   A1A1A
+   1NNN1
+ AAAN@NAAA
+   1NNN1
+   A1A1A
+  A  A  A
+ A   A   A
+A    A    A
+---
+UnstoppableTeleportTransformInto 1 Bat++
+OnKillVampireAbility 4 4
+--------------------
+Vampire+++ 24
+---
+A     A     A
+ A 1  A  1 A
+  A   A   A
+ 1 A  A  A 1
+    A1A1A
+    1NNN1
+  AAAN@NAAA
+    1NNN1
+    A1A1A
+ 1 A  A  A 1
+  A   A   A
+ A 1  A  1 A
+A     A     A
+---
+UnstoppableTeleportTransformInto 1 Bat+++
+OnKillVampireAbility 5 5
 --------------------
 Warrior 7
 ---

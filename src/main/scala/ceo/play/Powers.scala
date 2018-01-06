@@ -71,6 +71,8 @@ object Powers {
 
   case class TriggerFrostMephit(freezeDuration: Int) extends Powers
 
+  case class OnKillVampireAbility(moraleTakenFromEnemy: Int, moraleToKing: Int) extends Powers
+
   case class DummyNothingPower(letterOfMove: Char) extends MovePower {
     override def createMove(dist: Distance): Moves = DummyMove
   }

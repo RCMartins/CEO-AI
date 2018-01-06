@@ -378,6 +378,17 @@ object Moves {
     }
   }
 
+  case class UnstoppableTeleportTransformInto(dist: Distance, pieceName: String) extends SingleMove {
+    def getValidMove(piece: Piece, state: GameState, currentPlayer: Player): Option[PlayerMove] = {
+      val pieceData = DataLoader.getPieceData(pieceName, piece.data.team)
+      val target = piece.pos + dist
+      if (target.isEmpty(state.board))
+        Some(PlayerMove.TeleportTransformInto(piece, target, pieceData))
+      else
+        None
+    }
+  }
+
   case class JumpMinion(dist: Distance) extends SingleMove {
     def getValidMove(piece: Piece, state: GameState, currentPlayer: Player): Option[PlayerMove] = {
       canAttackUnblockableConditional(piece, piece.pos + dist, state, _.data.isMinion)

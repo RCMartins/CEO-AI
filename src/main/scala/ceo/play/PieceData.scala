@@ -23,6 +23,45 @@ case class PieceData(
 
   def officialName: String = s"$simpleName${"+" * tier}"
 
+  val isUnknown: Boolean = name.startsWith("?")
+
+  val afterKillRunners: List[DynamicRunner[(GameState, Piece), Piece]] = powers.collect {
+    case OnKillMercenary => new DynamicRunner[(GameState, Piece), Piece] {
+      override def update(value: (GameState, Piece), pieceToKill: Piece): (GameState, Piece) = {
+        if (pieceToKill.data.isChampion) {
+          (value._1.changeMorale(team.enemy, -1), value._2.swapTeams)
+        } else
+          value
+      }
+    }
+    case OnKillTransformInto(pieceName) => new DynamicRunner[(GameState, Piece), Piece] {
+      override def update(value: (GameState, Piece), pieceToKill: Piece): (GameState, Piece) = {
+        val updatedPiece = DataLoader.getPieceData(pieceName, team).createPiece(value._2.pos)
+        (value._1, updatedPiece)
+      }
+    }
+    case OnKillVampireAbility(moraleTakenFromEnemy, moraleToKing) => new DynamicRunner[(GameState, Piece), Piece] {
+      override def update(value: (GameState, Piece), pieceToKill: Piece): (GameState, Piece) = {
+        val (state, piece) = value
+        val state2 =
+          state
+            .changeMorale(piece.team.enemy, -moraleTakenFromEnemy)
+
+        val player = state2.getPlayer(piece.team)
+        val (state3, updatedPiece) =
+          if (player.hasKing) {
+            val king = player.allPieces.find(_.data.isKing).get
+            val kingUpdated = king.changeMorale(moraleToKing)
+            (state2.updatePiece(king, kingUpdated), piece)
+          } else {
+            (state2, piece.changeMorale(moraleToKing))
+          }
+
+        (state3, updatedPiece)
+      }
+    }
+  }
+
   val isKing: Boolean = name.startsWith("King")
 
   val isRoyalty: Boolean =
@@ -70,10 +109,25 @@ case class PieceData(
     case _ => false
   }
 
+  val canMinionPromote: Boolean = powers.exists {
+    case PromoteTo(_) => true
+    case _ => false
+  }
+
+  val onMagicPromotes: Boolean = powers.exists {
+    case PromoteOnSpellCastTo(_) => true
+    case _ => false
+  }
+
+  val hasUnstoppableMoves: Boolean = moves.exists {
+    case Moves.UnstoppableTeleportTransformInto(_, _) => true
+    case _ => false
+  }
+
 }
 
 object PieceData {
 
-  val UnknownPiece = PieceData("?", isMinion = false, 0, Nil, Nil, PlayerTeam.White)
+  val empty = PieceData("", isMinion = false, 0, Nil, Nil, PlayerTeam.White)
 
 }

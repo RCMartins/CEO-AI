@@ -50,6 +50,15 @@ m R m
 ---
 PromotesTo Ranger+
 --------------------
+Archer++ 2
+---
+M R M
+ M M
+  @
+  M
+---
+PromotesTo Ranger++
+--------------------
 Archer+++ 3
 ---
 t   t
@@ -82,6 +91,14 @@ m m m
 ---
 PromotesTo Berserker++
 --------------------
+Axeman+++ 4
+---
+m m m
+ NMN
+AA@AA
+---
+PromotesTo Berserker+++
+--------------------
 Basilisk 2
 ---
 N1N
@@ -109,13 +126,67 @@ M   M
 RangedPetrify 1 5
 PromotesTo Dragon++
 --------------------
+Basilisk+++ 5
+---
+t   t
+Mt tM
+ N1N
+  @
+  M
+---
+RangedPetrify 1 5
+PromotesTo Dragon+++
+--------------------
 Bat 0
 ---
 T   T
  M@M
 T   T
 ---
-//TODO uncomment when ready: PromotesTo Vampire
+PromotesTo Vampire
+--------------------
+Bat+ 1
+---
+T     T
+ T   T
+  M@M
+ T   T
+T     T
+---
+PromotesTo Vampire+
+--------------------
+Bat++ 3
+---
+  T T
+T     T
+ T   T
+  M@M
+ T   T
+T     T
+  T T
+---
+PromotesTo Vampire++
+--------------------
+Bat+++ 5
+---
+       M
+       M
+       M
+
+      T T
+    T     T
+     T   T
+MMM   M@M   MMM
+     T   T
+    T     T
+      T T
+
+       M
+       M
+       M
+---
+PromotesTo Vampire+++
+--------------------
 --------------------
 Bomber+ 2
 ---

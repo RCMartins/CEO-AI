@@ -21,15 +21,8 @@ case class Piece(
   def changeMorale(moraleDiff: Int): Piece = copy(currentMorale = currentMorale + moraleDiff)
 
   private def promoteIfPossible(gameState: GameState): Piece = {
-    if (gameState.getPlayer(data.team.enemy).inBaseRow(pos)) {
-      data.powers.collectFirst { case PromoteTo(pieceUpgradeName) => pieceUpgradeName } match {
-        case None =>
-          this
-        case Some(pieceUpgradeName) =>
-          DataLoader
-            .getPieceData(pieceUpgradeName, data.team)
-            .createPiece(pos)
-      }
+    if (data.canMinionPromote && gameState.getPlayer(data.team.enemy).inBaseRow(pos)) {
+      data.powers.collectFirst { case PromoteTo(pieceName) => DataLoader.getPieceData(pieceName, data.team).createPiece(pos) }.get
     } else {
       this
     }
@@ -52,15 +45,14 @@ case class Piece(
     (updatedState, updatedPiece)
   }
 
-  def afterMeleeKill(currentState: GameState, pieceToKill: Piece): (GameState, Option[Piece]) = {
-    val updatedState = pieceToKill.checkPlayerLosesMoraleOnDeath(currentState)
+  def afterMeleeKill(startingState: GameState, pieceToKill: Piece): (GameState, Option[Piece]) = {
+    val updatedState1 = pieceToKill.checkPlayerLosesMoraleOnDeath(startingState)
 
     var attackerPieceDies = false
-    var updatedThisPiece = this
 
-    val finalState =
+    val updatedState2 =
       if (pieceToKill.data.hasOnMeleeDeathEffects) {
-        pieceToKill.data.powers.foldLeft(updatedState) { (state, power) =>
+        pieceToKill.data.powers.foldLeft(updatedState1) { (state, power) =>
           power match {
             case OnMeleeDeathKillAttacker =>
               attackerPieceDies = true
@@ -77,18 +69,15 @@ case class Piece(
               }
             case _ => state
           }
-        }
-      } else if (data.powers.collectFirst { case OnKillMercenary if pieceToKill.data.isChampion => true }.isDefined) {
-        updatedThisPiece = swapTeams
-        updatedState.changeMorale(team.enemy, -1)
+        } // Order of power processing should not matter: a Vampire killing a fireball should still steal 2 morale from enemy
       } else if (data.isGuardian) {
-        updatedState.updatePlayer(currentState.getPlayer(team).updateGuardedPositions(Some(this), None))
-      } else {
+        updatedState1.updatePlayer(startingState.getPlayer(team).updateGuardedPositions(Some(this), None))
+      } else { // TODO Use a runner for this:
         var kingPieceLocation: BoardPos = null
         var wrathDuration: Int = 0
         val thisDeathTriggersWrath =
           Distance.adjacentDistances.map(pieceToKill.pos + _).exists { adjacentPos =>
-            adjacentPos.getPiece(updatedState.board).exists { piece =>
+            adjacentPos.getPiece(updatedState1.board).exists { piece =>
               piece.team == pieceToKill.team && piece.data.powers.collectFirst {
                 case Powers.TriggerWrathOnAdjacentAllyDeath(turnsToLightUpLocation) =>
                   wrathDuration = turnsToLightUpLocation
@@ -96,11 +85,11 @@ case class Piece(
               }.isDefined
             }
           } && {
-            val player = updatedState.getPlayer(pieceToKill.team)
+            val player = updatedState1.getPlayer(pieceToKill.team)
             player.pieces.find(_.data.isKing).orElse(player.piecesAffected.find(_.data.isKing)) match {
               case Some(kingPiece) =>
                 kingPieceLocation = kingPiece.pos
-                !updatedState.boardEffects.exists {
+                !updatedState1.boardEffects.exists {
                   case BoardEffect.Lightning(boardPos, _) if boardPos == kingPiece.pos => true
                   case _ => false
                 }
@@ -108,27 +97,41 @@ case class Piece(
             }
           }
         if (thisDeathTriggersWrath) {
-          val lightning = BoardEffect.Lightning(kingPieceLocation, updatedState.currentTurn + wrathDuration)
-          updatedState.copy(boardEffects = lightning :: updatedState.boardEffects)
+          val lightning = BoardEffect.Lightning(kingPieceLocation, updatedState1.currentTurn + wrathDuration)
+          updatedState1.copy(boardEffects = lightning :: updatedState1.boardEffects)
         } else {
-          updatedState
+          updatedState1
         }
       }
 
-    (finalState, {
-      if (data.suicidesOnKill || attackerPieceDies)
-        None
-      else
-        Some(updatedThisPiece.copy(pos = pieceToKill.pos).promoteIfPossible(finalState))
-    })
+    val (updatedState3, updatedPiece) =
+      DynamicRunner.foldLeft((updatedState2, this), pieceToKill, data.afterKillRunners)
+
+    if (data.onAnyKillSuicides || attackerPieceDies)
+      (updatedState3, None)
+    else {
+      val (updatedState4, piece) = updatedPiece.moveTo(updatedState3, pieceToKill.pos)
+      (updatedState4, Some(piece))
+    }
   }
 
-  def afterMagicKill(currentState: GameState, pieceToKill: Piece): GameState = {
+  def afterMagicKill(currentState: GameState, pieceToKill: Piece): (GameState, Option[Piece]) = {
     val updatedState = checkPlayerLosesMoraleOnDeath(currentState)
-    if (data.isGuardian)
-      updatedState.updatePlayer(currentState.getPlayer(team).updateGuardedPositions(Some(this), None))
-    else
-      updatedState
+    val finalState =
+      if (data.isGuardian)
+        updatedState.updatePlayer(currentState.getPlayer(team).updateGuardedPositions(Some(this), None))
+      else
+        updatedState
+    (finalState, {
+      if (data.onAnyKillSuicides)
+        None
+      else if (data.onMagicPromotes)
+        Some(data.powers.collectFirst {
+          case PromoteOnSpellCastTo(pieceName) => DataLoader.getPieceData(pieceName, team).createPiece(pos)
+        }.get)
+      else
+        Some(this)
+    })
   }
 
   def afterPoisonDeath(currentState: GameState): GameState = {
@@ -165,7 +168,9 @@ case class Piece(
   def swapTeams: Piece =
     copy(data = DataLoader.getPieceData(data.officialName, team.enemy))
 
-  def addEffect(effect: EffectStatus): Piece = copy(effectStatus = effect :: effectStatus)
+  def addEffect(newEffect: EffectStatus): Piece = copy(effectStatus = newEffect :: effectStatus)
+
+  def addAllEffects(newEffects: List[EffectStatus]) = copy(effectStatus = newEffects ++ effectStatus)
 
   def isPoisoned: Boolean = effectStatus.collectFirst {
     case poison: EffectStatus.Poison => poison

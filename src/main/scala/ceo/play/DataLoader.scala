@@ -221,6 +221,9 @@ object DataLoader {
         Powers.ImmuneTo(list.map(EffectType.apply))
       case str if str.startsWith("DestroyedBy ") =>
         Powers.DestroyedBy(str.drop("DestroyedBy ".length).split(" ").toList.map(EffectType.apply))
+      case str if str.startsWith("OnKillVampireAbility ") =>
+        val List(moraleTakenFromEnemy, moraleToKing) = str.drop("OnKillVampireAbility ".length).split(" ").toList
+        Powers.OnKillVampireAbility(moraleTakenFromEnemy.toInt, moraleToKing.toInt)
       // Move Powers:
       case str if str.startsWith("MagicDestroy ") =>
         Powers.MagicDestroyMovePower(getLetter(str.drop("MagicDestroy ".length)))
@@ -253,6 +256,10 @@ object DataLoader {
       case str if str.startsWith("MagicLightningOnLocation ") =>
         val List(letterStr, moraleCost, lightningDelayTurns) = str.drop("MagicLightningOnLocation ".length).split(" ").toList
         Powers.MagicLightningOnLocationMovePower(getLetter(letterStr), moraleCost.toInt, lightningDelayTurns.toInt)
+      case str if str.startsWith("UnstoppableTeleportTransformInto ") =>
+        val List(letterStr, pieceName) = str.drop("UnstoppableTeleportTransformInto ".length).split(" ").toList
+        piecesToCheck = pieceName :: piecesToCheck
+        Powers.UnstoppableTeleportTransformIntoMovePower(getLetter(letterStr), pieceName)
       // Move Power Complete:
       case str if str.startsWith("KingCastling ") =>
         Powers.KingCastlingMovePowerComplete(str.drop("KingCastling ".length).split(" ").toList.map(getLetter))
@@ -315,13 +322,13 @@ object DataLoader {
       val pieceNames = line.split(" ")
       for ((pieceName, column) <- pieceNames.zipWithIndex) {
         if (pieceName == "?")
-          gameState = gameState.placePiece(PieceData.UnknownPiece.createPiece(BoardPos(row, column)))
+          gameState = gameState.placePiece(PieceData.empty.copy(name = pieceName).createPiece(BoardPos(row, column)))
         else if (pieceName.length > 1) {
           val List(name, team) = pieceName.split("_").toList
           Try(getPieceData(name, PlayerTeam(team))) match {
             case Failure(_) =>
               piecesToCheck = name :: piecesToCheck
-              gameState = gameState.placePiece(PieceData.UnknownPiece.createPiece(BoardPos(row, column)))
+              gameState = gameState.placePiece(PieceData.empty.copy(name = "?" + pieceName).createPiece(BoardPos(row, column)))
             case Success(pieceData) =>
               gameState = gameState.placePiece(pieceData.createPiece(BoardPos(row, column)))
           }

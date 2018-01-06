@@ -18,6 +18,28 @@ T T T
 GhostMovement
 AugmentedTeleportGhast
 --------------------
+Ghast++ 10
+---
+P P P
+ SSS
+PS@SP
+ SSS
+P P P
+---
+GhostMovement
+AugmentedTeleportGhast
+--------------------
+Ghast+++ 11
+---
+PPPPP
+PSSSP
+PS@SP
+PSSSP
+PPPPP
+---
+GhostMovement
+AugmentedTeleportGhast
+--------------------
 GiantSlime 6
 ---
   M
