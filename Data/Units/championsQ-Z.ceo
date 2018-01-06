@@ -222,6 +222,15 @@ SN@NS
 S S S
 ---
 --------------------
+Wizard+ 14
+---
+S S S
+ SSS
+SS@SS
+ SSS
+S S S
+---
+--------------------
 Wrath 5
 ---
   1 1
@@ -229,6 +238,32 @@ Wrath 5
 1  N  1
   N@N
 1  N  1
+
+  1 1
+---
+MagicLightningOnLocation 1 1 4
+TriggerWrathOnAdjacentAllyDeath 4
+--------------------
+Wrath+ 8
+---
+  1 1
+
+1 MNM 1
+  N@N
+1 MNM 1
+
+  1 1
+---
+MagicLightningOnLocation 1 1 4
+TriggerWrathOnAdjacentAllyDeath 4
+--------------------
+Wrath++ 10
+---
+  1 1
+
+1 NNN 1
+  N@N
+1 NNN 1
 
   1 1
 ---

@@ -49,6 +49,8 @@ class BoardPos private(val row: Int, val column: Int) {
     })
   }
 
+  def distanceTo(other: BoardPos): Int = Math.max(Math.abs(row - other.row), Math.abs(column - other.column))
+
   def canEqual(other: Any): Boolean = other.isInstanceOf[BoardPos]
 
   override def equals(other: Any): Boolean = other match {

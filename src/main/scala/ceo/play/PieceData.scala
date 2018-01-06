@@ -45,8 +45,8 @@ case class PieceData(
     case _ => List.empty
   }.toSet
 
-  val suicidesOnKill: Boolean = powers.exists {
-    case OnKillSuicide => true
+  val onAnyKillSuicides: Boolean = powers.exists {
+    case OnAnyKillSuicides => true
     case _ => false
   }
 

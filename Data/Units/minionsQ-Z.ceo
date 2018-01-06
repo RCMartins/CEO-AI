@@ -16,6 +16,14 @@ AA@AA
 ---
 PlayerChangeMoraleOnKill -5
 --------------------
+RoyalGuard 3
+---
+ N
+N@N
+ N
+---
+AugmentedTeleportRoyalGuard
+--------------------
 RoyalGuard+ 4
 ---
 MNM
@@ -48,6 +56,15 @@ M   M
 ---
 MagicDestroy 1
 PromotesTo FireElemental++
+--------------------
+Shieldsman 0
+---
+ MAM
+  @
+  1
+---
+TriggerGuardian 1
+PromotesTo Guardian
 --------------------
 Shieldsman+ 1
 ---

@@ -1,6 +1,7 @@
 package ceo.play
 
 import ceo.play.EffectStatus._
+import ceo.play.Powers._
 
 case class Piece(
   data: PieceData,
@@ -10,13 +11,14 @@ case class Piece(
   effectStatus: List[EffectStatus]
 ) {
 
-  import ceo.play.Powers._
 
   override def toString: String = s"${data.name}$pos"
 
   def team: PlayerTeam = data.team
 
   def setMorale(morale: Int): Piece = copy(currentMorale = morale)
+
+  def changeMorale(moraleDiff: Int): Piece = copy(currentMorale = currentMorale + moraleDiff)
 
   private def promoteIfPossible(gameState: GameState): Piece = {
     if (gameState.getPlayer(data.team.enemy).inBaseRow(pos)) {
@@ -165,7 +167,9 @@ case class Piece(
 
   def addEffect(effect: EffectStatus): Piece = copy(effectStatus = effect :: effectStatus)
 
-  def isPoisoned: Boolean = effectStatus.collectFirst { case poison: EffectStatus.Poison => poison }.isDefined
+  def isPoisoned: Boolean = effectStatus.collectFirst {
+    case poison: EffectStatus.Poison => poison
+  }.isDefined
 
   def canAct(currentPlayer: Player): Boolean = {
     effectStatus.forall {

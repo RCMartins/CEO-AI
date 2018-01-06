@@ -90,7 +90,7 @@ object Moves {
 
   private def canRangedDestroy(piece: Piece, target: BoardPos, state: GameState): Option[PlayerMove] = {
     canRangedReachEnemy(piece, target, state) match {
-      case Some(targetPiece) =>
+      case Some(targetPiece) if !targetPiece.data.isImmuneTo(EffectType.Ranged) =>
         Some(PlayerMove.RangedDestroy(piece, targetPiece))
       case _ =>
         None
@@ -104,7 +104,7 @@ object Moves {
     state: GameState
   ): Option[PlayerMove] = {
     canRangedReachEnemy(piece, target, state) match {
-      case Some(targetPiece) if !targetPiece.data.isImmuneTo(EffectType.Petrify) =>
+      case Some(targetPiece) if !targetPiece.data.isImmuneTo(EffectType.Petrify) && !targetPiece.data.isImmuneTo(EffectType.Ranged) =>
         Some(PlayerMove.RangedPetrify(piece, targetPiece, durationTurns))
       case _ =>
         None
@@ -113,7 +113,7 @@ object Moves {
 
   private def canMagicDestroy(piece: Piece, target: BoardPos, state: GameState): Option[PlayerMove] = {
     target.getPiece(state.board) match {
-      case Some(targetPiece) if targetPiece.team != piece.team =>
+      case Some(targetPiece) if targetPiece.team != piece.team && !targetPiece.data.isImmuneTo(EffectType.Magic) =>
         Some(PlayerMove.MagicDestroy(piece, targetPiece))
       case _ =>
         None
@@ -141,7 +141,7 @@ object Moves {
     condition: Piece => Boolean
   ): Option[PlayerMove] = {
     target.getPiece(state.board) match {
-      case Some(targetPiece) if targetPiece.team != piece.team && condition(targetPiece) =>
+      case Some(targetPiece) if targetPiece.team != piece.team && !targetPiece.data.isImmuneTo(EffectType.Magic) && condition(targetPiece) =>
         Some(PlayerMove.MagicCharm(piece, targetPiece))
       case _ =>
         None
@@ -221,7 +221,9 @@ object Moves {
           case (true, true) =>
             Some(PlayerMove.MultiMove(
               PlayerMove.MagicPush(piece, targetPiece, maxPushDistance),
-              PlayerMove.MagicFreeze(piece, targetPiece, freezeDuration)
+              PlayerMove.MagicFreeze(piece, targetPiece, freezeDuration),
+              piece.pos,
+              targetPiece.pos
             ))
           case (false, true) =>
             Some(PlayerMove.MagicPush(piece, targetPiece, maxPushDistance))
@@ -249,7 +251,7 @@ object Moves {
     }
   }
 
-  private def allyAt(target: BoardPos, state: GameState, currentPlayer: Player): Option[Piece] = {
+  private def isAllyAt(target: BoardPos, state: GameState, currentPlayer: Player): Option[Piece] = {
     target.getPiece(state.board).filter(_.team == currentPlayer.team)
   }
 
@@ -367,7 +369,7 @@ object Moves {
   case class Castling(posAllyPiece: Distance, posAfterKing: Distance, posAfterAllyPiece: Distance) extends SingleMove {
     def getValidMove(piece: Piece, state: GameState, currentPlayer: Player): Option[PlayerMove] = {
       // TODO check for ghost pieces in 'LONG' castling
-      (canMove(piece, piece.pos + posAfterKing, state), allyAt(piece.pos + posAllyPiece, state, currentPlayer)) match {
+      (canMove(piece, piece.pos + posAfterKing, state), isAllyAt(piece.pos + posAllyPiece, state, currentPlayer)) match {
         case (Some(kingMove), Some(allyPiece)) if !allyPiece.data.isMinion =>
           Some(PlayerMove.KingDoesCastling(piece, allyPiece, kingMove.to, piece.pos + posAfterAllyPiece))
         case _ =>
@@ -411,8 +413,10 @@ object Moves {
     def getValidMove(piece: Piece, state: GameState, currentPlayer: Player): Option[PlayerMove] = {
       (piece.pos + distFrom).getPiece(state.board) match {
         case Some(targetPiece) if targetPiece.team == piece.team &&
-          !targetPiece.data.isImmuneTo(EffectType.Displacement) && (piece.pos + distFrom).isEmpty(state.board) =>
-          Some(PlayerMove.TeleportPiece(piece, targetPiece, piece.pos + distFrom))
+          !targetPiece.data.isImmuneTo(EffectType.Displacement) && (piece.pos + distFrom).isEmpty(state.board) => {
+          val target = piece.pos + distFrom
+          Some(PlayerMove.TeleportPiece(piece, targetPiece, target, piece.pos, target))
+        }
         case _ =>
           None
       }
@@ -441,8 +445,9 @@ object Moves {
       currentPlayer.pieces.find(_.data.isKing).orElse(currentPlayer.piecesAffected.find(_.data.isKing)) match {
         case Some(kingPiece) =>
           distances.flatMap { dist =>
-            if ((kingPiece.pos + dist).isEmpty(state.board))
-              Some(PlayerMove.TeleportPiece(piece, kingPiece, piece.pos + dist))
+            val target = piece.pos + dist
+            if (target.isEmpty(state.board))
+              Some(PlayerMove.TeleportPiece(piece, kingPiece, target, piece.pos, target))
             else
               None
           }

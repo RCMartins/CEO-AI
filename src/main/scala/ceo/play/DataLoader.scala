@@ -11,7 +11,7 @@ import scala.util.{Failure, Success, Try}
 object DataLoader {
 
   private val pieces: mutable.Map[String, PieceData] =
-    mutable.Map[String, PieceData](PieceData.UnknownPiece.toString -> PieceData.UnknownPiece)
+    mutable.Map[String, PieceData]()
   private var piecesToCheck: List[String] = List[String]()
 
   def clearPiecesToCheck(): Unit = {
@@ -178,8 +178,8 @@ object DataLoader {
 
     powersStr.map {
       // 0-arg Powers:
-      case "SuicideOnKill" =>
-        Powers.OnKillSuicide
+      case "OnAnyKillSuicide" =>
+        Powers.OnAnyKillSuicides
       case "GhostMovement" =>
         Powers.GhostMovement
       case "OnMeleeDeathKillAttacker" =>
@@ -252,7 +252,7 @@ object DataLoader {
         Powers.MagicFreezeMovePower(getLetter(letterStr), freezeDuration.toInt)
       case str if str.startsWith("MagicLightningOnLocation ") =>
         val List(letterStr, moraleCost, lightningDelayTurns) = str.drop("MagicLightningOnLocation ".length).split(" ").toList
-        Powers.MagicLightningOnLocation(getLetter(letterStr), moraleCost.toInt, lightningDelayTurns.toInt)
+        Powers.MagicLightningOnLocationMovePower(getLetter(letterStr), moraleCost.toInt, lightningDelayTurns.toInt)
       // Move Power Complete:
       case str if str.startsWith("KingCastling ") =>
         Powers.KingCastlingMovePowerComplete(str.drop("KingCastling ".length).split(" ").toList.map(getLetter))
@@ -270,7 +270,7 @@ object DataLoader {
       case str if str.startsWith("TriggerGuardian ") =>
         Powers.TriggerGuardianPositionalPower(getLetter(str.drop("TriggerGuardian ".length)))
       case str if str.startsWith("TriggerFrostMephit ") =>
-        Powers.TriggerFrostMephitPositionalPower('\0', str.drop("TriggerFrostMephit ".length).toInt)
+        Powers.TriggerFrostMephitPositionalPower('?', str.drop("TriggerFrostMephit ".length).toInt)
       // Augmented Move Powers:
       case "AugmentedTeleportGhast" =>
         Powers.AugmentedTeleportGhastMovePower
@@ -281,12 +281,16 @@ object DataLoader {
     }
   }
 
-  def initialize(boardFileName: String = "Data/boardTest.ceo", showErrors: Boolean = true): GameState = {
-    initialize(new File(boardFileName), showErrors)._1
+  def initialize(boardFileName: String = "Data/boardTest.ceo", showErrors: Boolean = true): (GameState, List[String]) = {
+    initialize(new File(boardFileName), showErrors)
   }
 
   def initialize(boardFile: File, showErrors: Boolean): (GameState, List[String]) = {
-    val board = loadBoard(boardFile)
+    val lines = Source.fromFile(boardFile).getLines.toVector
+    if (lines.size == 9 && lines(8).nonEmpty || lines.size > 9)
+      throw new Exception(s"file $boardFile has more than 8 lines!")
+
+    val board = loadBoard(lines)
 
     val unknownPieces =
       (piecesToCheck.flatMap(piece => if (Try(getPieceData(piece, White)).isFailure) Some(piece) else None) ++
@@ -304,11 +308,7 @@ object DataLoader {
       (board, unknownPieces)
   }
 
-  def loadBoard(file: File): GameState = {
-    val lines = Source.fromFile(file).getLines.toVector
-    if (lines.size == 9 && lines(8).nonEmpty || lines.size > 9)
-      throw new Exception(s"file $file has more than 8 lines!")
-
+  def loadBoard(lines: Seq[String]): GameState = {
     var gameState = PlayGame.emptyGameState
     for (row <- lines.indices) {
       val line = lines(row).replaceAll("""\s+""", " ")

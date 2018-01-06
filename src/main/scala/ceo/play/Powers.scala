@@ -32,7 +32,7 @@ sealed trait InitialStatusEffect {
 
 object Powers {
 
-  case object OnKillSuicide extends Powers
+  case object OnAnyKillSuicides extends Powers
 
   case object GhostMovement extends Powers
 
@@ -115,7 +115,7 @@ object Powers {
     override def createMove(dist: Distance): Moves = MagicFreezePiece(dist, freezeDuration)
   }
 
-  case class MagicLightningOnLocation(letterOfMove: Char, moraleCost: Int, turnsToLightUpLocation: Int) extends MovePower {
+  case class MagicLightningOnLocationMovePower(letterOfMove: Char, moraleCost: Int, turnsToLightUpLocation: Int) extends MovePower {
     override def createMove(dist: Distance): Moves = MagicLightning(dist, moraleCost, turnsToLightUpLocation)
   }
 
