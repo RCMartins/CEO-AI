@@ -117,6 +117,21 @@ AANN@NNAA
     A
 ---
 --------------------
+Berserker+++ 14
+---
+     A
+     A
+     A
+   A N A
+    NNN
+AAANN@NNAAA
+    NNN
+   A N A
+     A
+     A
+     A
+---
+--------------------
 Bishop 9
 ---
 N             N
@@ -231,6 +246,17 @@ JNNNJ
 JN@NJ
 JNNNJ
 JJJJJ
+---
+--------------------
+Dragon+++ 24
+---
+  T T
+ JJJJJ
+TJNNNJT
+ JN@NJ
+TJNNNJT
+ JJJJJ
+  T T
 ---
 --------------------
 EarthElemental 4
@@ -370,6 +396,18 @@ TNNNT
 MagicDestroy 1
 PieceChangeMoraleOnKill +5
 DecayAfterTurn 25 1
+--------------------
+FireElemental+++ 21
+---
+1P1P1
+PNNNP
+1N@N1
+PNNNP
+1P1P1
+---
+MagicDestroy 1
+PieceChangeMoraleOnKill +6
+DecayAfterTurn 20 1
 --------------------
 FrostMage 4
 ---

@@ -75,6 +75,16 @@ M   M
 MagicDestroy 1
 PromotesTo FireElemental++
 --------------------
+Salamander+++ 4
+---
+M   M
+ N1N
+  @
+ M M
+---
+MagicDestroy 1
+PromotesTo FireElemental+++
+--------------------
 Shieldsman 0
 ---
  MAM
