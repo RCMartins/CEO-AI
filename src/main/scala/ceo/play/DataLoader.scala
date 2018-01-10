@@ -296,6 +296,8 @@ object DataLoader {
         Powers.TriggerGuardianPositionalPower(getLetter(str.drop("TriggerGuardian ".length)))
       case str if str.startsWith("TriggerFrostMephit ") =>
         Powers.TriggerFrostMephitPositionalPower('?', str.drop("TriggerFrostMephit ".length).toInt)
+      case str if str.startsWith("TriggerInstantKill ") =>
+        Powers.TriggerInstantKillPositionalPower(getLetter(str.drop("TriggerInstantKill ".length)))
       // Augmented Move Powers:
       case "AugmentedTeleportGhast" =>
         Powers.AugmentedTeleportGhastMovePower
@@ -339,7 +341,7 @@ object DataLoader {
       val line = lines(row).replaceAll("""\s+""", " ")
       val pieceNames = line.split(" ")
       for ((pieceName, column) <- pieceNames.zipWithIndex) {
-        if (pieceName == "?")
+        if (pieceName.length == 1 && pieceName != "e")
           gameState = gameState.placePiece(PieceData.empty.copy(name = pieceName).createPiece(BoardPos(row, column)))
         else if (pieceName.length > 1) {
           val List(name, team) = pieceName.split("_").toList

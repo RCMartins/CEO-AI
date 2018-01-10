@@ -11,7 +11,7 @@ case class PieceData(
   team: PlayerTeam
 ) {
 
-  override def toString: String = s"$name"
+  override def toString: String = name
 
   def createPiece(pos: BoardPos): Piece = Piece(this, pos, pos, initialMorale, effectStatus = List.empty)
 

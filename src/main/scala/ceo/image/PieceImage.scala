@@ -1,27 +1,16 @@
 package ceo.image
 
-trait PieceImage[A <: PieceImage[A]] {
+import java.awt.image.BufferedImage
 
-  def compare(other: A): Double
+final case class PieceImage(bufferedImage: BufferedImage) {
 
-  def imageMatch(other: A, minPercentageMatch: Double): Boolean = {
-    compare(other) >= minPercentageMatch
+  private lazy val hash = ImageUtils.hashBufferedImage(bufferedImage)
+
+  override def hashCode(): Int = hash
+
+  override def equals(other: Any): Boolean = other match {
+    case that: PieceImage =>
+      hash == that.hash && ImageUtils.getNumberOfDifferentPixels(bufferedImage, that.bufferedImage) == 0
+    case _ => false
   }
-
-}
-
-object PieceImage {
-
-  case class PieceImageBlackOnly(blackOpt: Option[Array[Boolean]], isWhite: Option[Boolean] = None) extends PieceImage[PieceImageBlackOnly] {
-
-    override def compare(other: PieceImageBlackOnly): Double = {
-      (blackOpt, other.blackOpt) match {
-        case (Some(black), Some(blackOther)) =>
-          black.zip(blackOther).count { case (b1, b2) => b1 ^ b2 }
-        case _ =>
-          0.0
-      }
-    }
-  }
-
 }

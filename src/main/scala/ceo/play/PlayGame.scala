@@ -2,6 +2,8 @@ package ceo.play
 
 import ceo.play.PlayerTeam.{Black, White}
 
+import scala.util.Try
+
 object PlayGame {
 
   final val DEBUG_SHOW_TURNS: Boolean = false
@@ -87,15 +89,15 @@ object PlayGame {
 
   def playAgainstExternalInput(startingState: GameState, strategy: Strategy): GameState = {
     def machineMove(state: GameState, history: List[GameState]): GameState = {
-      val moveChoosen =
+      val moveChosen = {
+        val time = System.currentTimeMillis()
+        val move = strategy.chooseMove(state)
         if (DEBUG_SHOW_CALC_TIME) {
-          val time = System.currentTimeMillis()
-          val move = strategy.chooseMove(state)
           println(s"Turn calc time: ${System.currentTimeMillis() - time}")
-          move
-        } else
-          strategy.chooseMove(state)
-      moveChoosen match {
+        }
+        move
+      }
+      moveChosen match {
         case None =>
           showStateWithMoves(state)
           ???
@@ -157,7 +159,7 @@ object PlayGame {
       if (input == "UNDO")
         inputIndex = Int.MinValue
       else
-        inputIndex = repToIndex(input)
+        inputIndex = Try(input.toInt).getOrElse(-1)
     } while (inputIndex > Int.MinValue && inputIndex < 0 || inputIndex >= allMoves.length)
     if (inputIndex == Int.MinValue)
       None

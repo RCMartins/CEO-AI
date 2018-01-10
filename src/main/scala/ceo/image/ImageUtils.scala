@@ -25,8 +25,21 @@ object ImageUtils {
     catch {
       case e: IOException =>
         println("Error: " + e.getMessage)
-        Thread.sleep(10)
+        Thread.sleep(50)
+        println("Trying again...")
         writeImage(image, filePath)
+    }
+  }
+
+  def writeImage(image: BufferedImage, file: File): Unit = {
+    try
+      ImageIO.write(image, "png", file)
+    catch {
+      case e: IOException =>
+        println("Error: " + e.getMessage)
+        Thread.sleep(50)
+        println("Trying again...")
+        writeImage(image, file)
     }
   }
 
@@ -68,6 +81,36 @@ object ImageUtils {
     100.0 * diff / maxDiff
   }
 
+  def getNumberOfEqualPixels(img1: BufferedImage, img2: BufferedImage): Int = {
+    val width = img1.getWidth
+    val height = img1.getHeight
+    val width2 = img2.getWidth
+    val height2 = img2.getHeight
+    if (width > width2 || height > height2)
+      throw new IllegalArgumentException("Images must have the same dimensions: (%d,%d) vs. (%d,%d)".format(width, height, width2, height2))
+    var count = 0
+    for (y <- 0 until height; x <- 0 until width) {
+      if (img1.getRGB(x, y) == img2.getRGB(x, y))
+        count += 1
+    }
+    count
+  }
+
+  def getNumberOfDifferentPixels(img1: BufferedImage, img2: BufferedImage): Int = {
+    val width = img1.getWidth
+    val height = img1.getHeight
+    val width2 = img2.getWidth
+    val height2 = img2.getHeight
+    if (width > width2 || height > height2)
+      throw new IllegalArgumentException("Images must have the same dimensions: (%d,%d) vs. (%d,%d)".format(width, height, width2, height2))
+    var count = 0
+    for (y <- 0 until height; x <- 0 until width) {
+      if (img1.getRGB(x, y) != img2.getRGB(x, y))
+        count += 1
+    }
+    count
+  }
+
   private def pixelDiff(rgb1: Int, rgb2: Int) = {
     val a1 = (rgb1 >> 24) & 0xff
     val r1 = (rgb1 >> 16) & 0xff
@@ -80,10 +123,10 @@ object ImageUtils {
     Math.abs(a1 - a2) + Math.abs(r1 - r2) + Math.abs(g1 - g2) + Math.abs(b1 - b2)
   }
 
-  def hashBufferedImage(img: BufferedImage): Long = {
+  def hashBufferedImage(img: BufferedImage): Int = {
     val width = img.getWidth
     val height = img.getHeight
-    var hash: Long = 7L
+    var hash: Int = 7
     for (y <- 0 until height; x <- 0 until width) {
       val index = y * 8 + x
 
@@ -109,6 +152,24 @@ object ImageUtils {
         imageOutPixels(index) = imageOverPixels(index)
       else
         imageOutPixels(index) = imageUnderPixels(index)
+    }
+    imageOut.setRGB(0, 0, sqWidth, sqHeight, imageOutPixels, 0, sqWidth)
+    imageOut
+  }
+
+  def clearImageBackground(image: BufferedImage, background: BufferedImage): BufferedImage = {
+    val sqWidth = image.getWidth
+    val sqHeight = image.getHeight
+    val imagePixels: Array[Int] = image.getRGB(0, 0, sqWidth, sqHeight, null, 0, sqWidth)
+    val backgroundPixels: Array[Int] = background.getRGB(0, 0, sqWidth, sqHeight, null, 0, sqWidth)
+    val imageOut = new BufferedImage(sqWidth, sqHeight, BufferedImage.TYPE_4BYTE_ABGR)
+    val imageOutPixels = new Array[Int](sqWidth * sqHeight)
+    for (y <- 0 until sqHeight; x <- 0 until sqWidth) {
+      val index = x + y * sqWidth
+      if (imagePixels(index) == backgroundPixels(index))
+        imageOutPixels(index) = 0
+      else
+        imageOutPixels(index) = imagePixels(index)
     }
     imageOut.setRGB(0, 0, sqWidth, sqHeight, imageOutPixels, 0, sqWidth)
     imageOut

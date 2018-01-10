@@ -12,6 +12,7 @@ case class GameState(
   boardEffects: List[BoardEffect],
   gameRunner: GameRunner
 ) {
+
   def allPieces: List[Piece] = playerWhite.allPieces ++ playerBlack.allPieces
 
   def trimMorale: GameState = {
@@ -148,6 +149,10 @@ case class GameState(
     }
 
     attacks ++ others
+  }
+
+  def generateAllNextStates: List[GameState] = {
+    getCurrentPlayerMoves.map(playPlayerMove)
   }
 
   def winner: PlayerWinType = {

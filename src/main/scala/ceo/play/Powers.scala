@@ -48,14 +48,17 @@ object Powers {
 
   case class OnAnyDeathPlayerChangeMorale(moraleAmount: Int) extends Powers
 
+  // TODO implement this
   case class PieceChangeMoraleOnKill(moraleAmount: Int) extends Powers
 
+  // TODO implement this
   case class PlayerChangeMoraleOnKill(moraleAmount: Int) extends Powers
 
   case class OnKillTransformInto(pieceName: String) extends Powers
 
   case class PromoteOnSpellCastTo(pieceName: String) extends Powers
 
+  // TODO implement this
   case class DecayAfterTurn(turnStarts: Int, moralePerTurn: Int) extends Powers
 
   case class ImmuneTo(immuneList: List[EffectType]) extends Powers
@@ -71,6 +74,7 @@ object Powers {
 
   case class TriggerWrathOnAdjacentAllyDeath(turnsToLightUpLocation: Int) extends Powers
 
+  //TODO implement this
   case class TriggerFrostMephit(freezeDuration: Int) extends Powers
 
   case class OnKillVampireAbility(moraleTakenFromEnemy: Int, moraleToKing: Int) extends Powers
