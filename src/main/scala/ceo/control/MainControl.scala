@@ -7,23 +7,30 @@ import java.util.Date
 
 import ceo.image.ImageLoader.ImageState
 import ceo.image.{ImageLoader, ImageUtils, Square}
+import ceo.menu.Exceptions.BoardStartsWithUnknownPieces
 import ceo.play._
 
 object MainControl {
 
-  private val minX = 2222
-  private val minY = 314
-  private val sizeX = 996
-  private val sizeY = 646
+  private val autoScreenFolder = new File("Images/auto-screen")
 
-    val strategy = Strategy.AlphaBetaPruning(7)
+  val minX = 2220
+  val minY = 312
+  val sizeX = 1000
+  val sizeY = 650
+
+  val strategy = Strategy.AlphaBetaPruning(7)
 
   def main(args: Array[String]): Unit = {
-    ImageLoader.initialize()
-    playTurn(None)
+    start()
   }
 
-  def playTurn(gameState: Option[GameState]): Unit = {
+  def start(): Unit = {
+    ImageLoader.initialize()
+    playTurn(None, false)
+  }
+
+  def playTurn(gameState: Option[GameState], lastImageHadProblems: Boolean): Unit = {
     val screen = MouseControl.robot.createScreenCapture(new Rectangle(minX, minY, sizeX, sizeY))
 
     ImageLoader.getPiecesFromUnknownBoard(screen) match {
@@ -36,11 +43,16 @@ object MainControl {
         playTurn(gameState, false)
       case Some(ImageState(PlayerTeam.White, loader, pieceNames, lastMoveCoordinates)) =>
         val stateOption = ImageLoader.loadBoardFromPieceNamesNoFilter(pieceNames)
+        if (gameState.isEmpty && stateOption.nonEmpty) {
+          if (stateOption.get.allPieces.exists(_.data.isUnknown)) {
+            throw new BoardStartsWithUnknownPieces
+          }
+        }
 
         val dateFormatter = new SimpleDateFormat("yyyy-MM-dd-HH-mm-ss")
         val submittedDateConvert = new Date()
         val name = dateFormatter.format(submittedDateConvert)
-        ImageUtils.writeImage(screen, s"PRINTS/auto-screen/$name.png")
+        ImageUtils.writeImage(screen, new File(autoScreenFolder, s"$name.png"))
 
         val checkEnemy =
           checkEnemyPlay(gameState, stateOption, lastMoveCoordinates)
@@ -96,7 +108,7 @@ object MainControl {
             println("Board with problems:")
             println(ImageLoader.pieceNamesPretty(pieceNames))
 
-            val file = new File(s"PRINTS/auto-screen/$name.ceo")
+            val file = new File(s"Images/auto-screen/$name.ceo")
             val bw = new BufferedWriter(new FileWriter(file))
             bw.write(ImageLoader.pieceNamesPretty(pieceNames))
             bw.close()
@@ -113,6 +125,45 @@ object MainControl {
     }
   }
 
+  //  def checkEnemyPlay(
+  //    afterWhiteStateOption: Option[GameState],
+  //    afterBlackStateOption: Option[GameState],
+  //    lastMoveCoordinates: List[BoardPos]
+  //  ): Option[GameState] = {
+  //    (afterWhiteStateOption, afterBlackStateOption) match {
+  //      case (Some(afterWhiteState), Some(afterBlackState)) =>
+  //        val allPossibleMoves =
+  //          afterWhiteState.generateAllNextStates.filter {
+  //            nextGameState =>
+  //              1 == 1
+  //              val allSquares =
+  //                for (row <- 0 until 8; column <- 0 until 8) yield {
+  //                  (afterBlackState.board(row, column), nextGameState.board(row, column)) match {
+  //                    case (Some(piece), _) if piece.data.isUnknown =>
+  //                      val r = lastMoveCoordinates.contains(piece.pos)
+  //                      r
+  //                    case (Some(piece1), Some(piece2)) if piece1.data.name == piece2.data.name =>
+  //                      true
+  //                    case (None, None) =>
+  //                      true
+  //                    case _ =>
+  //                      false
+  //                  }
+  //                }
+  //              allSquares.forall(identity)
+  //          }
+  //        if (allPossibleMoves.lengthCompare(1) == 0)
+  //          allPossibleMoves.headOption
+  //        else {
+  //          System.err.println("Last black move has ambiguous!!!")
+  //          println(allPossibleMoves.map(_.movesHistory.head).mkString("\n"))
+  //          allPossibleMoves.headOption
+  //        }
+  //      case _ =>
+  //        None
+  //    }
+  //  }
+
   def checkEnemyPlay(
     afterWhiteStateOption: Option[GameState],
     afterBlackStateOption: Option[GameState],
@@ -128,8 +179,7 @@ object MainControl {
                 for (row <- 0 until 8; column <- 0 until 8) yield {
                   (afterBlackState.board(row, column), nextGameState.board(row, column)) match {
                     case (Some(piece), _) if piece.data.isUnknown =>
-                      val r = lastMoveCoordinates.contains(piece.pos)
-                      r
+                      true
                     case (Some(piece1), Some(piece2)) if piece1.data.name == piece2.data.name =>
                       true
                     case (None, None) =>
@@ -144,7 +194,8 @@ object MainControl {
           allPossibleMoves.headOption
         else {
           System.err.println("Last black move has ambiguous!!!")
-          allPossibleMoves.headOption
+          println(allPossibleMoves.map(_.movesHistory.head).mkString("\n"))
+          ???
         }
       case _ =>
         None

@@ -5,23 +5,29 @@ import java.awt.image.BufferedImage
 import java.io.{BufferedWriter, File, FileWriter}
 import javax.imageio.ImageIO
 
-import ceo.play.{BoardPos, PieceData, PlayerTeam}
+import ceo.image.BoardImageData.isBackgroundWhite
 import ceo.play.PlayerTeam.{Black, White}
+import ceo.play.{BoardPos, PieceData, PlayerTeam}
 
 object BoardImageData {
   val pieceImagesFolder: File = new File("Data/piece-images")
+
+  def isBackgroundWhite(row: Int, column: Int): Boolean = if (row % 2 == 0) column % 2 == 0 else column % 2 == 1
 }
 
 class BoardImageData(pieceName: String) {
+
   def getPieceNameAt(row: Int, column: Int): String = {
     val tier = column / 2
     s"$pieceName${"+" * tier}_${if (row < 4) "Black" else "White"}"
   }
 
-  val file: File = new File(BoardImageData.pieceImagesFolder, "$pieceName.png")
+  val file: File = new File(BoardImageData.pieceImagesFolder, s"$pieceName.png")
 
   private val positions: Array[Array[(Option[PieceImage])]] = Array.fill(8, 8)(None)
   private var _hasNewInformation = false
+
+  def allImages: List[PieceImage] = positions.flatMap(_.flatMap(_.toSeq)).toList
 
   def getImage(team: PlayerTeam, whiteSquare: Boolean, tier: Int): Option[PieceImage] = {
     require(tier >= 0 && tier <= 3)
@@ -45,7 +51,7 @@ class BoardImageData(pieceName: String) {
     positions(rowImage)(columnImage)
   }
 
-  def setImage(team: PlayerTeam, whiteSquare: Boolean, tier: Int, pieceImage: PieceImage): Unit = {
+  def setImage(pieceImage: PieceImage, team: PlayerTeam, whiteSquare: Boolean, tier: Int): Unit = {
     require(tier >= 0 && tier <= 3)
     val (rowImage, columnImage) = (team, whiteSquare) match {
       case (Black, true) => (0, tier * 2)
@@ -59,9 +65,9 @@ class BoardImageData(pieceName: String) {
     }
   }
 
-  def setImage(pieceData: PieceData, boardPos: BoardPos, pieceImage: PieceImage): Unit = {
-    val whiteSquare = if (boardPos.row % 2 == 0) boardPos.column % 2 == 0 else boardPos.column % 2 == 1
-    val (rowImage, columnImage) = (pieceData.team, whiteSquare) match {
+  def setImage(pieceImage: PieceImage, pieceData: PieceData, boardPos: BoardPos): Unit = {
+
+    val (rowImage, columnImage) = (pieceData.team, isBackgroundWhite(boardPos.row, boardPos.column)) match {
       case (Black, true) => (0, pieceData.tier * 2)
       case (Black, false) => (0, pieceData.tier * 2 + 1)
       case (White, true) => (7, pieceData.tier * 2 + 1)
@@ -85,11 +91,6 @@ class BoardImageData(pieceName: String) {
     if (_hasNewInformation) {
       ImageUtils.writeImage(toImage, file)
 
-      val fileCEO = new File(s"${file.getAbsolutePath.stripSuffix("png")}ceo")
-      val bw = new BufferedWriter(new FileWriter(fileCEO))
-      bw.write(toCEOString)
-      bw.close()
-
       _hasNewInformation = false
       true
     } else
@@ -97,7 +98,7 @@ class BoardImageData(pieceName: String) {
   }
 
   private def toImage: BufferedImage = {
-    val emptyLoader = new CuttedImageBoardLoader(ImageIO.read(new File("PRINTS/data/empty.png")))
+    val emptyLoader = new CuttedImageBoardLoader(ImageIO.read(new File("Images/data/empty.png")))
     val fullImageSize = emptyLoader.imageIn.getWidth
 
     import java.awt.image.BufferedImage

@@ -7,12 +7,12 @@ import javax.imageio.ImageIO
 
 object ImageUtils {
 
-  def saveCurrentPrintScreen: BufferedImage = {
+  def saveCurrentImagescreen: BufferedImage = {
     val toolkit = Toolkit.getDefaultToolkit
     val screenRect = new Rectangle(toolkit.getScreenSize)
     val robot = new Robot
     val image = robot.createScreenCapture(screenRect)
-    val filePath = "PRINTS/print%d.png".format {
+    val filePath = "Images/print%d.png".format {
       System.currentTimeMillis()
     }
     writeImage(image, filePath)
