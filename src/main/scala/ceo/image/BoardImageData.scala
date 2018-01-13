@@ -8,13 +8,17 @@ import javax.imageio.ImageIO
 import ceo.play.{BoardPos, PieceData, PlayerTeam}
 import ceo.play.PlayerTeam.{Black, White}
 
+object BoardImageData {
+  val pieceImagesFolder: File = new File("Data/piece-images")
+}
+
 class BoardImageData(pieceName: String) {
   def getPieceNameAt(row: Int, column: Int): String = {
     val tier = column / 2
     s"$pieceName${"+" * tier}_${if (row < 4) "Black" else "White"}"
   }
 
-  val file: File = new File(s"PRINTS/data/pieces/$pieceName.png")
+  val file: File = new File(BoardImageData.pieceImagesFolder, "$pieceName.png")
 
   private val positions: Array[Array[(Option[PieceImage])]] = Array.fill(8, 8)(None)
   private var _hasNewInformation = false

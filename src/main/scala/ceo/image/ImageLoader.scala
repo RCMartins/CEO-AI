@@ -31,7 +31,7 @@ object ImageLoader {
     val time = System.currentTimeMillis()
     DataLoader.loadPieceFiles()
     loadBackgroundSpecials(new File("PRINTS/data/post/special.ceo"))
-    loadKnownPieceInformation(new File("PRINTS/data/pieces"))
+    loadKnownPieceInformation(BoardImageData.pieceImagesFolder)
     updatePieceImagesFromFiles(new File("PRINTS/clean"), imageCutted = false)
     updatePieceImagesFromFiles(new File("PRINTS/clean/cut"), imageCutted = true)
     println("Total loading time: " + (System.currentTimeMillis() - time))
