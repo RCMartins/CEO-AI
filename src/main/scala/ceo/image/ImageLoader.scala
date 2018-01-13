@@ -362,7 +362,8 @@ object ImageLoader {
     if (getTeamPlay(pieceImage)._1.isEmpty) {
       guessPieceName(pieceImage) match {
         case (UNKNOWN_PIECE, _) =>
-          imagesUnknown.enqueue((pieceImage, getTeamPlay(pieceImage)._2))
+          if (!imagesUnknown.exists(_._1 == pieceImage))
+            imagesUnknown.enqueue((pieceImage, getTeamPlay(pieceImage)._2))
         case _ => // piece is known
       }
     }
