@@ -23,7 +23,7 @@ object ImageLoader {
 
   def main(args: Array[String]): Unit = {
     initialize()
-    getPiecesFromUnknownBoard(new File("PRINTS/challenges/challenge-2018-01-10.png"), showPieces = true)
+    getPiecesFromUnknownBoard(new File("PRINTS/challenges/challenge-2018-01-11.png"), showPieces = true)
   }
 
   def initialize(): Unit = {
@@ -32,7 +32,8 @@ object ImageLoader {
     DataLoader.loadPieceFiles()
     loadBackgroundSpecials(new File("PRINTS/data/post/special.ceo"))
     loadKnownPieceInformation(new File("PRINTS/data/pieces"))
-    updatePieceImagesFromFiles(new File("PRINTS/clean"))
+    updatePieceImagesFromFiles(new File("PRINTS/clean"), imageCutted = false)
+    updatePieceImagesFromFiles(new File("PRINTS/clean/cut"), imageCutted = true)
     println("Total loading time: " + (System.currentTimeMillis() - time))
   }
 
@@ -40,7 +41,7 @@ object ImageLoader {
     val (state, _) = DataLoader.initialize(file, showErrors = false)
 
     val imageLoader =
-      new PostImageBoardLoader(new File(file.getAbsolutePath.stripSuffix("ceo") + "png"))
+      new CuttedImageBoardLoader(new File(file.getAbsolutePath.stripSuffix("ceo") + "png"))
 
     for (row <- 0 until 8; column <- 0 until 8) {
       def currentImage = imageLoader.getImageAt(row, column)
@@ -68,7 +69,7 @@ object ImageLoader {
       file.listFiles().filter(file => file.isFile && file.getName.endsWith(".ceo")).foreach(loadKnownPieceInformation)
     } else {
       val imageFileName = file.getAbsolutePath.stripSuffix("ceo") + "png"
-      val imageLoader = new PostImageBoardLoader(new File(imageFileName))
+      val imageLoader = new CuttedImageBoardLoader(new File(imageFileName))
 
       val pieceName = file.getName.stripSuffix(".ceo")
 
@@ -102,7 +103,7 @@ object ImageLoader {
     }
   }
 
-  def updatePieceImagesFromFiles(file: File, goRecursiveFolders: Boolean = false): Unit = {
+  def updatePieceImagesFromFiles(file: File, imageCutted: Boolean, goRecursiveFolders: Boolean = false): Unit = {
     if (file.isDirectory) {
       val allFilesSet = if (goRecursiveFolders) file.listFiles().toSet else file.listFiles().toSet.filter(_.isFile)
       val ceoFileNames = allFilesSet.map(_.getName).filter(_.endsWith(".png"))
@@ -110,7 +111,8 @@ object ImageLoader {
 
       val allFiles = allFilesSet.map(file => file.getName -> file).toMap
 
-      filesWithPrintScreen.map(allFiles).foreach(file => updatePieceImagesFromFiles(file, goRecursiveFolders))
+      filesWithPrintScreen.map(allFiles).foreach(file =>
+        updatePieceImagesFromFiles(file, imageCutted = imageCutted, goRecursiveFolders = goRecursiveFolders))
 
       allBoardImageData.foreach { case (_, boardImageData) =>
         if (boardImageData.saveToFile())
@@ -135,13 +137,18 @@ object ImageLoader {
 
       val fileName = file.getName
 
-      val imageLoader =
-        new PostImageBoardLoader(new File(file.getAbsolutePath.stripSuffix("ceo") + "png"))
+      val imageLoader: SimpleImageLoader =
+        if (imageCutted)
+          new CuttedImageBoardLoader(new File(file.getAbsolutePath.stripSuffix("ceo") + "png"))
+        else
+          new ImageBoardLoader(new File(file.getAbsolutePath.stripSuffix("ceo") + "png"))
 
       for (row <- 0 until 8; column <- 0 until 8) {
         val maybeName: Option[(String, PieceData)] =
           state.board(row, column) match {
             case Some(piece) if piece.data.isUnknown =>
+              None
+            case Some(piece) if piece.data.name == "i" => //ignore
               None
             case Some(piece) if piece.data.name.length == 1 =>
               ???

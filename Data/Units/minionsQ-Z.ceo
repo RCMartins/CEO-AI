@@ -16,6 +16,28 @@ AA@AA
 ---
 PlayerChangeMoraleOnKill -5
 --------------------
+Reaver++ 5
+---
+N A N
+ NAN
+AA@AA
+ NAN
+N A N
+---
+PlayerChangeMoraleOnKill -7
+--------------------
+Reaver+++ 6
+---
+   A
+ N A N
+  NAN
+AAA@AAA
+  NAN
+ N A N
+   A
+---
+PlayerChangeMoraleOnKill -9
+--------------------
 RoyalGuard 3
 ---
  N
@@ -148,6 +170,24 @@ MM@MM
 ---
 TriggerGuardian 1
 PromotesTo Guardian++
+--------------------
+Shieldsman+++ 3
+---
+  T T
+ TMNMT
+MMM@MMM
+   1
+---
+TriggerGuardian 1
+PromotesTo Guardian+++
+--------------------
+Skeleton 2
+---
+ N
+N@N
+ N
+---
+ImmuneTo Status
 --------------------
 Skeleton+ 3
 ---
@@ -376,7 +416,7 @@ Undine 0
 MNM
 1@1
 ---
-//TODO uncomment when ready: PromotesTo WaterElemental
+PromotesTo WaterElemental
 MagicPushFreeze 1 1 2
 --------------------
 Undine+ 2
@@ -384,7 +424,7 @@ Undine+ 2
  MNM
 11@11
 ---
-//TODO uncomment when ready: PromotesTo WaterElemental+
+PromotesTo WaterElemental+
 MagicPushFreeze 1 1 2
 --------------------
 Undine++ 3
@@ -393,6 +433,15 @@ Undine++ 3
  MNM
 11@11
 ---
-//TODO uncomment when ready: PromotesTo WaterElemental++
+PromotesTo WaterElemental++
+MagicPushFreeze 1 1 2
+--------------------
+Undine+++ 4
+---
+  1
+ NNN
+11@11
+---
+PromotesTo WaterElemental+++
 MagicPushFreeze 1 1 2
 --------------------

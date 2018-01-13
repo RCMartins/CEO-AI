@@ -90,6 +90,28 @@ NN@NN
 ---
 OnKillMercenary
 --------------------
+Mercenary++ 4
+---
+T N T
+ MNM
+NN@NN
+ MNM
+T N T
+---
+OnKillMercenary
+--------------------
+Mercenary+++ 6
+---
+   N
+ T N T
+  MNM
+NNN@NNN
+  MNM
+ T N T
+   N
+---
+OnKillMercenary
+--------------------
 Militia 1
 ---
 NNN
@@ -115,6 +137,15 @@ tmtmtmt
 ---
 PromotesTo Knight++
 OnAnyDeathPlayerChangeMorale -5
+--------------------
+Militia+++ 1
+---
+tMtMtMt
+  NNN
+   @
+---
+PromotesTo Knight+++
+OnAnyDeathPlayerChangeMorale -6
 --------------------
 Pawn 0
 ---
@@ -199,6 +230,21 @@ TTTTTTT
 ---
 MagicFreeze 1 3
 --------------------
+Penguin+++ 3
+---
+    TTT
+   T1N1T
+     @
+-
+-
+-
+-
+-
+-
+TTTTTTTTTTT
+---
+MagicFreeze 1 3
+--------------------
 Phantasm 3
 ---
    T
@@ -206,6 +252,18 @@ Phantasm 3
    A
 T A@A T
    A
+ T   T
+   T
+---
+GhostMovement
+--------------------
+Phantasm+ 4
+---
+   T
+ T   T
+   N
+T N@N T
+   N
  T   T
    T
 ---
@@ -223,6 +281,18 @@ T S@S T
 ---
 GhostMovement
 --------------------
+Phantasm+++ 6
+---
+   P
+ P   P
+   S
+P S@S P
+   S
+ P   P
+   P
+---
+GhostMovement
+--------------------
 Pikeman 2
 ---
  1 1
@@ -232,11 +302,34 @@ Pikeman 2
 ---
 OnMeleeDeathKillAttackerPosition 1
 --------------------
+Pikeman+ 4
+---
+ 1A1
+1ANA1
+  @
+  M
+  M
+---
+OnMeleeDeathKillAttackerPosition 1
+--------------------
 Pikeman++ 6
 ---
 A1A1A
 1ANA1
   @
+  M
+  M
+  M
+---
+OnMeleeDeathKillAttackerPosition 1
+--------------------
+Pikeman+++ 8
+---
+  A
+A1A1A
+1ANA1
+  @
+  M
   M
   M
   M

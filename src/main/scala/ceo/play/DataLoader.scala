@@ -222,6 +222,8 @@ object DataLoader {
         Powers.PromoteOnSpellCastTo(pieceToCheck)
       case str if str.startsWith("TriggerWrathOnAdjacentAllyDeath ") =>
         Powers.TriggerWrathOnAdjacentAllyDeath(str.drop("TriggerWrathOnAdjacentAllyDeath ".length).toInt)
+      case str if str.startsWith("OnMagicCastDecayDeath ") =>
+        Powers.OnMagicCastDecayDeath(str.drop("OnMagicCastDecayDeath ".length).toInt)
       // Multiple-arg Powers:
       case str if str.startsWith("DecayAfterTurn ") =>
         val List(turnStarts, moralePerTurn) = str.drop("DecayAfterTurn ".length).split(" ").toList

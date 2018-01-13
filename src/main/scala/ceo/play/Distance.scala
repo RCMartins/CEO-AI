@@ -17,6 +17,10 @@ class Distance private(val rowDiff: Int, val columnDiff: Int) {
   @inline final def -(other: Distance): Distance = Distance(rowDiff - other.rowDiff, columnDiff - other.columnDiff)
 
   @inline final def *(multiplier: Int): Distance = Distance(rowDiff * multiplier, columnDiff * multiplier)
+
+  def setRow(newRow: Int) = Distance(newRow, columnDiff)
+
+  def setColumn(newColumn: Int) = Distance(rowDiff, newColumn)
 }
 
 object Distance {

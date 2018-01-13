@@ -16,6 +16,8 @@ object MainControl {
   private val sizeX = 996
   private val sizeY = 646
 
+    val strategy = Strategy.AlphaBetaPruning(7)
+
   def main(args: Array[String]): Unit = {
     ImageLoader.initialize()
     playTurn(None)
@@ -31,11 +33,11 @@ object MainControl {
         println("Still in Black turn, waiting...")
         // TODO use this information to detect errors in state update
         Thread.sleep(2000)
-        playTurn(gameState)
+        playTurn(gameState, false)
       case Some(ImageState(PlayerTeam.White, loader, pieceNames, lastMoveCoordinates)) =>
         val stateOption = ImageLoader.loadBoardFromPieceNamesNoFilter(pieceNames)
 
-        val dateFormatter = new SimpleDateFormat("yyyy-MM-dd-hh-mm-ss")
+        val dateFormatter = new SimpleDateFormat("yyyy-MM-dd-HH-mm-ss")
         val submittedDateConvert = new Date()
         val name = dateFormatter.format(submittedDateConvert)
         ImageUtils.writeImage(screen, s"PRINTS/auto-screen/$name.png")
@@ -45,17 +47,20 @@ object MainControl {
 
         if (gameState.isEmpty || checkEnemy.exists(_.allPieces.forall(!_.data.isUnknown))) {
           val startingState = checkEnemy.getOrElse(stateOption.get)
-          println(startingState)
+          println(startingState.getBoardPieceNames)
           if (startingState.winner != PlayerWinType.NotFinished) {
             println("Game Over!")
             println("Result: " + startingState.winner)
           } else {
-            val strategy = Strategy.AlphaBetaPruning(7)
 
             val time = System.currentTimeMillis()
             val stateAfter = strategy.chooseMove(startingState)
             println(s"Turn calc time: ${System.currentTimeMillis() - time}")
             val move = stateAfter.get.movesHistory.head
+
+            println("Move done: " + move)
+            println("Game should look like this:")
+            println(stateAfter)
 
             val controllerMove = move.getControllerMove
             val (pos1, pos2) = controllerMove
@@ -68,6 +73,7 @@ object MainControl {
 
             def toScreenY(sq: Square): Int = sq.getCenterY.toInt
 
+            val (beforeX, beforeY) = MouseControl.getMousePosition
             MouseControl.moveMouse(minX + toScreenX(sq1), minY + toScreenY(sq1))
             Thread.sleep(10)
             MouseControl.mouseDown()
@@ -75,25 +81,34 @@ object MainControl {
             MouseControl.moveMouse(minX + toScreenX(sq2), minY + toScreenY(sq2))
             Thread.sleep(10)
             MouseControl.mouseUp()
+            MouseControl.moveMouse(beforeX, beforeY)
             Thread.sleep(2000)
 
             if (stateAfter.exists(_.winner != PlayerWinType.NotFinished)) {
               println("Game Over!")
               println("Result: " + stateAfter.get.winner)
             } else {
-              playTurn(stateAfter)
+              playTurn(stateAfter, false)
             }
           }
         } else {
-          println("Board with problems:")
-          println(ImageLoader.pieceNamesPretty(pieceNames))
+          if (lastImageHadProblems) {
+            println("Board with problems:")
+            println(ImageLoader.pieceNamesPretty(pieceNames))
 
-          val file = new File(s"PRINTS/auto-screen/$name.ceo")
-          val bw = new BufferedWriter(new FileWriter(file))
-          bw.write(ImageLoader.pieceNamesPretty(pieceNames))
-          bw.close()
-          System.exit(-1)
-          playTurn(gameState)
+            val file = new File(s"PRINTS/auto-screen/$name.ceo")
+            val bw = new BufferedWriter(new FileWriter(file))
+            bw.write(ImageLoader.pieceNamesPretty(pieceNames))
+            bw.close()
+            System.exit(-1)
+            ???
+          } else {
+            println("Board with problems:")
+            println(ImageLoader.pieceNamesPretty(pieceNames))
+            println("Trying to take the print again...")
+            Thread.sleep(1000)
+            playTurn(gameState, true)
+          }
         }
     }
   }

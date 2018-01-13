@@ -35,7 +35,7 @@ case class GameState(
     val normalDashLine = " " + "-" * ((nameSize + 1) * 8 + 1)
 
     def moraleDashLine(morale: Int) = {
-      val turnText = s"----- turn: $currentTurn "
+      val turnText = s"----- turn: $currentTurn[${getCurrentPlayer.team.letter}]"
       val textInLine = s" morale: ${morale.toString} "
       val firstHalf = normalDashLine.length / 2 - turnText.length - textInLine.length / 2 - 1
       val secondHalf = normalDashLine.length - firstHalf - turnText.length - textInLine.length - 1
@@ -50,6 +50,26 @@ case class GameState(
     }.mkString(s"$rowN|", "|", "|")
     }
       .mkString(moraleDashLine(playerBlack.morale), "\n" + normalDashLine + "\n", "\n" + moraleDashLine(playerWhite.morale))
+  }
+
+  def getBoardPieceNames: String = {
+    val pieceNames =
+      board.getRows.map(_.map(_.map(_.data.name).getOrElse("e"))).toVector
+
+    val columnLengths: Seq[Int] =
+      for (column <- 0 until 8) yield Math.max(8, (0 until 8).map(row => pieceNames(row)(column).length).max)
+
+    val sb = new StringBuilder
+    for (row <- 0 until 8; column <- 0 until 8) {
+      if (column == 7)
+        sb.append(pieceNames(row)(column) + "\n")
+      else {
+        val name = pieceNames(row)(column)
+        sb.append(name)
+        sb.append(" " * (1 + columnLengths(column) - name.length))
+      }
+    }
+    sb.toString()
   }
 
   /**
@@ -152,7 +172,7 @@ case class GameState(
   }
 
   def generateAllNextStates: List[GameState] = {
-    getCurrentPlayerMoves.map(playPlayerMove)
+    getCurrentPlayerMoves.map(move => playPlayerMove(move))
   }
 
   def winner: PlayerWinType = {
@@ -169,14 +189,14 @@ case class GameState(
     }
   }
 
-  def playPlayerMove(move: PlayerMove): GameState = {
+  def playPlayerMove(move: PlayerMove, turnUpdate: Boolean = true): GameState = {
     import PlayerMove._
 
     def guardianSwapPiece(state: GameState, piece: Piece): (GameState, Piece) = {
       if (piece.data.isChampion && !piece.data.isImmuneTo(EffectType.Displacement)) {
         state.getPlayer(piece.team).extraData.guardedPositions.get(piece.pos) match {
           case Some(guardianPiece) =>
-            val updatedState = playPlayerMove(PlayerMove.Swap(piece, guardianPiece))
+            val updatedState = playPlayerMove(PlayerMove.Swap(piece, guardianPiece), turnUpdate = false)
             (updatedState, piece.pos.getPiece(updatedState.board).get)
           case None => (state, piece)
         }
@@ -209,7 +229,7 @@ case class GameState(
           updatedState
             .updatePiece(pieceToAttack, pieceToKillUpdated)
         } else {
-          playPlayerMove(Attack(piece, pieceToAttack))
+          playPlayerMove(Attack(piece, pieceToAttack), turnUpdate = false)
         }
       case Swap(piece, pieceToSwap) =>
         val updatedState1 = this.removePiece(piece).removePiece(pieceToSwap)
@@ -301,19 +321,38 @@ case class GameState(
       case MagicPush(piece, _pieceToPush, maxPushDistance) =>
         val (updatedState1, pieceToPush) = guardianSwapPiece(this, _pieceToPush)
         val pieceToPushPos = pieceToPush.pos
-        val dir = (pieceToPushPos - piece.pos).toUnitVector
-        val positions = BoardPos.List1to8.view(0, maxPushDistance)
-          .map(distance => pieceToPushPos + dir * distance)
-          .takeWhile(_.isEmpty(board))
+        val dirDist = pieceToPushPos - piece.pos
+        val targetFinalPosition = {
+          val absRow = Math.abs(dirDist.rowDiff)
+          val absColumn = Math.abs(dirDist.columnDiff)
+          val dir =
+            if (absRow == absColumn)
+              dirDist.toUnitVector
+            else if (absRow > absColumn)
+              dirDist.setColumn(0).toUnitVector
+            else
+              dirDist.setRow(0).toUnitVector
+          val positions = BoardPos.List1to8.view(0, maxPushDistance)
+            .map(distance => pieceToPushPos + dir * distance)
+            .takeWhile(_.isEmpty(board))
+          positions.last
+        }
 
-        val (updatedState2, pieceToPushUpdated) = pieceToPush.moveTo(updatedState1, positions.last)
+        val (updatedState2, pieceToPushUpdated) = pieceToPush.moveTo(updatedState1, targetFinalPosition)
         updatedState2
           .updatePiece(pieceToPush, pieceToPushUpdated)
-      case MagicFreeze(piece, _pieceToFreeze, freezeDuration) =>
+      case MagicFreeze(_, _pieceToFreeze, freezeDuration) =>
         val (updatedState, pieceToFreeze) = guardianSwapPiece(this, _pieceToFreeze)
-        val pieceToFreezeUpdated = piece.freeze(updatedState, freezeDuration)
+        val pieceToFreezeUpdated = pieceToFreeze.freeze(updatedState, freezeDuration)
         updatedState
           .updatePiece(pieceToFreeze, pieceToFreezeUpdated)
+      case MagicPushFreeze(piece, _pieceToPushFreeze, maxPushDistance, freezeDuration) =>
+        val (updatedState1, pieceToPushFreeze) = guardianSwapPiece(this, _pieceToPushFreeze)
+        val pieceToPushFreezeUpdated = pieceToPushFreeze.freeze(updatedState1, freezeDuration)
+        val updatedState2 =
+          updatedState1
+            .updatePiece(pieceToPushFreeze, pieceToPushFreezeUpdated)
+        updatedState2.playPlayerMove(PlayerMove.MagicPush(piece, pieceToPushFreezeUpdated, maxPushDistance), turnUpdate = false)
       case MagicLightning(piece, lightningPosition, moraleCost, durationTurns) =>
         val lightning = BoardEffect.Lightning(lightningPosition, currentTurn + durationTurns)
         this
@@ -378,26 +417,28 @@ case class GameState(
           case None =>
             updatedState2
         }
-      case MultiMove(move1, move2, _, _) =>
-        playPlayerMove(move1).playPlayerMove(move2)
       case DummyMove(_) => this
     }
 
-    val stateWithPenalties = {
-      val decayPenalty =
-        if (currentTurn >= 50)
-          newState.changeMorale(getNextPlayer.team, -1)
+    if (turnUpdate) {
+      val stateWithPenalties = {
+        val decayPenalty =
+          if (currentTurn >= 50)
+            newState.changeMorale(getNextPlayer.team, -1)
+          else
+            newState
+        if (getNextPlayer.hasKing)
+          decayPenalty
         else
-          newState
-      if (getNextPlayer.hasKing)
-        decayPenalty
-      else
-        decayPenalty.changeMorale(getNextPlayer.team, -3)
+          decayPenalty.changeMorale(getNextPlayer.team, -3)
+      }
+      stateWithPenalties.trimMorale.copy(
+        currentTurn = stateWithPenalties.currentTurn + 0.5,
+        movesHistory = move :: stateWithPenalties.movesHistory
+      ).startingTurnStatusEffectUpdate
+    } else {
+      newState
     }
-    stateWithPenalties.trimMorale.copy(
-      currentTurn = stateWithPenalties.currentTurn + 0.5,
-      movesHistory = move :: stateWithPenalties.movesHistory
-    ).startingTurnStatusEffectUpdate
   }
 
   private def startingTurnStatusEffectUpdate: GameState = {
@@ -429,7 +470,7 @@ case class GameState(
                     PlayerMove.Attack(piece, targetPiece)
                   }
 
-                s.copy(_1 = gameState.playPlayerMove(playerMove), _3 = effect :: s._3)
+                s.copy(_1 = gameState.playPlayerMove(playerMove, turnUpdate = false), _3 = effect :: s._3)
             }
           case (s, effect) =>
             s.copy(_3 = effect :: s._3)

@@ -6,7 +6,7 @@ import javax.imageio.ImageIO
 
 import scala.util.Try
 
-class PostImageBoardLoader(val imageIn: BufferedImage) {
+class CuttedImageBoardLoader(val imageIn: BufferedImage) extends SimpleImageLoader{
 
   def this(imageFile: File) = {
     this {

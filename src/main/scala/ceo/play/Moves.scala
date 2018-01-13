@@ -233,16 +233,21 @@ object Moves {
     target.getPiece(state.board) match {
       case Some(targetPiece) if targetPiece.team != piece.team =>
         (!targetPiece.data.isImmuneTo(EffectType.Freeze), {
-          val dir = (targetPiece.pos - piece.pos).toUnitVector
+          val dirDist = targetPiece.pos - piece.pos
+          val absRow = Math.abs(dirDist.rowDiff)
+          val absColumn = Math.abs(dirDist.columnDiff)
+          val dir =
+            if (absRow == absColumn)
+              dirDist.toUnitVector
+            else if (absRow > absColumn)
+              dirDist.setColumn(0).toUnitVector
+            else
+              dirDist.setRow(0).toUnitVector
+
           (targetPiece.pos + dir).isEmpty(state.board) && !targetPiece.data.isImmuneTo(EffectType.Displacement)
         }) match {
           case (true, true) =>
-            Some(PlayerMove.MultiMove(
-              PlayerMove.MagicPush(piece, targetPiece, maxPushDistance),
-              PlayerMove.MagicFreeze(piece, targetPiece, freezeDuration),
-              piece.pos,
-              targetPiece.pos
-            ))
+            Some(PlayerMove.MagicPushFreeze(piece, targetPiece, maxPushDistance, freezeDuration))
           case (false, true) =>
             Some(PlayerMove.MagicPush(piece, targetPiece, maxPushDistance))
           case (true, false) =>

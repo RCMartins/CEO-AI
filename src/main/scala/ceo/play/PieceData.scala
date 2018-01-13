@@ -127,6 +127,20 @@ case class PieceData(
         }
       }
     }
+    case OnMagicCastDecayDeath(decayAmount) => new DynamicRunner[(GameState, Option[Piece]), Piece] {
+      override def update(state: (GameState, Option[Piece]), thisPiece: Piece): (GameState, Option[Piece]) = {
+        state._2 match {
+          case None => state
+          case Some(piece) =>
+            val updatedPiece = piece.changeMorale(-decayAmount)
+            if (updatedPiece.currentMorale == 0) {
+              state.copy(_2 = None)
+            } else {
+              state.copy(_2 = Some(updatedPiece))
+            }
+        }
+      }
+    }
     case PromoteOnSpellCastTo(pieceName) => new DynamicRunner[(GameState, Option[Piece]), Piece] {
       override def update(state: (GameState, Option[Piece]), thisPiece: Piece): (GameState, Option[Piece]) = {
         state._2 match {

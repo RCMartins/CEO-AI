@@ -59,7 +59,7 @@ object Strategy {
             Node(state, Nil, value)
         } else {
           val playerMoves = state.getCurrentPlayerMoves
-          val states = playerMoves.map(state.playPlayerMove)
+          val states = playerMoves.map(move => state.playPlayerMove(move))
           if (states.isEmpty)
             println(state)
           //          else if (depth == movesToLookAhead)
@@ -116,7 +116,7 @@ object Strategy {
             Node(state, ParSeq.empty, value)
         } else {
           val playerMoves = state.getCurrentPlayerMoves.par
-          val states = playerMoves.map(state.playPlayerMove)
+          val states = playerMoves.map(move => state.playPlayerMove(move))
 
           val subTrees = states
             .map(state => createTree(state, depth - 1, !maximize))
@@ -163,7 +163,7 @@ object Strategy {
             (value, -1)
         } else {
           val playerMoves = state.getCurrentPlayerMoves //Util.random.shuffle(state.getCurrentPlayerMoves)
-          val states = playerMoves.map(state.playPlayerMove)
+          val states = playerMoves.map(move => state.playPlayerMove(move))
           if (states.isEmpty)
             println(state)
 
@@ -212,7 +212,7 @@ object Strategy {
         createTree(startingState, movesToLookAhead, maximize = true, Int.MinValue, Int.MaxValue)
 
       val playerMoves = startingState.getCurrentPlayerMoves
-      val states = playerMoves.map(startingState.playPlayerMove)
+      val states = playerMoves.map(move => startingState.playPlayerMove(move))
 
       val endState = states(moveIndex)
       println((value, endState.movesHistory.head.betterHumanString))

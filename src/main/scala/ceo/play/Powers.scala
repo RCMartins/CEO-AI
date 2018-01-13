@@ -83,6 +83,8 @@ object Powers {
 
   case class OnMagicCastDecayTo(decayAmount: Int, limitToDevolve: Int, pieceName: String) extends Powers
 
+  case class OnMagicCastDecayDeath(decayAmount: Int) extends Powers
+
   case class TriggerInstantKill(distance: Distance) extends Powers
 
   case class DummyNothingPower(letterOfMove: Char) extends MovePower {

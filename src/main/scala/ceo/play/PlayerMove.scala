@@ -1,7 +1,5 @@
 package ceo.play
 
-import ceo.play.PlayerMove.MultiMove
-
 abstract class PlayerMove(from: BoardPos, to: BoardPos) {
 
   self =>
@@ -10,20 +8,9 @@ abstract class PlayerMove(from: BoardPos, to: BoardPos) {
 
   def betterHumanString: String
 
-  @inline final def and(other: PlayerMove, realMoveFrom: BoardPos, realMoveTo: BoardPos): PlayerMove = MultiMove(self, other, realMoveFrom, realMoveTo)
-
 }
 
 object PlayerMove {
-
-  case class MultiMove(
-    move1: PlayerMove,
-    move2: PlayerMove,
-    realMoveFrom: BoardPos,
-    realMoveTo: BoardPos
-  ) extends PlayerMove(realMoveFrom, realMoveTo) {
-    def betterHumanString: String = s"$move1 AND $move2"
-  }
 
   case class Move(piece: Piece, to: BoardPos) extends PlayerMove(piece.pos, to) {
     def betterHumanString: String = s"$piece moves to $to   ${to - piece.pos}"
@@ -110,6 +97,11 @@ object PlayerMove {
   case class MagicFreeze(piece: Piece, pieceToFreeze: Piece, freezeDuration: Int) extends PlayerMove(piece.pos, pieceToFreeze.pos) {
     def betterHumanString: String = s"$piece magic-freezes $pieceToFreeze " +
       s"for $freezeDuration turns   ${pieceToFreeze.pos - piece.pos}"
+  }
+
+  case class MagicPushFreeze(piece: Piece, pieceToPushFreeze: Piece, maxPushDistance: Int, freezeDuration: Int) extends PlayerMove(piece.pos, pieceToPushFreeze.pos) {
+    def betterHumanString: String = s"$piece magic-push-freezes $pieceToPushFreeze " +
+      s"for max $maxPushDistance distance and freezes for $freezeDuration turns   ${pieceToPushFreeze.pos - piece.pos}"
   }
 
   case class MagicLightning(piece: Piece, lightningPosition: BoardPos, moraleCost: Int, durationTurns: Int) extends PlayerMove(piece.pos, lightningPosition) {

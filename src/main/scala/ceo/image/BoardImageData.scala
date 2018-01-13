@@ -70,7 +70,7 @@ class BoardImageData(pieceName: String) {
   }
 
   def loadImageFromData(boardPos: BoardPos, pieceImage: PieceImage): Unit = {
-      positions(boardPos.row)(boardPos.column) = Some(pieceImage)
+    positions(boardPos.row)(boardPos.column) = Some(pieceImage)
   }
 
   def hasNewInformation: Boolean = _hasNewInformation
@@ -93,7 +93,7 @@ class BoardImageData(pieceName: String) {
   }
 
   private def toImage: BufferedImage = {
-    val emptyLoader = new PostImageBoardLoader(ImageIO.read(new File("PRINTS/data/empty.png")))
+    val emptyLoader = new CuttedImageBoardLoader(ImageIO.read(new File("PRINTS/data/empty.png")))
     val fullImageSize = emptyLoader.imageIn.getWidth
 
     import java.awt.image.BufferedImage

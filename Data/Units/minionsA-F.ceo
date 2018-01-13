@@ -220,6 +220,23 @@ TTT TTT
 OnAnyKillSuicide
 OnMeleeDeathKillAttacker
 --------------------
+Bomber+++ 4
+---
+    M
+  M M M
+   MNM
+    @
+-
+-
+-
+-
+-
+-
+TTTT TTTT
+---
+OnAnyKillSuicide
+OnMeleeDeathKillAttacker
+--------------------
 Drake 4
 ---
   A

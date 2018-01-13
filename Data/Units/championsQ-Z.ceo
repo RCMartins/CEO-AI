@@ -36,6 +36,44 @@ NNNNNNN@NNNNNNN
 N      N      N
 ---
 --------------------
+Queen++ 28
+---
+N      N      N
+ N     N     N
+  N    N    N
+   N   N   N
+    N  N  N
+     NJNJN
+     JNNNJ
+NNNNNNN@NNNNNNN
+     JNNNJ
+     NJNJN
+    N  N  N
+   N   N   N
+  N    N    N
+ N     N     N
+N      N      N
+---
+--------------------
+Queen+++ 30
+---
+N      N      N
+ N     N     N
+  N    N    N
+   N   N   N
+    N  N  N
+     NSNSN
+     SNNNS
+NNNNNNN@NNNNNNN
+     SNNNS
+     NSNSN
+    N  N  N
+   N   N   N
+  N    N    N
+ N     N     N
+N      N      N
+---
+--------------------
 Ranger 5
 ---
 R   R
@@ -323,6 +361,50 @@ MNN@NNM
 M  M  M
 ---
 --------------------
+WaterElemental 4
+---
+ 1 1
+1MNM1
+ N@N
+1MNM1
+ 1 1
+---
+MagicPushFreeze 1 1 2
+OnMagicCastDecayDeath 1
+--------------------
+WaterElemental+ 6
+---
+ 1 1
+1NNN1
+ N@N
+1NNN1
+ 1 1
+---
+MagicPushFreeze 1 1 2
+OnMagicCastDecayDeath 1
+--------------------
+WaterElemental++ 8
+---
+M1M1M
+1NNN1
+MN@NM
+1NNN1
+M1M1M
+---
+MagicPushFreeze 1 1 2
+OnMagicCastDecayDeath 1
+--------------------
+WaterElemental+++ 12
+---
+N1N1N
+1NNN1
+NN@NN
+1NNN1
+N1N1N
+---
+MagicPushFreeze 1 1 2
+OnMagicCastDecayDeath 1
+--------------------
 Wizard 13
 ---
 S S S
@@ -339,6 +421,24 @@ S S S
 SS@SS
  SSS
 S S S
+---
+--------------------
+Wizard++ 15
+---
+STSTS
+TSSST
+SS@SS
+TSSST
+STSTS
+---
+--------------------
+Wizard+++ 16
+---
+SPSPS
+PSSSP
+SS@SS
+PSSSP
+SPSPS
 ---
 --------------------
 Wrath 5
