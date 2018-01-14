@@ -1,3 +1,45 @@
+Gemini 15
+---
+  T T
+ T   T
+1  @  1
+ T   T
+  T T
+---
+RangedSummonGeminiTwin 1 4
+--------------------
+Gemini+ 16
+---
+  J J
+ J   J
+11 @ 11
+ J   J
+  J J
+---
+RangedSummonGeminiTwin 1 4
+--------------------
+Gemini++ 17
+---
+  S S
+ S   S
+111@111
+ S   S
+  S S
+---
+RangedSummonGeminiTwin 1 4
+--------------------
+Gemini+++ 18
+---
+   1
+  S1S
+ S 1 S
+111@111
+ S 1 S
+  S1S
+   1
+---
+RangedSummonGeminiTwin 1 4
+--------------------
 Ghast 8
 ---
 SSS
@@ -166,6 +208,15 @@ J N J
  J J
 ---
 --------------------
+Knight+++ 12
+---
+ J J
+JMNMJ
+ N@N
+JMNMJ
+ J J
+---
+--------------------
 Legionary 9
 ---
 A A A
@@ -238,6 +289,64 @@ NNNTS@STNNN
      N
 ---
 ImmuneTo Status
+--------------------
+Medusa 10
+---
+N     N
+ N 1 N
+  N1N
+ 11@11
+  N1N
+ N 1 N
+N     N
+---
+RangedPetrify 1 5
+ImmuneTo Petrify
+--------------------
+Medusa+ 12
+---
+N       N
+ N     N
+  N 1 N
+   N1N
+  11@11
+   N1N
+  N 1 N
+ N     N
+N       N
+---
+RangedPetrify 1 5
+ImmuneTo Petrify
+--------------------
+Medusa++ 14
+---
+N       N
+ N  1  N
+  N 1 N
+   N1N
+ 111@111
+   N1N
+  N 1 N
+ N  1  N
+N       N
+---
+RangedPetrify 1 5
+ImmuneTo Petrify
+--------------------
+Medusa+++ 16
+---
+N   1   N
+ N  1  N
+  NT1TN
+  TN1NT
+1111@1111
+  TN1NT
+  NT1TN
+ N  1  N
+N   1   N
+---
+RangedPetrify 1 5
+ImmuneTo Petrify
 --------------------
 Nexus 0
 ---
@@ -337,6 +446,79 @@ SSSSSSS@SSSSSSS
      T N T
        T
 ---
+--------------------
+Paladin+++ 16
+---
+       P
+     P N P
+      NNN
+SSSSSSS@SSSSSSS
+      NNN
+     P N P
+       P
+---
+--------------------
+Patience 7
+---
+1     1
+ 1   1
+  121
+  2@2
+  121
+ 1   1
+1     1
+---
+PatienceCannotAttackBeforeTurn 1 2 25
+--------------------
+Patience+ 10
+---
+1       1
+ 1     1
+  1 2 1
+   111
+  21@12
+   111
+  1 2 1
+ 1     1
+1       1
+---
+PatienceCannotAttackBeforeTurn 1 2 30
+--------------------
+Patience++ 12
+---
+1         1
+ 1       1
+  1  2  1
+   1 1 1
+    111
+  211@112
+    111
+   1 1 1
+  1  2  1
+ 1       1
+1         1
+---
+PatienceCannotAttackBeforeTurn 1 2 35
+--------------------
+Patience+++ 14
+---
+1             1
+ 1           1
+  1         1
+   1   2   1
+    1  1  1
+     1 1 1
+      111
+   2111@1112
+      111
+     1 1 1
+    1  1  1
+   1   2   1
+  1         1
+ 1           1
+1             1
+---
+PatienceCannotAttackBeforeTurn 1 2 40
 --------------------
 Phalanx 14
 ---

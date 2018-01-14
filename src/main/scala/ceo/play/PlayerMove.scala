@@ -119,6 +119,11 @@ object PlayerMove {
       s"at $target   ${target - piece.pos}"
   }
 
+  case class RangedSummonGeminiTwin(piece: Piece, target: BoardPos, moraleCost: Int, pieceData: PieceData) extends PlayerMove(piece.pos, target) {
+    def betterHumanString: String = s"$piece splits-into[$moraleCost cost] ${pieceData.name} " +
+      s"at $target   ${target - piece.pos}"
+  }
+
   case class DummyMove(piece: Piece) extends PlayerMove(???, ???) {
     def betterHumanString: String = s"$piece does nothing special"
   }

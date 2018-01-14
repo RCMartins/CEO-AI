@@ -187,6 +187,37 @@ MMM   M@M   MMM
 ---
 PromotesTo Vampire+++
 --------------------
+Beacon 1
+---
+1
+@
+---
+ImmuneTo Status
+AugmentedTeleportBeacon 1 3
+--------------------
+Beacon+ 2
+---
+1
+@
+---
+ImmuneTo Status
+AugmentedTeleportBeacon 1 4
+--------------------
+Beacon++ 3
+---
+1
+@
+---
+ImmuneTo Status
+AugmentedTeleportBeacon 1 5
+--------------------
+Beacon+++ 4
+---
+1
+@
+---
+ImmuneTo Status
+AugmentedTeleportBeacon 1 6
 --------------------
 Bomber+ 2
 ---
@@ -236,6 +267,56 @@ TTTT TTTT
 ---
 OnAnyKillSuicide
 OnMeleeDeathKillAttacker
+--------------------
+Dove 0
+---
+M M
+ @
+M M
+---
+PromotesTo Angel
+OnEnemyDeathMovesForward
+OnDeathEnchantAdjacentChampions 2
+--------------------
+Dove+ 1
+---
+M   M
+ M M
+  @
+ M M
+M   M
+---
+PromotesTo Angel+
+OnEnemyDeathMovesForward
+OnDeathEnchantAdjacentChampions 2
+--------------------
+Dove++ 2
+---
+  T T
+ M   M
+T M M T
+   @
+T M M T
+ M   M
+  T T
+---
+PromotesTo Angel++
+OnEnemyDeathMovesForward
+OnDeathEnchantAdjacentChampions 2
+--------------------
+Dove+++ 3
+---
+  P P
+ M   M
+P M M P
+   @
+P M M P
+ M   M
+  P P
+---
+PromotesTo Angel+++
+OnEnemyDeathMovesForward
+OnDeathEnchantAdjacentChampions 2
 --------------------
 Drake 4
 ---

@@ -76,4 +76,9 @@ object BoardPos {
     else
       cache(row * 8 + column)
   }
+
+  val allBoardPositions: List[BoardPos] = (for {
+    row <- 0 until 8
+    column <- 0 until 8
+  } yield BoardPos(row, column)).toList
 }

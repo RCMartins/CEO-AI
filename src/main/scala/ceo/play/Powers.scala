@@ -44,6 +44,8 @@ object Powers {
 
   case object OnMagicVanish extends Powers
 
+  case object OnEnemyDeathMovesForward extends Powers
+
   case class PromoteTo(pieceName: String) extends Powers
 
   case class OnAnyDeathPlayerChangeMorale(moraleAmount: Int) extends Powers
@@ -70,6 +72,8 @@ object Powers {
 
   case class OnMeleeDeathKillAttackerFromPosition(distances: Set[Distance]) extends Powers
 
+  case class BeginsGameEnchanted(enchantedDuration: Int) extends Powers
+
   case class TriggerGuardian(distances: Set[Distance]) extends Powers
 
   case class TriggerWrathOnAdjacentAllyDeath(turnsToLightUpLocation: Int) extends Powers
@@ -84,6 +88,10 @@ object Powers {
   case class OnMagicCastDecayTo(decayAmount: Int, limitToDevolve: Int, pieceName: String) extends Powers
 
   case class OnMagicCastDecayDeath(decayAmount: Int) extends Powers
+
+  case class OnDeathEnchantAdjacentChampions(enchantDuration: Int) extends Powers
+
+  case class OnDeathEnchantGlobalMinions(enchantDuration: Int) extends Powers
 
   case class TriggerInstantKill(distance: Distance) extends Powers
 
@@ -143,6 +151,14 @@ object Powers {
     override def createMove(dist: Distance): Moves = MagicStonePillar(dist, moraleCost, durationTurns)
   }
 
+  case class TeleportBeaconMovePower(letterOfMove: Char, augmentedRange: Int) extends MovePower {
+    override def createMove(dist: Distance): Moves = MagicTeleportBeacon(dist, augmentedRange)
+  }
+
+  case class RangedSummonGeminiTwinMovePower(letterOfMove: Char, moraleCost: Int) extends MovePower {
+    override def createMove(dist: Distance): Moves = RangedSummonGeminiTwin(dist, moraleCost)
+  }
+
   case class KingCastlingMovePowerComplete(lettersOfMoves: List[Char]) extends MovePowerComplete {
     override def createMoves(distances: Map[Char, List[Distance]]): List[Moves] = {
       distances.values.flatten.toList.map {
@@ -168,6 +184,13 @@ object Powers {
   case class TeleportKingToLocationMovePowerComplete(lettersOfMoves: List[Char]) extends MovePowerComplete {
     override def createMoves(distances: Map[Char, List[Distance]]): List[Moves] = {
       List(TeleportKingToLocation(distances.values.flatten.toList))
+    }
+  }
+
+  case class PatienceCannotAttackBeforeTurnMovePowerComplete(lettersOfMoves: List[Char], untilTurn: Int) extends MovePowerComplete {
+    override def createMoves(distances: Map[Char, List[Distance]]): List[Moves] = {
+      val List(moveOrAttack, attack) = lettersOfMoves.map(distances)
+      List(PatienceCannotAttackBeforeTurn(moveOrAttack, attack, untilTurn))
     }
   }
 

@@ -18,6 +18,10 @@ object EffectType {
     val name = "Freeze"
   }
 
+  case object Enchanted extends EffectType {
+    val name = "Enchanted"
+  }
+
   case object Displacement extends EffectType {
     val name = "Displacement"
   }
@@ -62,6 +66,10 @@ object EffectStatus {
 
   case class Frozen(untilTurn: Double) extends EffectStatus {
     override val effectType: EffectType = EffectType.Freeze
+  }
+
+  case class Enchanted(untilTurn: Double) extends EffectStatus {
+    override val effectType: EffectType = EffectType.Enchanted
   }
 
   case class BlocksAttacksFrom(distances: Set[Distance]) extends EffectStatus {

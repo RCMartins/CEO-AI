@@ -19,6 +19,10 @@ object Moves {
       None
   }
 
+  @inline private final def canRangedReachEmptyTarget(piece: Piece, target: BoardPos, state: GameState): Boolean = {
+    piece.pos.allPosUntilAreEmptyOrGhost(target, state.board) && target.isValid && target.getPiece(state.board).isEmpty
+  }
+
   private def canMove(piece: Piece, target: BoardPos, state: GameState): Option[PlayerMove.Move] = {
     if (piece.pos.allPosUntilAreEmptyOrGhost(target, state.board) && target.isEmpty(state.board))
       Some(PlayerMove.Move(piece, target))
@@ -49,7 +53,7 @@ object Moves {
 
   private def canAttack(piece: Piece, target: BoardPos, state: GameState): Option[PlayerMove] = {
     canRangedReachEnemy(piece, target, state) match {
-      case Some(targetPiece) =>
+      case Some(targetPiece) if !targetPiece.isEnchanted =>
         if (targetPiece.canBlockFrom(piece.pos)) {
           Some(PlayerMove.AttackCanBeBlocked(piece, targetPiece))
         } else {
@@ -62,7 +66,7 @@ object Moves {
 
   private def canAttackUnblockable(piece: Piece, target: BoardPos, state: GameState): Option[PlayerMove] = {
     target.getPiece(state.board) match {
-      case Some(targetPiece) if targetPiece.team != piece.team =>
+      case Some(targetPiece) if targetPiece.team != piece.team && !targetPiece.isEnchanted =>
         Some(PlayerMove.Attack(piece, targetPiece))
       case _ =>
         None
@@ -76,7 +80,7 @@ object Moves {
     condition: Piece => Boolean
   ): Option[PlayerMove] = {
     target.getPiece(state.board) match {
-      case Some(targetPiece) if targetPiece.team != piece.team && condition(targetPiece) =>
+      case Some(targetPiece) if targetPiece.team != piece.team && !targetPiece.isEnchanted && condition(targetPiece) =>
         Some(PlayerMove.Attack(piece, targetPiece))
       case _ =>
         None
@@ -422,6 +426,20 @@ object Moves {
     }
   }
 
+  case class MagicTeleportBeacon(dist: Distance, augmentedRange: Int) extends MultipleMoves {
+    def getValidMoves(piece: Piece, state: GameState, currentPlayer: Player): List[PlayerMove] = {
+      val target = piece.pos + dist
+      if (target.isEmpty(state.board))
+        currentPlayer.allPieces.filter(piece =>
+          piece.pos.distanceTo(target) <= augmentedRange &&
+            !piece.data.isKing && !piece.data.isImmuneTo(EffectType.Displacement)
+        ).map(pieceToTeleport =>
+          PlayerMove.TeleportPiece(piece, pieceToTeleport, target, piece.pos, pieceToTeleport.pos))
+      else
+        List.empty
+    }
+  }
+
   case class JumpMinion(dist: Distance) extends SingleMove {
     def getValidMove(piece: Piece, state: GameState, currentPlayer: Player): Option[PlayerMove] = {
       canAttackUnblockableConditional(piece, piece.pos + dist, state, _.data.isMinion)
@@ -507,6 +525,31 @@ object Moves {
         .flatMap(piece => Distance.adjacentDistances.map(_ + piece.pos))
         .distinct
         .flatMap(boardPos => canMoveUnblockable(piece, boardPos, state))
+    }
+  }
+
+  case class RangedSummonGeminiTwin(dist: Distance, moraleCost: Int) extends SingleMove {
+    def getValidMove(piece: Piece, state: GameState, currentPlayer: Player): Option[PlayerMove] = {
+      val target = piece.pos + dist
+      if (canRangedReachEmptyTarget(piece, target, state)) {
+        Some(PlayerMove.RangedSummonGeminiTwin(piece, target, moraleCost, DataLoader.getPieceData("GeminiTwin", piece.team)))
+      } else {
+        None
+      }
+    }
+  }
+
+  case class PatienceCannotAttackBeforeTurn(moveOrAttack: List[Distance], attack: List[Distance], untilTurn: Int) extends MultipleMoves {
+    def getValidMoves(piece: Piece, state: GameState, currentPlayer: Player): List[PlayerMove] = {
+      if (state.currentTurn < untilTurn)
+        moveOrAttack.flatMap(dist => canMove(piece, piece.pos + dist, state))
+      else {
+        moveOrAttack.flatMap(dist => Or(
+          canMove(piece, piece.pos + dist, state),
+          canAttack(piece, piece.pos + dist, state)
+        )) ++
+          attack.flatMap(dist => canAttack(piece, piece.pos + dist, state))
+      }
     }
   }
 

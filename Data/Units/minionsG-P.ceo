@@ -336,3 +336,53 @@ A1A1A
 ---
 OnMeleeDeathKillAttackerPosition 1
 --------------------
+Princess 0
+---
+MMM
+M@M
+MMM
+---
+PromotesTo Queen
+OnAnyDeathPlayerChangeMorale -3
+BeginsGameEnchanted 1
+--------------------
+Princess+ 0
+---
+M M M
+ MMM
+MM@MM
+ MMM
+M M M
+---
+PromotesTo Queen+
+OnAnyDeathPlayerChangeMorale -7
+BeginsGameEnchanted 2
+--------------------
+Princess++ 0
+---
+M  M  M
+ M M M
+  MMM
+ MM@MM
+  MMM
+ M M M
+M  M  M
+---
+PromotesTo Queen++
+OnAnyDeathPlayerChangeMorale -12
+BeginsGameEnchanted 3
+--------------------
+Princess+++ 0
+---
+M  M  M
+ MTMTM
+ TMMMT
+ MM@MM
+ TMMMT
+ MTMTM
+M  M  M
+---
+PromotesTo Queen+++
+OnAnyDeathPlayerChangeMorale -16
+BeginsGameEnchanted 4
+--------------------

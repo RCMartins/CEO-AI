@@ -1,3 +1,51 @@
+Angel 14
+---
+  S S
+   N
+S  N  S
+ NN@NN
+S  N  S
+   N
+  S S
+---
+OnDeathEnchantGlobalMinions 1
+--------------------
+Angel+ 16
+---
+  S S
+   N
+S MNM S
+ NN@NN
+S MNM S
+   N
+  S S
+---
+OnDeathEnchantGlobalMinions 1
+--------------------
+Angel++ 18
+---
+  S S
+   N
+S NNN S
+ NN@NN
+S NNN S
+   N
+  S S
+---
+OnDeathEnchantGlobalMinions 1
+--------------------
+Angel+++ 22
+---
+  SNS
+ N N N
+S NNN S
+NNN@NNN
+S NNN S
+ N N N
+  SNS
+---
+OnDeathEnchantGlobalMinions 1
+--------------------
 Antimage 7
 ---
   N

@@ -71,7 +71,7 @@ class PlayUI() extends JFrame {
         })
         buttonsPane.add(button)
       }
-      buttonsPane.add(Box.createRigidArea(new Dimension(0, 50)))
+      buttonsPane.add(Box.createRigidArea(new Dimension(0, 20)))
 
       {
         val button = new JButton("Delete!")
@@ -105,12 +105,28 @@ class PlayUI() extends JFrame {
         })
         buttonsPane.add(button)
       }
+      buttonsPane.add(Box.createRigidArea(new Dimension(0, 20)))
 
       {
         val button = new JButton("Skip piece!")
         button.addActionListener((_: ActionEvent) => {
-          val first = ImageLoader.imagesUnknown.dequeue()
-          ImageLoader.imagesUnknown.enqueue(first)
+          ImageLoader.imagesUnknown.synchronized {
+            val first = ImageLoader.imagesUnknown.dequeue()
+            ImageLoader.imagesUnknown.enqueue(first)
+          }
+          component.requestFocusInWindow()
+          component.repaint()
+        })
+        buttonsPane.add(button)
+      }
+      buttonsPane.add(Box.createRigidArea(new Dimension(0, 30)))
+
+      {
+        val button = new JButton("Delete!")
+        button.addActionListener((_: ActionEvent) => {
+          ImageLoader.imagesUnknown.synchronized {
+            ImageLoader.imagesUnknown.dequeue()
+          }
           component.requestFocusInWindow()
           component.repaint()
         })
@@ -134,6 +150,7 @@ class GameComponent(val playUI: PlayUI) extends JComponent with ComponentListene
 
     var x = 20
     var y = 0
+
     ImageLoader.imagesToConfirm.foreach { case (pieceImage, pieceData) =>
       g2.drawImage(pieceImage.bufferedImage, x, y, null)
       g2.drawString(pieceData.name, x, y + 70)
@@ -141,24 +158,29 @@ class GameComponent(val playUI: PlayUI) extends JComponent with ComponentListene
     }
 
     x = 20
-    y = 400
+    y = 250
+    var plusY = 60
+    var plusX = 60
     ImageLoader.imagesUnknown.foreach { case (pieceImage, _) =>
       g2.drawImage(pieceImage.bufferedImage, x, y, null)
-      y += 100
+      y += plusY
+      x += plusX
+      plusY = Math.max(10, plusY - 10)
+      plusX = Math.max(10, plusX - 50)
     }
 
     // Check all images:
-    //    x = 0
-    //    y = 0
-    //    ImageLoader.allPieceImages.toList.sortBy(_._2._1).map(_._1).foreach { pieceImage =>
-    //      g2.drawImage(pieceImage.bufferedImage, x, y, null)
-    //      if (x > 1400) {
     //        x = 0
-    //        y += 60
-    //      } else {
-    //        x += 60
-    //      }
-    //    }
+    //        y = 0
+    //        ImageLoader.allPieceImages.toList.sortBy(_._2._1).map(_._1).foreach { pieceImage =>
+    //          g2.drawImage(pieceImage.bufferedImage, x, y, null)
+    //          if (x > 1400) {
+    //            x = 0
+    //            y += 60
+    //          } else {
+    //            x += 60
+    //          }
+    //        }
   }
 
   def componentHidden(e: ComponentEvent) {

@@ -32,8 +32,27 @@ case class PieceData(
       }
     }
     case TriggerGuardian(_) => new DynamicRunner[GameState, Piece] {
+      override def update(state: GameState, deathPiece: Piece): GameState = {
+        state.updatePlayer(state.getPlayer(team).updateGuardedPositions(Some(deathPiece), None))
+      }
+    }
+    case OnDeathEnchantAdjacentChampions(enchantDuration) => new DynamicRunner[GameState, Piece] {
       override def update(startingState: GameState, deathPiece: Piece): GameState = {
-        startingState.updatePlayer(startingState.getPlayer(team).updateGuardedPositions(Some(deathPiece), None))
+        val currentPos = deathPiece.pos
+        startingState.getPlayer(deathPiece.team).allPieces.filter(piece => piece.data.isChampion && piece.pos.distanceTo(currentPos) <= 1)
+          .foldLeft(startingState) {
+            (state, championPiece) =>
+              val championPieceUpdated = championPiece.enchant(state, enchantDuration)
+              state.updatePiece(championPiece, championPieceUpdated)
+          }
+      }
+    }
+    case OnDeathEnchantGlobalMinions(enchantDuration) => new DynamicRunner[GameState, Piece] {
+      override def update(startingState: GameState, deathPiece: Piece): GameState = {
+        startingState.getPlayer(deathPiece.team).allPieces.filter(_.data.isMinion).foldLeft(startingState) { (state, minionPiece) =>
+          val minionPieceUpdated = minionPiece.enchant(state, enchantDuration)
+          state.updatePiece(minionPiece, minionPieceUpdated)
+        }
       }
     }
   }

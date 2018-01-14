@@ -63,6 +63,8 @@ case class Player(
   }
 
   def inBaseRow(pos: BoardPos): Boolean = pos.row == (if (team == White) 7 else 0)
+
+  def directionForward: Distance = if (team == White) Distance(-1, 0) else Distance(1, 0)
 }
 
 case class PlayerExtraData(

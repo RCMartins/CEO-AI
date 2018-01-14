@@ -60,7 +60,7 @@ object PlayGame {
           s"${state.movesHistory.head.betterHumanString}")
     }
 
-    movesHistory.reverse.scanLeft(startingState)((state, move) => state.playPlayerMove(move)).foreach(show)
+    movesHistory.reverse.scanLeft(startingState)((state, move) => state.playPlayerMove(move, turnUpdate = true)).foreach(show)
   }
 
   def play(startingState: GameState, playerWhiteStrategy: Strategy, playerBlackStrategy: Strategy): Unit = {
@@ -164,7 +164,7 @@ object PlayGame {
     if (inputIndex == Int.MinValue)
       None
     else
-      Some(gameState.playPlayerMove(allMoves(inputIndex)))
+      Some(gameState.playPlayerMove(allMoves(inputIndex), turnUpdate = true))
   }
 
 }

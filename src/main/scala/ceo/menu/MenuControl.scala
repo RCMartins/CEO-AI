@@ -51,8 +51,8 @@ object MenuControl {
       if (modeEditArmyTesting) {
         clickWait(menu.selectArmyCoordinate(10), 200)
         clickWait(menu.randomArmyCoordinate, 1000)
-        clickWait(menu.saveArmyCoordinate, 1500)
-        clickWait(menu.testArmyCoordinate, 2000)
+        clickWait(menu.saveArmyCoordinate, 2000)
+        clickWait(menu.testArmyCoordinate, 3000)
         clickWaitRestart(menu.testArmyStartCoordinate, 5000)
       } else {
         clickWaitRestart(menu.returnToTitleCoordinate, 2000)
@@ -62,7 +62,7 @@ object MenuControl {
       clickWaitRestart(menu.settingsTabCoordinate, 4000)
     case menu @ MenuType.TestingMenuSettingsTabColorsEnabled =>
       println("In PlayingMenuSettingsTabColorsEnabled!")
-      for (index <- 0 until 6)
+      for (index <- 0 until 5)
         clickWait(menu.settingCoordinate(index), 100)
       start()
     case menu @ MenuType.TestingMenuSettingsTabColorsDisabled =>

@@ -89,12 +89,15 @@ case class Piece(
     val (updatedState3, updatedPiece2) =
       DynamicRunner.foldLeft((updatedState2, updatedPiece1), pieceToKill, data.afterKillRunners)
 
+    val updatedState4 =
+      DynamicRunner.foldLeft(updatedState3, pieceToKill, updatedState3.gameRunner.globalPieceDeathRunners)
+
     updatedPiece2 match {
       case None =>
-        (updatedState3, None)
+        (updatedState4, None)
       case Some(finalPiece) =>
-        val (updatedState4, piece) = finalPiece.moveTo(updatedState3, pieceToKill.pos)
-        (updatedState4, Some(piece))
+        val (updatedState5, piece) = finalPiece.moveTo(updatedState4, pieceToKill.pos)
+        (updatedState5, Some(piece))
     }
   }
 
@@ -105,16 +108,23 @@ case class Piece(
     val (updatedState2, updatedPiece) =
       DynamicRunner.foldLeft((updatedState1, Some(this)), pieceToKill, data.afterKillRunners)
 
+    val updatedState3 =
+      DynamicRunner.foldLeft(updatedState2, pieceToKill, updatedState2.gameRunner.globalPieceDeathRunners)
+
     updatedPiece match {
-      case Some(piece) => piece.afterMagicCast(updatedState2)
-      case None => (updatedState2, None)
+      case Some(piece) => piece.afterMagicCast(updatedState3)
+      case None => (updatedState3, None)
     }
   }
 
   def afterPoisonDeath(startingState: GameState): GameState = {
-    val updatedState =
+    val updatedState1 =
       DynamicRunner.foldLeft(startingState, this, data.afterAnyDeathRunners)
-    updatedState
+
+    val updatedState2 =
+      DynamicRunner.foldLeft(updatedState1, this, updatedState1.gameRunner.globalPieceDeathRunners)
+
+    updatedState2
   }
 
   def afterPoisonPiece(pieceToPoison: Piece, turnsToDeath: Int, currentState: GameState): (GameState, Piece, Piece) = {
@@ -128,6 +138,9 @@ case class Piece(
   def freeze(currentState: GameState, turnsFrozen: Int): Piece =
     addEffect(Frozen(currentState.currentTurn + turnsFrozen))
 
+  def enchant(currentState: GameState, turnsEnchanted: Int): Piece =
+    addEffect(Enchanted(currentState.currentTurn + turnsEnchanted))
+
   def swapTeams: Piece =
     copy(data = DataLoader.getPieceData(data.officialName, team.enemy))
 
@@ -137,6 +150,11 @@ case class Piece(
 
   def isPoisoned: Boolean = effectStatus.exists {
     case _: EffectStatus.Poison => true
+    case _ => false
+  }
+
+  def isEnchanted: Boolean = effectStatus.exists {
+    case _: EffectStatus.Enchanted => true
     case _ => false
   }
 

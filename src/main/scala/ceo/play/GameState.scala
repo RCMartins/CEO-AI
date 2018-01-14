@@ -172,7 +172,7 @@ case class GameState(
   }
 
   def generateAllNextStates: List[GameState] = {
-    getCurrentPlayerMoves.map(move => playPlayerMove(move))
+    getCurrentPlayerMoves.map(move => playPlayerMove(move, turnUpdate = true))
   }
 
   def winner: PlayerWinType = {
@@ -189,7 +189,7 @@ case class GameState(
     }
   }
 
-  def playPlayerMove(move: PlayerMove, turnUpdate: Boolean = true): GameState = {
+  def playPlayerMove(move: PlayerMove, turnUpdate: Boolean): GameState = {
     import PlayerMove._
 
     def guardianSwapPiece(state: GameState, piece: Piece): (GameState, Piece) = {
@@ -306,7 +306,7 @@ case class GameState(
         }
       case KingDoesCastling(kingPiece, allyPiece, kingTarget, allyTarget) =>
         val kingWithoutCastling = DataLoader
-          .getPieceData("King-no-Cas", kingPiece.team)
+          .getPieceData("King-no-Cas", kingPiece.team) // TODO make this a StatusEffect instead of a new piece
           .createPiece(kingTarget)
           .setMorale(kingPiece.currentMorale)
           .addAllEffects(kingPiece.effectStatus)
@@ -414,6 +414,19 @@ case class GameState(
         maybeUpdatedPiece match {
           case Some(updatedPiece) =>
             updatedState2.placePiece(updatedPiece)
+          case None =>
+            updatedState2
+        }
+      case RangedSummonGeminiTwin(piece, target, moraleCost, pieceData) =>
+        val (updatedState1, maybeUpdatedPiece) = piece.afterMagicCast(this)
+        val updatedState2 =
+          updatedState1
+            .changeMorale(piece.team, -moraleCost)
+            .placePiece(pieceData.createPiece(target))
+            .removePiece(piece)
+        maybeUpdatedPiece match {
+          case Some(_) =>
+            updatedState2.placePiece(pieceData.createPiece(piece.pos))
           case None =>
             updatedState2
         }

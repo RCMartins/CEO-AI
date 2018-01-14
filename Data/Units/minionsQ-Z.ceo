@@ -326,6 +326,24 @@ M       M
 ---
 MagicPoison 1 3
 --------------------
+Spider+++ 3
+---
+M           M
+ M         M
+  M       M
+   M     M
+    MT TM
+    TM1MT
+     1@1
+    TM1MT
+    MT TM
+   M     M
+  M       M
+ M         M
+M           M
+---
+MagicPoison 1 3
+--------------------
 Swordsman 1
 ---
  N

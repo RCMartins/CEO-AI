@@ -237,14 +237,23 @@ object ImageLoader {
     }
   }
 
-  def getTeamPlay(pieceImage: PieceImage): (Option[PlayerTeam], Boolean) = {
+  def getTeamPlay(pieceImage: PieceImage, useEqualPixels: Boolean = true): (Option[PlayerTeam], Boolean, Double) = {
     val image = pieceImage.bufferedImage
-    val list =
-      backgroundImages.toList
-        .map { case (PieceImage(background), maybePlayer, isSquareWhite) => (ImageUtils.getNumberOfEqualPixels(background, image), maybePlayer, isSquareWhite) }
-        .sortBy(-_._1)
-    val best = list.head
-    (best._2, best._3)
+    if (useEqualPixels) {
+      val list =
+        backgroundImages.toList
+          .map { case (PieceImage(background), maybePlayer, isSquareWhite) => (ImageUtils.getNumberOfEqualPixels(background, image), maybePlayer, isSquareWhite) }
+          .sortBy(-_._1)
+      val best = list.head
+      (best._2, best._3, best._1.toDouble / (59 * 59))
+    } else {
+      val list =
+        backgroundImages.toList
+          .map { case (PieceImage(background), maybePlayer, isSquareWhite) => (ImageUtils.getDifferencePercent(background, image), maybePlayer, isSquareWhite) }
+          .sortBy(_._1)
+      val best = list.head
+      (best._2, best._3, best._1)
+    }
   }
 
   case class ImageState(
@@ -258,16 +267,16 @@ object ImageLoader {
     getPiecesFromUnknownBoard(ImageIO.read(imageFile), showPieces)
   }
 
-  def guessPieceName(currentSquare: PieceImage): (String, Double) = {
-    allPieceImages.get(currentSquare) match {
-      case Some((pieceName, fileName)) =>
+  def guessPieceName(pieceImage: PieceImage): (String, Double) = {
+    allPieceImages.get(pieceImage) match {
+      case Some((pieceName, _)) =>
         (pieceName, 0.0)
       case None =>
         val sorted =
           pieceImagesByName.mapValues {
             _.map {
               image =>
-                val value = ImageUtils.getDifferencePercent(currentSquare.bufferedImage, image.bufferedImage)
+                val value = ImageUtils.getDifferencePercent(pieceImage.bufferedImage, image.bufferedImage)
                 value
             }.min
           }.toList
@@ -278,9 +287,30 @@ object ImageLoader {
           (name, bestValue)
         else if (bestValue < 1)
           (name, bestValue)
-        else
-          (UNKNOWN_PIECE, 0.0)
+        else {
+          val result = getTeamPlay(pieceImage)
+          val result2 = getTeamPlay(pieceImage, useEqualPixels = false)
+          if (result._3 > 0.94 || result2._3 < 1.0)
+            ("e", 0.0)
+          else
+            (UNKNOWN_PIECE, 0.0)
+        }
     }
+  }
+
+  def guessPieceNameWithPossibilities(pieceImage: PieceImage, boardPos: BoardPos, possiblePieceNames: List[String]): List[(String, Double)] = {
+    val background = if (BoardImageData.isBackgroundWhite(boardPos.row, boardPos.column)) whiteSquare else blackSquare
+    val cleanImage = ImageUtils.clearImageBackground(pieceImage.bufferedImage, background)
+
+    val result =
+      possiblePieceNames.map(name => (name, pieceImagesByName(name))).map { case (name, images) =>
+        (name, images.map {
+          image =>
+            val value = ImageUtils.getDifferencePercent(cleanImage, image.bufferedImage)
+            value
+        }.min)
+      }.filter(_._2 <= 4.0)
+    result
   }
 
   def getPiecesFromUnknownBoard(imageToProcess: BufferedImage, showPieces: Boolean = false): Option[ImageState] = {
@@ -297,7 +327,7 @@ object ImageLoader {
       for (row <- 0 until 8; column <- 0 until 8) {
         val currentSquare = imageLoader.getImageAt(row, column)
 
-        val (teamPlay, _) = getTeamPlay(currentSquare)
+        val (teamPlay, _, _) = getTeamPlay(currentSquare)
         if (teamPlay.nonEmpty) {
           lastMoveCoordinates = BoardPos(row, column) :: lastMoveCoordinates
         }
@@ -362,8 +392,10 @@ object ImageLoader {
     if (getTeamPlay(pieceImage)._1.isEmpty) {
       guessPieceName(pieceImage) match {
         case (UNKNOWN_PIECE, _) =>
-          if (!imagesUnknown.exists(_._1 == pieceImage))
-            imagesUnknown.enqueue((pieceImage, getTeamPlay(pieceImage)._2))
+          ImageLoader.imagesUnknown.synchronized {
+            if (!imagesUnknown.exists(_._1 == pieceImage))
+              imagesUnknown.enqueue((pieceImage, getTeamPlay(pieceImage)._2))
+          }
         case _ => // piece is known
       }
     }

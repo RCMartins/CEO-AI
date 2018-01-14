@@ -3,9 +3,6 @@ package ceo.image
 import java.util.StringTokenizer
 
 object Square {
-  var INIT_X = 0
-  var INIT_Y = 0
-
   def loadGameArea(data: String): Square = {
     val st = new StringTokenizer(data)
     val left = st.nextToken.toInt
