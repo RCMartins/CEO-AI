@@ -56,14 +56,42 @@ object MainControl {
           val stateOption = ImageLoader.loadBoardFromPieceNamesNoFilter(pieceNames)
           if (gameState.isEmpty && stateOption.nonEmpty) {
             // TODO: check that we have images for all the pieces / white and black squares / possible evolutions / charm / etc
-            if (stateOption.get.allPieces.exists(_.data.isUnknown)) {
-              throw new BoardStartsWithUnknownPieces(stateOption.get.allPieces.filter(_.data.isUnknown))
+            val unknownPieces = stateOption.get.allPieces.filter(_.data.isUnknown)
+            if (unknownPieces.nonEmpty) {
+              println(unknownPieces.mkString("\n"))
+              throw new BoardStartsWithUnknownPieces(unknownPieces)
+            } else {
+              val missingImages =
+                stateOption.get.allPieces.map(_.data).flatMap { data =>
+                  ImageLoader.allBoardImageData.get(data.simpleName) match {
+                    case None =>
+                      List(s"Missing all images from '${data.simpleName}'")
+                    case Some(boardImageData) =>
+                      val missingWhite = boardImageData.getImage(data, inWhiteSquare = true).isEmpty
+                      val missingBlack = boardImageData.getImage(data, inWhiteSquare = false).isEmpty
+                      if (missingWhite && missingBlack)
+                        List(s"Missing image '${data.name}'")
+                      else if (missingWhite)
+                        List(s"Missing image '${data.name}' in a white square")
+                      else if (missingBlack)
+                        List(s"Missing image '${data.name}' in a black square")
+                      else
+                        Nil
+                  }
+                }
+              if (missingImages.nonEmpty) {
+                println("Possible missing images necessary to play:")
+                println(missingImages.mkString("\n"))
+              } else {
+                println("All piece images necessary to start game, there can be promotions / charms / summons that are missing...")
+              }
             }
           }
 
           val dateFormatter = new SimpleDateFormat("yyyy-MM-dd-HH-mm-ss")
           val submittedDateConvert = new Date()
           val name = dateFormatter.format(submittedDateConvert)
+          gameFolder.mkdirs()
           ImageUtils.writeImage(screen, new File(gameFolder, s"$name.png"))
 
           val checkEnemy =
@@ -84,8 +112,7 @@ object MainControl {
 
               println("Move done: " + move)
               println("Game should look like this:")
-              println(stateAfter.getBoardPieceNames)
-              println()
+              println(stateAfter)
 
               val controllerMove = move.getControllerMove
               val (pos1, pos2) = controllerMove

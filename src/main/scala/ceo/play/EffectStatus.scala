@@ -22,6 +22,10 @@ object EffectType {
     val name = "Enchanted"
   }
 
+  case object WeakEnchanted extends EffectType {
+    val name = "WeakEnchanted"
+  }
+
   case object Displacement extends EffectType {
     val name = "Displacement"
   }
@@ -70,6 +74,10 @@ object EffectStatus {
 
   case class Enchanted(untilTurn: Double) extends EffectStatus {
     override val effectType: EffectType = EffectType.Enchanted
+  }
+
+  case class WeakEnchanted(untilTurn: Double) extends EffectStatus {
+    override val effectType: EffectType = EffectType.WeakEnchanted
   }
 
   case class BlocksAttacksFrom(distances: Set[Distance]) extends EffectStatus {

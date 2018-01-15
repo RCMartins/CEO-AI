@@ -294,6 +294,11 @@ object DataLoader {
       case str if str.startsWith("RangedSummonGeminiTwin ") =>
         val List(letterStr, moraleCost) = str.drop("RangedSummonGeminiTwin ".length).split(" ").toList
         Powers.RangedSummonGeminiTwinMovePower(getLetter(letterStr), moraleCost.toInt)
+      case str if str.startsWith("MagicWeakEnchant ") =>
+        val List(letterStr, durationTurns) = str.drop("MagicWeakEnchant ".length).split(" ").toList
+        Powers.MagicWeakEnchantMovePower(getLetter(letterStr), durationTurns.toInt)
+      case str if str.startsWith("MagicEnvyClone ") =>
+        Powers.MagicEnvyCloneMovePower(getLetter(str.drop("MagicEnvyClone ".length)))
       // Move Power Complete:
       case str if str.startsWith("KingCastling ") =>
         Powers.KingCastlingMovePowerComplete(str.drop("KingCastling ".length).split(" ").toList.map(getLetter))
@@ -317,6 +322,9 @@ object DataLoader {
         Powers.TriggerFrostMephitPositionalPower('?', str.drop("TriggerFrostMephit ".length).toInt)
       case str if str.startsWith("TriggerInstantKill ") =>
         Powers.TriggerInstantKillPositionalPower(getLetter(str.drop("TriggerInstantKill ".length)))
+      case str if str.startsWith("OnMeleeDeathTriggerRevive ") =>
+        val List(letterStr, moraleMinimum) = str.drop("OnMeleeDeathTriggerRevive ".length).split(" ").toList
+        Powers.OnMeleeDeathTriggerRevivePositionalPower(getLetter(letterStr), moraleMinimum.toInt)
       // Augmented Move Powers:
       case "AugmentedTeleportGhast" =>
         Powers.AugmentedTeleportGhastMovePower

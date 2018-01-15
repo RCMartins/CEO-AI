@@ -127,7 +127,12 @@ object ImageLoader {
 
   def loadKnownPieceInformation(file: File): Unit = {
     if (file.isDirectory) {
-      file.listFiles().filter(file => file.isFile && file.getName.endsWith(".png")).foreach(loadKnownPieceInformation)
+      val allFiles = file.listFiles().filter(file => file.isFile && file.getName.endsWith(".png"))
+      allFiles.foreach(loadKnownPieceInformation)
+      val imageCount = allPieceImages.size
+      val totalCount = allFiles.length * 16
+      val percentage = imageCount * 100 / totalCount.toDouble
+      println(f"Percentage of images known: $percentage%.1f%%")
     } else {
       val imageFileName = file.getAbsolutePath
       val imageLoader = new CuttedImageBoardLoader(file)

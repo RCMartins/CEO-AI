@@ -361,6 +361,94 @@ EarthElemental+++ 12
 MagicStonePillar 1 1 4
 OnMagicCastDecayTo 1 7 Gnome+++
 --------------------
+Enchantress 4
+---
+1 1 1
+ MMM
+1M@M1
+ MMM
+1 1 1
+---
+MagicWeakEnchant 1 2
+--------------------
+Enchantress+ 7
+---
+1 1 1
+ MNM
+1N@N1
+ MNM
+1 1 1
+---
+MagicWeakEnchant 1 2
+--------------------
+Enchantress++ 10
+---
+1 1 1
+ NNN
+1N@N1
+ NNN
+1 1 1
+---
+MagicWeakEnchant 1 2
+--------------------
+Enchantress+++ 12
+---
+11111
+1NNN1
+1N@N1
+1NNN1
+11111
+---
+MagicWeakEnchant 1 2
+--------------------
+Envy 4
+---
+  1 1
+
+1  N  1
+  N@N
+1  N  1
+
+  1 1
+---
+MagicEnvyClone 1
+--------------------
+Envy+ 6
+---
+  1 1
+
+1 MNM 1
+  N@N
+1 MNM 1
+
+  1 1
+---
+MagicEnvyClone 1
+--------------------
+Envy++ 8
+---
+  1 1
+
+1 NNN 1
+  N@N
+1 NNN 1
+
+  1 1
+---
+MagicEnvyClone 1
+--------------------
+Envy+++ 10
+---
+  111
+ M M M
+1 NNN 1
+1MN@NM1
+1 NNN 1
+ M M M
+  111
+---
+MagicEnvyClone 1
+--------------------
 Fencer 5
 ---
 M     M

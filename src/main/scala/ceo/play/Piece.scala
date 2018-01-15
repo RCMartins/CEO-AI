@@ -141,6 +141,9 @@ case class Piece(
   def enchant(currentState: GameState, turnsEnchanted: Int): Piece =
     addEffect(Enchanted(currentState.currentTurn + turnsEnchanted))
 
+  def weakEnchant(currentState: GameState, turnsWeakEnchanted: Int): Piece =
+    addEffect(WeakEnchanted(currentState.currentTurn + turnsWeakEnchanted))
+
   def swapTeams: Piece =
     copy(data = DataLoader.getPieceData(data.officialName, team.enemy))
 
@@ -155,6 +158,11 @@ case class Piece(
 
   def isEnchanted: Boolean = effectStatus.exists {
     case _: EffectStatus.Enchanted => true
+    case _ => false
+  }
+
+  def isWeakEnchanted: Boolean = effectStatus.exists {
+    case _: EffectStatus.WeakEnchanted => true
     case _ => false
   }
 

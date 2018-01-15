@@ -348,6 +348,68 @@ N   1   N
 RangedPetrify 1 5
 ImmuneTo Petrify
 --------------------
+MoonFox 12
+---
+N     N
+ N   N
+  N N
+   @
+  N1N
+ N   N
+N     N
+---
+OnAnyDeathPlayerChangeMorale -2
+OnMeleeDeathTriggerRevive 1 12
+--------------------
+MoonFox+ 14
+---
+N       N
+ N     N
+  N   N
+   N N
+    @
+   N1N
+  N   N
+ N     N
+N       N
+---
+OnAnyDeathPlayerChangeMorale -2
+OnMeleeDeathTriggerRevive 1 12
+--------------------
+MoonFox++ 16
+---
+N         N
+ N       N
+  N     N
+   N   N
+    N N
+     @
+    N1N
+   N   N
+  N     N
+ N       N
+N         N
+---
+OnAnyDeathPlayerChangeMorale -2
+OnMeleeDeathTriggerRevive 1 12
+--------------------
+MoonFox+++ 20
+---
+N         N
+ N       N
+  N     N
+   N   N
+    NAN
+     @
+    N1N
+   N   N
+  N     N
+ N       N
+N         N
+---
+OnAnyDeathPlayerChangeMorale -2
+OnMeleeDeathTriggerRevive 1 12
+--------------------
 Nexus 0
 ---
   121

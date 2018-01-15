@@ -129,6 +129,63 @@ NNNNNNN@NNNNNNN
        N
 ---
 --------------------
+Rook+ 13
+---
+       N
+       N
+       N
+       N
+       N
+       N
+      MNM
+NNNNNNN@NNNNNNN
+      MNM
+       N
+       N
+       N
+       N
+       N
+       N
+---
+--------------------
+Rook++ 14
+---
+       N
+       N
+       N
+       N
+    M  N  M
+     M N M
+      MNM
+NNNNNNN@NNNNNNN
+      MNM
+     M N M
+    M  N  M
+       N
+       N
+       N
+       N
+---
+--------------------
+Rook+++ 15
+---
+       N
+       N
+  M    N    M
+   M   N   M
+    M  N  M
+     M N M
+      MNM
+NNNNNNN@NNNNNNN
+      MNM
+     M N M
+    M  N  M
+   M   N   M
+  M    N    M
+       N
+       N
+---
+--------------------
 SoulKeeper 13
 ---
 TS ST

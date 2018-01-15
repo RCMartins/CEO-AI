@@ -35,7 +35,7 @@ class PlayUI() extends JFrame {
   }).start()
 
   final val GAME_TITLE = "Chess Evolved Online - Bot"
-  final val DEFAULT_WIDTH = 500
+  final val DEFAULT_WIDTH = 400
   final val DEFAULT_HEIGHT = 800
 
   def createAndShowGUI() {
@@ -82,7 +82,7 @@ class PlayUI() extends JFrame {
         })
         buttonsPane.add(button)
       }
-      buttonsPane.add(Box.createRigidArea(new Dimension(0, 200)))
+      buttonsPane.add(Box.createRigidArea(new Dimension(0, 150)))
 
       {
         val button = new JButton("Write name")
@@ -158,7 +158,7 @@ class GameComponent(val playUI: PlayUI) extends JComponent with ComponentListene
     }
 
     x = 20
-    y = 250
+    y = 200
     var plusY = 60
     var plusX = 60
     ImageLoader.imagesUnknown.foreach { case (pieceImage, _) =>

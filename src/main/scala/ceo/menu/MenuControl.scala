@@ -22,6 +22,8 @@ object MenuControl {
     MenuType.findMenu(screen) match {
       case None =>
         println("Error, can't figure out which menu it's in...")
+        Thread.sleep(20000)
+        start()
       case Some(start) =>
         controlGame(start)
     }

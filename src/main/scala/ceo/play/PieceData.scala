@@ -15,7 +15,7 @@ case class PieceData(
 
   def createPiece(pos: BoardPos): Piece = Piece(this, pos, pos, initialMorale, effectStatus = List.empty)
 
-  val simpleName: String = name.takeWhile(c => c.isLetter || c == '-')
+  val simpleName: String = name.takeWhile(c => c != '+' && c != '_')
 
   val tier: Int = name.count(_ == '+')
 
@@ -83,6 +83,17 @@ case class PieceData(
           else
             (gameState, updatedPiece)
         }
+      }
+    }
+    case OnMeleeDeathTriggerRevive(distance, moraleMinimum) => new DynamicRunner[(GameState, Option[Piece]), (Piece, Piece)] {
+      override def update(state: (GameState, Option[Piece]), pieces: (Piece, Piece)): (GameState, Option[Piece]) = {
+        val deadPiece = pieces._2
+        val spawnPosition = deadPiece.pos + distance
+        val updatedMorale = deadPiece.currentMorale - moraleMinimum
+        if (updatedMorale >= 0 && spawnPosition.isEmpty(state._1.board))
+          state.copy(_1 = state._1.placePiece(deadPiece.data.createPiece(spawnPosition).setMorale(updatedMorale)))
+        else
+          state
       }
     }
   }

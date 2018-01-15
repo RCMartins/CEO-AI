@@ -95,6 +95,8 @@ object Powers {
 
   case class TriggerInstantKill(distance: Distance) extends Powers
 
+  case class OnMeleeDeathTriggerRevive(distance: Distance, moraleMinimum: Int) extends Powers
+
   case class DummyNothingPower(letterOfMove: Char) extends MovePower {
     override def createMove(dist: Distance): Moves = DummyMove
   }
@@ -159,6 +161,14 @@ object Powers {
     override def createMove(dist: Distance): Moves = RangedSummonGeminiTwin(dist, moraleCost)
   }
 
+  case class MagicWeakEnchantMovePower(letterOfMove: Char, durationTurns: Int) extends MovePower {
+    override def createMove(dist: Distance): Moves = MagicWeakEnchant(dist, durationTurns)
+  }
+
+  case class MagicEnvyCloneMovePower(letterOfMove: Char) extends MovePower {
+    override def createMove(dist: Distance): Moves = MagicEnvyClone(dist)
+  }
+
   case class KingCastlingMovePowerComplete(lettersOfMoves: List[Char]) extends MovePowerComplete {
     override def createMoves(distances: Map[Char, List[Distance]]): List[Moves] = {
       distances.values.flatten.toList.map {
@@ -173,10 +183,12 @@ object Powers {
     override def createMoves(distances: Map[Char, List[Distance]]): List[Moves] = {
       lettersOfMoves.grouped(2).toList.flatMap {
         case List(c1, c2) =>
-          for {
-            dist1 <- distances(c1)
-            dist2 <- distances(c2)
-          } yield TeleportPiece(dist1, dist2)
+          val distances1 = distances(c1)
+          val distances2 = distances(c2)
+          if (distances1.lengthCompare(1) == 0)
+            distances2.map(dist2 => TeleportPiece(distances1.head, dist2, fromLocationMode = false))
+          else
+            distances1.map(dist1 => TeleportPiece(dist1, distances2.head, fromLocationMode = true))
       }
     }
   }
@@ -217,6 +229,11 @@ object Powers {
   case class TriggerInstantKillPositionalPower(letterOfMove: Char) extends PositionalPower {
     def createPowers(distances: Map[Char, List[Distance]]): List[Powers] =
       List(TriggerInstantKill(distances.values.flatten.head))
+  }
+
+  case class OnMeleeDeathTriggerRevivePositionalPower(letterOfMove: Char, moraleMinimum: Int) extends PositionalPower {
+    def createPowers(distances: Map[Char, List[Distance]]): List[Powers] =
+      List(OnMeleeDeathTriggerRevive(distances.values.flatten.head, moraleMinimum))
   }
 
   case object AugmentedTeleportGhastMovePower extends AugmentedMovePower {

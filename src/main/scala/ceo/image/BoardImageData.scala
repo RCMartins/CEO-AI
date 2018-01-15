@@ -41,8 +41,12 @@ class BoardImageData(pieceName: String) {
   }
 
   def getImage(pieceData: PieceData, boardPos: BoardPos): Option[PieceImage] = {
-    val whiteSquare = if (boardPos.row % 2 == 0) boardPos.column % 2 == 0 else boardPos.column % 2 == 1
-    val (rowImage, columnImage) = (pieceData.team, whiteSquare) match {
+    val inWhiteSquare = if (boardPos.row % 2 == 0) boardPos.column % 2 == 0 else boardPos.column % 2 == 1
+    getImage(pieceData, inWhiteSquare)
+  }
+
+  def getImage(pieceData: PieceData, inWhiteSquare: Boolean): Option[PieceImage] = {
+    val (rowImage, columnImage) = (pieceData.team, inWhiteSquare) match {
       case (Black, true) => (0, pieceData.tier * 2)
       case (Black, false) => (0, pieceData.tier * 2 + 1)
       case (White, true) => (7, pieceData.tier * 2 + 1)

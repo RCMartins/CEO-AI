@@ -262,7 +262,7 @@ object Strategy {
                 if (_beta <= alpha)
                   return Some((v, -1))
               } else {
-                None
+                return None
               }
             }
             Some((v, bestIndex))

@@ -124,6 +124,14 @@ object PlayerMove {
       s"at $target   ${target - piece.pos}"
   }
 
+  case class MagicWeakEnchant(piece: Piece, pieceToWeakEnchant: Piece, durationTurns: Int) extends PlayerMove(piece.pos, pieceToWeakEnchant.pos) {
+    def betterHumanString: String = s"$piece magic-weak-enchants $pieceToWeakEnchant   ${pieceToWeakEnchant.pos - piece.pos}"
+  }
+
+  case class MagicEnvyClone(piece: Piece, pieceToClone: Piece) extends PlayerMove(piece.pos, pieceToClone.pos) {
+    def betterHumanString: String = s"$piece magic-clones $pieceToClone   ${pieceToClone.pos - piece.pos}"
+  }
+
   case class DummyMove(piece: Piece) extends PlayerMove(???, ???) {
     def betterHumanString: String = s"$piece does nothing special"
   }

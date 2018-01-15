@@ -205,7 +205,7 @@ case class GameState(
       }
     }
 
-    val newState = move match {
+    val newState: GameState = move match {
       // Standard moves:
       case Move(piece, target) =>
         val (updatedState, pieceNewPos) = piece.moveTo(this, target)
@@ -430,6 +430,25 @@ case class GameState(
           case None =>
             updatedState2
         }
+      case MagicWeakEnchant(piece, pieceToWeakEnchant, durationTurns) =>
+        val (updatedState1, maybeUpdatedPiece) = piece.afterMagicCast(this)
+        val pieceToWeakEnchantUpdated = pieceToWeakEnchant.weakEnchant(updatedState1, durationTurns)
+        maybeUpdatedPiece match {
+          case Some(pieceUpdated) if pieceUpdated == piece =>
+            updatedState1
+              .updatePiece(pieceToWeakEnchant, pieceToWeakEnchantUpdated)
+          case Some(pieceUpdated) =>
+            updatedState1
+              .updatePiece(piece, pieceUpdated)
+              .updatePiece(pieceToWeakEnchant, pieceToWeakEnchantUpdated)
+          case None =>
+            updatedState1
+        }
+      case MagicEnvyClone(piece, _pieceToClone) =>
+        val (updatedState, pieceToClone) = guardianSwapPiece(this, _pieceToClone)
+        val newClone = pieceToClone.data.createPiece(piece.pos)
+        updatedState
+          .updatePiece(piece, newClone)
       case DummyMove(_) => this
     }
 
@@ -464,6 +483,8 @@ case class GameState(
           case (s, effect @ EffectStatus.Frozen(untilTurn)) =>
             s.copy(_3 = (if (untilTurn == currentTurn) Nil else List(effect)) ++ s._3)
           case (s, effect @ EffectStatus.Enchanted(untilTurn)) =>
+            s.copy(_3 = (if (untilTurn == currentTurn) Nil else List(effect)) ++ s._3)
+          case (s, effect @ EffectStatus.WeakEnchanted(untilTurn)) =>
             s.copy(_3 = (if (untilTurn == currentTurn) Nil else List(effect)) ++ s._3)
           case (s, effect @ EffectStatus.Poison(turnOfDeath)) =>
             if (turnOfDeath == currentTurn) {

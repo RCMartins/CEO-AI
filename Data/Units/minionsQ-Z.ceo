@@ -429,6 +429,26 @@ Tiger+ 2
 ---
 JumpMinion 1
 --------------------
+Tiger++ 4
+---
+1 1 1
+ MNM
+1N@N1
+ MNM
+1 1 1
+---
+JumpMinion 1
+--------------------
+Tiger+++ 6
+---
+1 1 1
+ NNN
+1N@N1
+ NNN
+1 1 1
+---
+JumpMinion 1
+--------------------
 Undine 0
 ---
 MNM
