@@ -269,6 +269,45 @@ NNNN@NNNN
     N
 ---
 --------------------
+Demon+ 12
+---
+  T N T
+    N
+T  TNT  T
+  T N T
+NNNN@NNNN
+  T N T
+T  TNT  T
+    N
+  T N T
+---
+--------------------
+Demon++ 16
+---
+  T N T
+    N
+T  JNJ  T
+  J N J
+NNNN@NNNN
+  J N J
+T  JNJ  T
+    N
+  T N T
+---
+--------------------
+Demon+++ 18
+---
+  P N P
+    N
+P  SNS  P
+  S N S
+NNNN@NNNN
+  S N S
+P  SNS  P
+    N
+  P N P
+---
+--------------------
 Dragon 16
 ---
  JNJ
