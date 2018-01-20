@@ -35,8 +35,8 @@ class PlayUI() extends JFrame {
   }).start()
 
   final val GAME_TITLE = "Chess Evolved Online - Bot"
-  final val DEFAULT_WIDTH = 400
-  final val DEFAULT_HEIGHT = 800
+  final val DEFAULT_WIDTH = 250
+  final val DEFAULT_HEIGHT = 400
 
   def createAndShowGUI() {
     this.setSize(DEFAULT_WIDTH, DEFAULT_HEIGHT)
@@ -66,6 +66,11 @@ class PlayUI() extends JFrame {
         val button = new JButton("Correct!")
         button.setBackground(Color.decode("#32CD32"))
         button.addActionListener((_: ActionEvent) => {
+          val (image, pieceData, inWhiteSquare) = ImageLoader.imagesToConfirm.dequeue()
+          ImageLoader.addNewPieceName(image, pieceData.name, inWhiteSquare)
+          val allImagesToConfirm = ImageLoader.imagesToConfirm
+          ImageLoader.imagesToConfirm.clear()
+          ImageLoader.imagesToConfirm ++= allImagesToConfirm.filterNot(_._1 == image)
           component.requestFocusInWindow()
           component.repaint()
         })
@@ -77,12 +82,15 @@ class PlayUI() extends JFrame {
         val button = new JButton("Delete!")
         button.setBackground(Color.decode("#FF6347"))
         button.addActionListener((_: ActionEvent) => {
-          component.requestFocusInWindow()
-          component.repaint()
+          if (ImageLoader.imagesToConfirm.nonEmpty) {
+            ImageLoader.imagesToConfirm.dequeue()
+            component.requestFocusInWindow()
+            component.repaint()
+          }
         })
         buttonsPane.add(button)
       }
-      buttonsPane.add(Box.createRigidArea(new Dimension(0, 150)))
+      buttonsPane.add(Box.createRigidArea(new Dimension(0, 100)))
 
       {
         val button = new JButton("Write name")
@@ -151,36 +159,40 @@ class GameComponent(val playUI: PlayUI) extends JComponent with ComponentListene
     var x = 20
     var y = 0
 
-    ImageLoader.imagesToConfirm.foreach { case (pieceImage, pieceData) =>
-      g2.drawImage(pieceImage.bufferedImage, x, y, null)
-      g2.drawString(pieceData.name, x, y + 70)
-      x += 100
-    }
+        ImageLoader.imagesToConfirm.headOption.foreach { case (pieceImage, pieceData, _) =>
+          g2.drawImage(pieceImage.bufferedImage, x, y, null)
+          g2.drawString(pieceData.name, x, y + 75)
+          x += 80
+        }
+        ImageLoader.imagesToConfirm.drop(1).foreach { case (pieceImage, pieceData, _) =>
+          g2.drawImage(pieceImage.bufferedImage, x, y, null)
+          x += 80
+        }
 
-    x = 20
-    y = 200
-    var plusY = 60
-    var plusX = 60
-    ImageLoader.imagesUnknown.foreach { case (pieceImage, _) =>
-      g2.drawImage(pieceImage.bufferedImage, x, y, null)
-      y += plusY
-      x += plusX
-      plusY = Math.max(10, plusY - 10)
-      plusX = Math.max(10, plusX - 50)
-    }
+        x = 20
+        y = 150
+        var plusY = 60
+        var plusX = 60
+        ImageLoader.imagesUnknown.foreach { case (pieceImage, _) =>
+          g2.drawImage(pieceImage.bufferedImage, x, y, null)
+          y += plusY
+          x += plusX
+          plusY = Math.max(10, plusY - 10)
+          plusX = Math.max(10, plusX - 50)
+        }
 
     // Check all images:
-    //        x = 0
-    //        y = 0
-    //        ImageLoader.allPieceImages.toList.sortBy(_._2._1).map(_._1).foreach { pieceImage =>
-    //          g2.drawImage(pieceImage.bufferedImage, x, y, null)
-    //          if (x > 1400) {
-    //            x = 0
-    //            y += 60
-    //          } else {
-    //            x += 60
-    //          }
-    //        }
+//    x = 0
+//    y = 0
+//    ImageLoader.allPieceImages.toList.sortBy(_._2).map(_._1).foreach { pieceImage =>
+//      g2.drawImage(pieceImage.bufferedImage, x, y, null)
+//      if (x > 1500) {
+//        x = 0
+//        y += 30
+//      } else {
+//        x += 30
+//      }
+//    }
   }
 
   def componentHidden(e: ComponentEvent) {

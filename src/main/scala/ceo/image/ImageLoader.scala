@@ -14,13 +14,13 @@ object ImageLoader {
   val UNKNOWN_PIECE = "?"
 
   val backgroundImages: mutable.Set[(PieceImage, Option[PlayerTeam], Boolean)] = mutable.HashSet.empty
-  val allPieceImages: mutable.Map[PieceImage, (String /* piece name */ , String /* file of the image */ )] = mutable.HashMap.empty
+  val allPieceImages: mutable.Map[PieceImage, String /* piece name */ ] = mutable.HashMap.empty
   val pieceImagesByName: mutable.Map[
     String /* OfficialName_Team */ ,
     mutable.HashSet[PieceImage] /* Set of possible images */ ] = mutable.HashMap.empty
   val allBoardImageData: mutable.Map[String, BoardImageData] = mutable.HashMap.empty
 
-  val imagesToConfirm: mutable.Queue[(PieceImage, PieceData)] = mutable.Queue.empty
+  val imagesToConfirm: mutable.Queue[(PieceImage, PieceData, Boolean)] = mutable.Queue.empty
   val imagesUnknown: mutable.Queue[(PieceImage, Boolean)] = mutable.Queue.empty
 
   var whiteSquare: BufferedImage = null
@@ -78,6 +78,7 @@ object ImageLoader {
             case None => pieceImagesByName += "e" -> mutable.HashSet(currentImage)
             case Some(set) => set += currentImage
           }
+        case Some(piece) => throw new Exception("Unknown letter: " + piece.data.name)
         case _ =>
       }
     }
@@ -150,11 +151,11 @@ object ImageLoader {
           pieceImagesByName.get(pieceNameTeam) match {
             case None =>
               pieceImagesByName += pieceNameTeam -> mutable.HashSet(image)
-              allPieceImages += image -> (pieceNameTeam, imageFileName)
+              allPieceImages += image -> pieceNameTeam
             case Some(set) =>
               if (!set(image)) {
                 set += image
-                allPieceImages += image -> (pieceNameTeam, imageFileName)
+                allPieceImages += image -> pieceNameTeam
               }
           }
         }
@@ -168,11 +169,11 @@ object ImageLoader {
     if (file.isDirectory) {
       val allFilesSet = if (goRecursiveFolders) file.listFiles().toSet else file.listFiles().toSet.filter(_.isFile)
       val ceoFileNames = allFilesSet.map(_.getName).filter(_.endsWith(".png"))
-      val filesWithImagescreen = allFilesSet.map(_.getName).filter(name => name.endsWith(".ceo") && ceoFileNames.contains(name.stripSuffix("ceo") + "png"))
+      val filesWithImageScreen = allFilesSet.map(_.getName).filter(name => name.endsWith(".ceo") && ceoFileNames.contains(name.stripSuffix("ceo") + "png"))
 
       val allFiles = allFilesSet.map(file => file.getName -> file).toMap
 
-      filesWithImagescreen.map(allFiles).foreach(file =>
+      filesWithImageScreen.map(allFiles).foreach(file =>
         updatePieceImagesFromFiles(file, imageCutted = imageCutted, goRecursiveFolders = goRecursiveFolders))
 
       allBoardImageData.foreach { case (_, boardImageData) =>
@@ -205,7 +206,7 @@ object ImageLoader {
           new ImageBoardLoader(new File(file.getAbsolutePath.stripSuffix("ceo") + "png"))
 
       for (row <- 0 until 8; column <- 0 until 8) {
-        val maybeName: Option[(String, PieceData)] =
+        val maybeName: Option[PieceData] =
           state.board(row, column) match {
             case Some(piece) if piece.data.isUnknown =>
               None
@@ -214,29 +215,14 @@ object ImageLoader {
             case Some(piece) if piece.data.name.length == 1 =>
               ???
             case Some(piece) =>
-              Some(piece.data.toString, piece.data)
+              Some(piece.data)
             case None =>
               None
           }
 
-        maybeName.foreach { case (name, pieceData) =>
+        maybeName.foreach { pieceData =>
           val image = imageLoader.getImageAt(row, column)
-          pieceImagesByName.get(name) match {
-            case None =>
-              pieceImagesByName += name -> mutable.HashSet(image)
-              allPieceImages += image -> (name, fileName)
-            case Some(set) =>
-              if (!set(image)) {
-                set += image
-                allPieceImages += image -> (name, fileName)
-              }
-          }
-          val simpleName = pieceData.simpleName
-          val boardImageData =
-            allBoardImageData.getOrElseUpdate(simpleName, {
-              new BoardImageData(simpleName)
-            })
-          boardImageData.setImage(image, pieceData, BoardPos(row, column))
+          addNewPieceName(image, pieceData, BoardPos(row, column))
         }
       }
     }
@@ -274,7 +260,7 @@ object ImageLoader {
 
   def guessPieceName(pieceImage: PieceImage): (String, Double) = {
     allPieceImages.get(pieceImage) match {
-      case Some((pieceName, _)) =>
+      case Some(pieceName) =>
         (pieceName, 0.0)
       case None =>
         val sorted =
@@ -418,11 +404,38 @@ object ImageLoader {
     val List(namePartFull, team) = pieceNameFull.split("_").toList
     val simpleName = namePartFull.takeWhile(_ != '+')
     val tier = namePartFull.count(_ == '+')
+    pieceImagesByName.get(pieceNameFull) match {
+      case None =>
+        pieceImagesByName += pieceNameFull -> mutable.HashSet(pieceImage)
+      case Some(set) =>
+        if (!set(pieceImage))
+          set += pieceImage
+    }
+    allPieceImages += pieceImage -> pieceNameFull
     val boardImageData =
       allBoardImageData.getOrElseUpdate(simpleName, {
         new BoardImageData(simpleName)
       })
-    boardImageData.setImage(pieceImage, PlayerTeam.apply(team), inWhiteSquare, tier)
+    boardImageData.setImage(pieceImage, PlayerTeam(team), inWhiteSquare, tier)
+    boardImageData.saveToFile()
+  }
+
+  def addNewPieceName(pieceImage: PieceImage, pieceData: PieceData, boardPos: BoardPos): Unit = {
+    val name = pieceData.name
+    pieceImagesByName.get(name) match {
+      case None =>
+        pieceImagesByName += name -> mutable.HashSet(pieceImage)
+      case Some(set) =>
+        if (!set(pieceImage))
+          set += pieceImage
+    }
+    allPieceImages += pieceImage -> name
+    val simpleName = pieceData.simpleName
+    val boardImageData =
+      allBoardImageData.getOrElseUpdate(simpleName, {
+        new BoardImageData(simpleName)
+      })
+    boardImageData.setImage(pieceImage, pieceData, boardPos)
     boardImageData.saveToFile()
   }
 
@@ -460,7 +473,7 @@ object ImageLoader {
   def isAnEmptySquare(pieceImage: PieceImage, isInWhiteSquare: Boolean): Boolean = {
     val image = pieceImage.bufferedImage
     val background = if (isInWhiteSquare) whiteSquare else blackSquare
-    (for (y <- 44 until 47; x <- 27 until 30) yield (x, y)).exists { case (x, y) =>
+    (for (y <- 44 until 45; x <- 27 until 28) yield (x, y)).exists { case (x, y) =>
       image.getRGB(x, y) == background.getRGB(x, y)
     }
   }

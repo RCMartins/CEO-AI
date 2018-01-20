@@ -6,4 +6,6 @@ object Exceptions {
 
   class BoardStartsWithUnknownPieces(unknownPieces: List[Piece]) extends Exception
 
+  class AllPiecesAreKnown extends Exception
+
 }

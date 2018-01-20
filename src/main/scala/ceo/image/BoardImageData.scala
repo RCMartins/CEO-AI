@@ -70,7 +70,6 @@ class BoardImageData(pieceName: String) {
   }
 
   def setImage(pieceImage: PieceImage, pieceData: PieceData, boardPos: BoardPos): Unit = {
-
     val (rowImage, columnImage) = (pieceData.team, isBackgroundWhite(boardPos.row, boardPos.column)) match {
       case (Black, true) => (0, pieceData.tier * 2)
       case (Black, false) => (0, pieceData.tier * 2 + 1)

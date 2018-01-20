@@ -1,16 +1,19 @@
 package ceo.control
 
 import java.awt.Rectangle
+import java.awt.image.BufferedImage
 import java.io.{BufferedWriter, File, FileWriter}
 import java.text.SimpleDateFormat
 import java.util.Date
 
 import ceo.image.ImageLoader.ImageState
-import ceo.image.{ImageBoardLoader, ImageLoader, ImageUtils, Square}
-import ceo.menu.Exceptions.BoardStartsWithUnknownPieces
+import ceo.image._
+import ceo.menu.Exceptions.{AllPiecesAreKnown, BoardStartsWithUnknownPieces}
+import ceo.menu.{MenuControl, OathObjective}
+import ceo.play.PlayerTeam.White
 import ceo.play.{BoardPos, _}
 
-object MainControl {
+object MainControl { // use ui.MainPlayUI.main() instead!!!
 
   private val autoScreenFolder = new File("Images/auto-screen")
 
@@ -20,11 +23,7 @@ object MainControl {
   val sizeY = 650
 
   // private val strategy = Strategy.AlphaBetaPruning(5)
-  private val strategy = Strategy.AlphaBetaPruningIterativeDeepening
-
-  def main(args: Array[String]): Unit = {
-    start()
-  }
+  private val strategy = new Strategy.AlphaBetaPruningIterativeDeepening with ValueOfState.ImprovedHeuristic
 
   def start(): Unit = {
     ImageLoader.initialize()
@@ -34,24 +33,42 @@ object MainControl {
     val name = dateFormatter.format(submittedDateConvert)
     val gameFolder = new File(autoScreenFolder, name)
 
-    playTurn(gameFolder, None, false)
+    playTurn(gameFolder, None)
   }
 
-  def playTurn(gameFolder: File, gameState: Option[GameState], lastImageHadProblems: Boolean): Unit = {
+  def playTurn(gameFolder: File, gameState: Option[GameState]): Unit = {
     if (gameState.exists(_.winner != PlayerWinType.NotFinished)) {
       println("Game Over!")
       println("Result: " + gameState.get.winner)
     } else {
-      val screen = MouseControl.robot.createScreenCapture(new Rectangle(minX, minY, sizeX, sizeY))
 
-      ImageLoader.getPiecesFromUnknownBoard(screen) match {
+      def getScreen: BufferedImage = {
+        val screen = MouseControl.robot.createScreenCapture(new Rectangle(minX, minY, sizeX, sizeY))
+        val loader = new ImageBoardLoader(screen)
+        if (loader.isValid && loader.currentTeam == White) {
+          Thread.sleep(500)
+          val screenFinal = MouseControl.robot.createScreenCapture(new Rectangle(minX, minY, sizeX, sizeY))
+          if (new ImageBoardLoader(screen).isValid) {
+            screenFinal
+          } else {
+            println("Not in game screen anymore! waiting...")
+            Thread.sleep(500)
+            getScreen
+          }
+        } else {
+          getScreen
+        }
+      }
+
+      val currentScreen = getScreen
+      ImageLoader.getPiecesFromUnknownBoard(currentScreen) match {
         case None =>
           println("Board not found!")
         case Some(ImageState(PlayerTeam.Black, _, _, _)) =>
           println("Still in Black turn, waiting...")
-          // TODO use this information to detect errors in state update
+          // TODO use this information to detect errors in state update?
           Thread.sleep(500)
-          playTurn(gameFolder, gameState, false)
+          playTurn(gameFolder, gameState)
         case Some(ImageState(PlayerTeam.White, loader, pieceNames, lastMoveCoordinates)) =>
           val stateOption = ImageLoader.loadBoardFromPieceNamesNoFilter(pieceNames)
           if (gameState.isEmpty && stateOption.nonEmpty) {
@@ -84,6 +101,8 @@ object MainControl {
                 println(missingImages.mkString("\n"))
               } else {
                 println("All piece images necessary to start game, there can be promotions / charms / summons that are missing...")
+                if (MenuControl.oathObjective == OathObjective.EditArmyTesting)
+                  throw new AllPiecesAreKnown
               }
             }
           }
@@ -92,14 +111,15 @@ object MainControl {
           val submittedDateConvert = new Date()
           val name = dateFormatter.format(submittedDateConvert)
           gameFolder.mkdirs()
-          ImageUtils.writeImage(screen, new File(gameFolder, s"$name.png"))
+          ImageUtils.writeImage(currentScreen, new File(gameFolder, s"$name.png"))
 
           val checkEnemy =
             checkEnemyPlay(gameState, stateOption, lastMoveCoordinates, loader)
 
           if (gameState.isEmpty || checkEnemy.exists(_.allPieces.forall(!_.data.isUnknown))) {
             val startingState = checkEnemy.getOrElse(stateOption.get)
-            println(startingState.getBoardPieceNames)
+            startingState.movesHistory.headOption.foreach(move => println("Enemy move: " + move))
+            println(startingState)
             if (startingState.winner != PlayerWinType.NotFinished) {
               println("Game Over!")
               println("Result: " + startingState.winner)
@@ -107,17 +127,16 @@ object MainControl {
 
               val time = System.currentTimeMillis()
               val Some(stateAfter) = strategy.chooseMove(startingState)
+              println
               println(s"Turn calc time: ${System.currentTimeMillis() - time}")
               val move = stateAfter.movesHistory.head
 
-              println("Move done: " + move)
+              println("Move done: " + move.betterHumanString)
               println("Game should look like this:")
               println(stateAfter)
 
               val controllerMove = move.getControllerMove
               val (pos1, pos2) = controllerMove
-              println(controllerMove)
-
               val sq1 = loader.getSquare(pos1.row, pos1.column)
               val sq2 = loader.getSquare(pos2.row, pos2.column)
 
@@ -126,13 +145,20 @@ object MainControl {
               def toScreenY(sq: Square): Int = sq.getCenterY.toInt
 
               val (beforeX, beforeY) = MouseControl.getMousePosition
-              MouseControl.moveMouse(minX + toScreenX(sq1), minY + toScreenY(sq1))
-              Thread.sleep(10)
-              MouseControl.mouseDown()
-              Thread.sleep(10)
-              MouseControl.moveMouse(minX + toScreenX(sq2), minY + toScreenY(sq2))
-              Thread.sleep(10)
-              MouseControl.mouseUp()
+
+              def doMoveAction(): Unit = {
+                MouseControl.moveMouse(minX + toScreenX(sq1), minY + toScreenY(sq1))
+                Thread.sleep(5)
+                MouseControl.mouseDown()
+                Thread.sleep(5)
+                MouseControl.moveMouse(minX + toScreenX(sq2), minY + toScreenY(sq2))
+                Thread.sleep(5)
+                MouseControl.mouseUp()
+              }
+
+              doMoveAction()
+              Thread.sleep(5)
+              doMoveAction()
               MouseControl.moveMouse(beforeX, beforeY)
 
               if (stateAfter.winner != PlayerWinType.NotFinished) {
@@ -140,70 +166,25 @@ object MainControl {
                 println("Result: " + stateAfter.winner)
               } else {
                 Thread.sleep(3000)
-                playTurn(gameFolder, Some(stateAfter), false)
+                playTurn(gameFolder, Some(stateAfter))
               }
             }
           } else {
-            if (lastImageHadProblems) {
-              println("Board with problems:")
-              println(ImageLoader.pieceNamesPretty(pieceNames))
+            println("Board with problems:")
+            println(ImageLoader.pieceNamesPretty(pieceNames))
 
-              val file = new File(s"Images/auto-screen/$name.ceo")
-              val bw = new BufferedWriter(new FileWriter(file))
-              bw.write(ImageLoader.pieceNamesPretty(pieceNames))
-              bw.close()
-              System.exit(-1)
-              ???
-            } else {
-              println("Board with problems:")
-              println(ImageLoader.pieceNamesPretty(pieceNames))
-              println("Trying to take the print again...")
-              Thread.sleep(1000)
-              playTurn(gameFolder, gameState, true)
-            }
+            val file = new File(s"Images/auto-screen/errorImages/$name.ceo")
+            val bw = new BufferedWriter(new FileWriter(file))
+            bw.write(ImageLoader.pieceNamesPretty(pieceNames))
+            bw.close()
+
+            Util.Beep()
+            Thread.sleep(10000)
+            playTurn(gameFolder, gameState)
           }
       }
     }
   }
-
-  //  def checkEnemyPlay(
-  //    afterWhiteStateOption: Option[GameState],
-  //    afterBlackStateOption: Option[GameState],
-  //    lastMoveCoordinates: List[BoardPos]
-  //  ): Option[GameState] = {
-  //    (afterWhiteStateOption, afterBlackStateOption) match {
-  //      case (Some(afterWhiteState), Some(afterBlackState)) =>
-  //        val allPossibleMoves =
-  //          afterWhiteState.generateAllNextStates.filter {
-  //            nextGameState =>
-  //              1 == 1
-  //              val allSquares =
-  //                for (row <- 0 until 8; column <- 0 until 8) yield {
-  //                  (afterBlackState.board(row, column), nextGameState.board(row, column)) match {
-  //                    case (Some(piece), _) if piece.data.isUnknown =>
-  //                      val r = lastMoveCoordinates.contains(piece.pos)
-  //                      r
-  //                    case (Some(piece1), Some(piece2)) if piece1.data.name == piece2.data.name =>
-  //                      true
-  //                    case (None, None) =>
-  //                      true
-  //                    case _ =>
-  //                      false
-  //                  }
-  //                }
-  //              allSquares.forall(identity)
-  //          }
-  //        if (allPossibleMoves.lengthCompare(1) == 0)
-  //          allPossibleMoves.headOption
-  //        else {
-  //          System.err.println("Last black move has ambiguous!!!")
-  //          println(allPossibleMoves.map(_.movesHistory.head).mkString("\n"))
-  //          allPossibleMoves.headOption
-  //        }
-  //      case _ =>
-  //        None
-  //    }
-  //  }
 
   def checkEnemyPlay(
     afterWhiteStateOption: Option[GameState],
@@ -217,24 +198,49 @@ object MainControl {
         val allPossibleMoves =
           allNextStates.filter {
             nextGameState =>
-              1 == 1
-              val allSquares =
-                for (row <- 0 until 8; column <- 0 until 8) yield {
-                  (afterBlackState.board(row, column), nextGameState.board(row, column)) match {
-                    case (Some(piece), _) if piece.data.isUnknown =>
-                      true
-                    case (Some(piece1), Some(piece2)) if piece1.data.name == piece2.data.name =>
-                      true
-                    case (None, None) =>
-                      true
-                    case _ =>
-                      false
-                  }
-                }
-              allSquares.forall(identity)
+              val lastControllerMove = nextGameState.movesHistory.head.getControllerMove
+              val set = Set(lastControllerMove._1, lastControllerMove._2)
+              lastMoveCoordinates.forall(set.contains)
+            //              && {
+            //                val allSquares =
+            //                  for (row <- 0 until 8; column <- 0 until 8) yield {
+            //                    (afterBlackState.board(row, column), nextGameState.board(row, column)) match {
+            //                      case (Some(piece), _) if piece.data.isUnknown =>
+            //                        true
+            //                      case (Some(piece1), Some(piece2)) if piece1.data.name == piece2.data.name =>
+            //                        true
+            //                      case (None, None) =>
+            //                        true
+            //                      case _ =>
+            //                        false
+            //                    }
+            //                  }
+            //                allSquares.forall(identity)
+            //              }
           }
-        if (allPossibleMoves.lengthCompare(1) == 0)
-          allPossibleMoves.headOption
+        if (allPossibleMoves.lengthCompare(1) == 0) {
+          val result @ Some(onlyPossibleState) = allPossibleMoves.headOption
+
+          val problematicPositions =
+            BoardPos.allBoardPositions.collect {
+              case boardPos if {
+                val piece = boardPos.getPiece(afterBlackState.board)
+                piece.exists(_.data.isUnknown)
+              } => boardPos -> boardPos.getPiece(onlyPossibleState.board)
+            }
+          val newKnowledgePiecePositions = problematicPositions.toMap -- lastMoveCoordinates
+          if (newKnowledgePiecePositions.nonEmpty) {
+            newKnowledgePiecePositions.foreach {
+              case (BoardPos(row, column), Some(piece)) =>
+                val pieceImage = loader.getImageAt(row, column)
+                val inWhiteSquare = BoardImageData.isBackgroundWhite(row, column)
+                ImageLoader.imagesToConfirm.enqueue((pieceImage, piece.data, inWhiteSquare))
+              case _ => // ignore
+            }
+          }
+
+          result
+        }
         else {
           System.err.println("Last black move has ambiguous!!!")
           println(allPossibleMoves.map(_.movesHistory.head).mkString("\n"))
