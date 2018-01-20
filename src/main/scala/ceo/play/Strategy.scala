@@ -1,16 +1,20 @@
 package ceo.play
 
 import ceo.play.Util.random
+import ceo.play.Util.ValueOfStateMaxValue
+import ceo.play.PlayerTeam._
 
 import scala.collection.parallel.immutable.ParSeq
 
 trait Strategy {
   def chooseMove(gameState: GameState): Option[GameState]
+
+  def valueOfState(gameState: GameState, team: PlayerTeam): Int = gameState.defaultValueOfState(team)
 }
 
 object Strategy {
 
-  object oneMoveStrategy extends Strategy {
+  trait oneMoveStrategy extends Strategy {
     override def chooseMove(startingState: GameState): Option[GameState] = {
       val currentPlayer = startingState.getCurrentPlayer
       val moves = startingState.getCurrentPlayerMoves
@@ -19,7 +23,7 @@ object Strategy {
 
       val statesSorted =
         nextStates
-          .map(after => (after, GameState.compare(startingState, after, currentPlayer.team)))
+          .map(after => (after, valueOfState(after, currentPlayer.team)))
           .sortBy(-_._2)
 
       if (statesSorted.isEmpty)
@@ -33,27 +37,18 @@ object Strategy {
   }
 
   case class MinMaxStrategy(movesToLookAhead: Int) extends Strategy {
-    private val MaxValue = 1e9.toInt
 
     case class Node(state: GameState, nextStates: List[(Int, PlayerMove)], value: Int)
-
-    //    var countNodes = 0
-    //    var countBranches = 0
 
     override def chooseMove(startingState: GameState): Option[GameState] = {
       val currentPlayer = startingState.getCurrentPlayer.team
 
-      //      val levelsCount = Array.ofDim[Int](movesToLookAhead + 1)
-      //      var hit = 0
-
       def createTree(state: GameState, depth: Int, maximize: Boolean): Node = {
-        //        levelsCount(depth) += 1
-
         if (depth == 0 || state.winner != PlayerWinType.NotFinished) {
-          val value = state.valueOfState(currentPlayer)
-          if (value == MaxValue)
+          val value = valueOfState(state, currentPlayer)
+          if (value == ValueOfStateMaxValue)
             Node(state, Nil, value + depth)
-          else if (value == -MaxValue || value == -MaxValue / 2)
+          else if (value == -ValueOfStateMaxValue || value == -ValueOfStateMaxValue / 2)
             Node(state, Nil, value - depth)
           else
             Node(state, Nil, value)
@@ -62,15 +57,9 @@ object Strategy {
           val states = playerMoves.map(move => state.playPlayerMove(move, turnUpdate = true))
           if (states.isEmpty)
             println(state)
-          //          else if (depth == movesToLookAhead)
-          //            println("total: " + states.length)
 
           val subTrees = states
             .map(state => createTree(state, depth - 1, !maximize))
-
-          //          hit += 1
-          //          if (hit % 10000 == 0)
-          //            println(levelsCount.toList)
 
           val finalValue = if (maximize) subTrees.view.map(_.value).max else subTrees.view.map(_.value).min
           val nextStates =
@@ -98,7 +87,6 @@ object Strategy {
   }
 
   case class MinMaxStrategyPar(movesToLookAhead: Int) extends Strategy {
-    private val MaxValue = 1e9.toInt
 
     case class Node(state: GameState, nextStates: ParSeq[(Int, PlayerMove)], value: Int)
 
@@ -107,10 +95,10 @@ object Strategy {
 
       def createTree(state: GameState, depth: Int, maximize: Boolean): Node = {
         if (depth == 0 || state.winner != PlayerWinType.NotFinished) {
-          val value = state.valueOfState(currentPlayer)
-          if (value == MaxValue)
+          val value = valueOfState(state, currentPlayer)
+          if (value == ValueOfStateMaxValue)
             Node(state, ParSeq.empty, value + depth)
-          else if (value == -MaxValue || value == -MaxValue / 2)
+          else if (value == -ValueOfStateMaxValue || value == -ValueOfStateMaxValue / 2)
             Node(state, ParSeq.empty, value - depth)
           else
             Node(state, ParSeq.empty, value)
@@ -147,17 +135,15 @@ object Strategy {
   }
 
   case class AlphaBetaPruning(movesToLookAhead: Int) extends Strategy {
-    private val MaxValue = 1e9.toInt
-
     override def chooseMove(startingState: GameState): Option[GameState] = {
       val currentPlayer = startingState.getCurrentPlayer.team
 
       def createTree(state: GameState, depth: Int, maximize: Boolean, _alpha: Int, _beta: Int): (Int, Int) = {
         if (depth == 0 || state.winner != PlayerWinType.NotFinished) {
-          val value = state.valueOfState(currentPlayer)
-          if (value == MaxValue)
+          val value = valueOfState(state, currentPlayer)
+          if (value == ValueOfStateMaxValue)
             (value + depth, -1)
-          else if (value == -MaxValue || value == -MaxValue / 2)
+          else if (value == -ValueOfStateMaxValue || value == -ValueOfStateMaxValue / 2)
             (value - depth, -1)
           else
             (value, -1)
@@ -220,64 +206,53 @@ object Strategy {
     }
   }
 
-  case object AlphaBetaPruningIterativeDeepening extends Strategy {
-    private val MaxValue = 1e9.toInt
-
+  class AlphaBetaPruningIterativeDeepening extends Strategy {
     override def chooseMove(startingState: GameState): Option[GameState] = {
       val currentPlayer = startingState.getCurrentPlayer.team
 
       val playerMoves = startingState.getCurrentPlayerMoves
       val firstLevelStates = playerMoves.map(move => startingState.playPlayerMove(move, turnUpdate = true))
+      val firstLevelStatesSize = playerMoves.size.toDouble
+      val showAtIndex = if (firstLevelStatesSize <= 20) 1 else 2
 
       val startTime = System.currentTimeMillis()
       //      var continue = true
-      val timeLimit = 10000
+      val timeLimit = 15000
 
-      def createTreeFirstLevel(state: GameState, depth: Int, _alpha: Int, _beta: Int): Option[(Int, Int)] = {
-        if (depth == 0 || state.winner != PlayerWinType.NotFinished) {
-          val value = state.valueOfState(currentPlayer)
-          if (value == MaxValue)
-            Some((value + depth, -1))
-          else if (value == -MaxValue || value == -MaxValue / 2)
-            Some((value - depth, -1))
-          else
-            Some((value, -1))
-        } else {
-          val size = playerMoves.size.toDouble
-
-          def calcFinalValue(): Option[(Int, Int)] = {
-            var alpha = _alpha
-            var v = Int.MinValue
-            var bestIndex = -1
-            for (index <- firstLevelStates.indices) {
-              if (System.currentTimeMillis - startTime < timeLimit) {
-                val state = firstLevelStates(index)
-                printf("%.2f ", index / size)
-                val value = createTree(state, depth - 1, maximize = false, alpha, _beta)
-                if (value > v) {
-                  v = value
-                  bestIndex = index
-                }
-                alpha = Math.max(alpha, v)
-                if (_beta <= alpha)
-                  return Some((v, -1))
-              } else {
-                return None
+      def createTreeFirstLevel(state: GameState, depth: Int, _alpha: Int, _beta: Int): Option[(Int, Array[Int])] = {
+        def calcFinalValue(): Option[(Int, Array[Int])] = {
+          var alpha = _alpha
+          var v = Int.MinValue
+          val moveValues = Array.fill(playerMoves.size)(-1)
+          for (index <- firstLevelStates.indices) {
+            if (System.currentTimeMillis - startTime < timeLimit) {
+              val state = firstLevelStates(index)
+              if (index % showAtIndex == 0)
+                printf("%.2f ", index / firstLevelStatesSize)
+              val value = createTree(state, depth - 1, maximize = false, alpha, _beta)
+              if (value > v) {
+                v = value
+                moveValues(index) = v
               }
+              alpha = Math.max(alpha, v)
+              if (_beta <= alpha)
+                return Some((v, moveValues))
+            } else {
+              return None
             }
-            Some((v, bestIndex))
           }
-
-          calcFinalValue()
+          Some((v, moveValues))
         }
+
+        calcFinalValue()
       }
 
       def createTree(state: GameState, depth: Int, maximize: Boolean, _alpha: Int, _beta: Int): Int = {
         if (depth == 0 || state.winner != PlayerWinType.NotFinished) {
-          val value = state.valueOfState(currentPlayer)
-          if (value == MaxValue)
+          val value = valueOfState(state, currentPlayer)
+          if (value == ValueOfStateMaxValue)
             value + depth
-          else if (value == -MaxValue || value == -MaxValue / 2)
+          else if (value == -ValueOfStateMaxValue || value == -ValueOfStateMaxValue / 2)
             value - depth
           else
             value
@@ -324,17 +299,22 @@ object Strategy {
       var moveIndex: Int = -1
       var stop = false
 
+      val softTimeLimit: Int = (timeLimit * 0.4).toInt
       try {
         var currentDepth = 1
-        while (System.currentTimeMillis - startTime < timeLimit && !stop) {
+        while (System.currentTimeMillis - startTime < softTimeLimit && !stop) {
           print(s"Calculating depth $currentDepth: ")
-          createTreeFirstLevel(startingState, currentDepth, Int.MinValue, Int.MaxValue).foreach { result =>
-            value = result._1
-            if (value >= MaxValue || value <= -MaxValue)
-              stop = true
-            moveIndex = result._2
-            println(s" ${System.currentTimeMillis - startTime} - $value - ${firstLevelStates(moveIndex).movesHistory.head}")
-            currentDepth += 1
+          createTreeFirstLevel(startingState, currentDepth, Int.MinValue, Int.MaxValue).foreach {
+            case (levelBestValue, moveValues) =>
+              value = levelBestValue
+              if (value >= ValueOfStateMaxValue || value <= -ValueOfStateMaxValue)
+                stop = true
+              moveIndex = {
+                val bestMoves = moveValues.zipWithIndex.filter(_._1 == value)
+                bestMoves(random.nextInt(bestMoves.length))._2
+              }
+              println(" %6d   %6d   %s".format(System.currentTimeMillis - startTime, value, firstLevelStates(moveIndex).movesHistory.head))
+              currentDepth += 1
           }
         }
       } catch {
@@ -342,11 +322,56 @@ object Strategy {
           println("Finished calculating moves!")
       }
 
-      println("Total time: " + (System.currentTimeMillis - startTime))
-
       val endState = firstLevelStates(moveIndex)
       println((value, endState.movesHistory.head.betterHumanString))
       Some(endState)
+    }
+  }
+
+}
+
+object ValueOfState {
+
+  trait ImprovedHeuristic extends Strategy {
+    override def valueOfState(gameState: GameState, team: PlayerTeam): Int = {
+      gameState.winner match {
+        case PlayerWinType.NotFinished =>
+          def value(player: Player): Int = {
+            player.morale * 100 +
+              player.numberOfPieces * 10 +
+              (if (player.hasKing) 0 else -1000) + {
+              // poison heuristic:
+              player.piecesAffected.map(piece => piece.effectStatus.collectFirst {
+                case EffectStatus.Poison(turnOfDeath) =>
+                  val turnsLeft = gameState.currentTurn - turnOfDeath
+                  if (turnsLeft >= 1.5)
+                    -40 * piece.currentMorale
+                  else if (turnsLeft >= 0.5)
+                    -80 * piece.currentMorale
+                  else
+                    0
+              }.getOrElse(0)).sum + {
+                val dir = player.directionForward.rowDiff
+                player.allPieces.map(piece => if (piece.data.canMinionPromote) piece.pos.row * dir else 0).sum
+              }
+            }
+          }
+
+          val whitePoints = value(gameState.playerWhite)
+          val blackPoints = value(gameState.playerBlack)
+
+          //          team.chooseWhiteBlack(
+          //            (1000 * whitePoints) / blackPoints,
+          //            (1000 * blackPoints) / whitePoints
+          //          )
+          team.chooseWhiteBlack(
+            whitePoints - blackPoints,
+            blackPoints - whitePoints
+          )
+        case PlayerWinType.PlayerWhite => if (team == White) ValueOfStateMaxValue else -ValueOfStateMaxValue
+        case PlayerWinType.PlayerBlack => if (team == Black) ValueOfStateMaxValue else -ValueOfStateMaxValue
+        case PlayerWinType.Draw => -ValueOfStateMaxValue / 2
+      }
     }
   }
 

@@ -46,29 +46,36 @@ object Powers {
 
   case object OnEnemyDeathMovesForward extends Powers
 
+  case object CannotBeTargetedByMinions extends Powers
+
+  case object WispReflect extends Powers
+
+  case object OnChampionKillSwapEnemyKing extends Powers
+
+  case class OnKillPromoteToKing(moraleBonus: Int) extends Powers
+
   case class PromoteTo(pieceName: String) extends Powers
 
   case class OnAnyDeathPlayerChangeMorale(moraleAmount: Int) extends Powers
 
-  // TODO implement this
-  case class PieceChangeMoraleOnKill(moraleAmount: Int) extends Powers
+  case class OnKillPieceGainMorale(moraleAmount: Int) extends Powers
 
-  // TODO implement this
-  case class PlayerChangeMoraleOnKill(moraleAmount: Int) extends Powers
+  case class OnKillPlayerChangeMorale(moraleAmount: Int) extends Powers
+
+  case class OnDeathEnemyChangesMorale(moraleAmount: Int) extends Powers
 
   case class OnKillTransformInto(pieceName: String) extends Powers
 
-  case class PromoteOnSpellCastTo(pieceName: String) extends Powers
+  case class OnSpellCastPromoteTo(pieceName: String) extends Powers
 
   // TODO implement this
   case class DecayAfterTurn(turnStarts: Int, moralePerTurn: Int) extends Powers
 
   case class ImmuneTo(immuneList: List[EffectType]) extends Powers
 
-  // TODO do this validation
   case class DestroyedBy(destroyedBy: List[EffectType]) extends Powers
 
-  case class OnMeleeDeathSpawnPieces(distances: List[Distance], pieceName: String) extends Powers
+  case class OnMeleeDeathSpawnSlimes(distances: List[Distance], pieceName: String) extends Powers
 
   case class OnMeleeDeathKillAttackerFromPosition(distances: Set[Distance]) extends Powers
 
@@ -78,14 +85,17 @@ object Powers {
 
   case class TriggerWrathOnAdjacentAllyDeath(turnsToLightUpLocation: Int) extends Powers
 
-  //TODO implement this
   case class TriggerFrostMephit(freezeDuration: Int) extends Powers
 
   case class OnKillVampireAbility(moraleTakenFromEnemy: Int, moraleToKing: Int) extends Powers
 
+  case class OnMeleeDeathPoisonIfMoraleLess(maxMoraleToPoison: Int, turnsToDeath: Int) extends Powers
+
   case class BlockAttacksFrom(positionsToBlockAttacks: Set[Distance]) extends Powers
 
   case class OnMagicCastDecayTo(decayAmount: Int, limitToDevolve: Int, pieceName: String) extends Powers
+
+  case class HatchToPhoenixAt(moraleToPromote: Int, pieceName: String) extends Powers
 
   case class OnMagicCastDecayDeath(decayAmount: Int) extends Powers
 
@@ -96,6 +106,8 @@ object Powers {
   case class TriggerInstantKill(distance: Distance) extends Powers
 
   case class OnMeleeDeathTriggerRevive(distance: Distance, moraleMinimum: Int) extends Powers
+
+  case class OnDeathPhoenix(eggPieceName: String) extends Powers
 
   case class DummyNothingPower(letterOfMove: Char) extends MovePower {
     override def createMove(dist: Distance): Moves = DummyMove
@@ -130,7 +142,7 @@ object Powers {
   }
 
   case class RangedPushMovePower(letterOfMove: Char, moraleCost: Int, maxPushDistance: Int) extends MovePower {
-    override def createMove(dist: Distance): Moves = PushPiece(dist, moraleCost, maxPushDistance)
+    override def createMove(dist: Distance): Moves = RangedPushPiece(dist, moraleCost, maxPushDistance)
   }
 
   case class MagicPushFreezeMovePower(letterOfMove: Char, maxPushDistance: Int, freezeDuration: Int) extends MovePower {
@@ -167,6 +179,14 @@ object Powers {
 
   case class MagicEnvyCloneMovePower(letterOfMove: Char) extends MovePower {
     override def createMove(dist: Distance): Moves = MagicEnvyClone(dist)
+  }
+
+  case class MagicMeteorMovePower(letterOfMove: Char, moraleCost: Int, turnsToMeteor: Int, pushDistance: Int) extends MovePower {
+    override def createMove(dist: Distance): Moves = MagicMeteor(dist, moraleCost, turnsToMeteor, pushDistance)
+  }
+
+  case class MagicPushMovePower(letterOfMove: Char, moraleCost: Int, pushDistance: Int) extends MovePower {
+    override def createMove(dist: Distance): Moves = MagicPush(dist, moraleCost, pushDistance)
   }
 
   case class KingCastlingMovePowerComplete(lettersOfMoves: List[Char]) extends MovePowerComplete {
@@ -206,9 +226,9 @@ object Powers {
     }
   }
 
-  case class OnMeleeDeathSpawnPiecesPositionalPower(letterOfMove: Char, allyPieceName: String) extends PositionalPower {
+  case class OnMeleeDeathSpawnSlimesPositionalPower(letterOfMove: Char, allyPieceName: String) extends PositionalPower {
     def createPowers(distances: Map[Char, List[Distance]]): List[Powers] =
-      List(OnMeleeDeathSpawnPieces(distances.values.flatten.toList, allyPieceName))
+      List(OnMeleeDeathSpawnSlimes(distances.values.flatten.toList, allyPieceName))
   }
 
   case class OnMeleeDeathKillAttackerPositionalPower(letterOfMove: Char) extends PositionalPower {

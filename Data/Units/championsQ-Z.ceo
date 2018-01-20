@@ -228,6 +228,38 @@ TS111ST
 ---
 MagicTransformIntoAlly 1 1 Ghost
 --------------------
+StoneMage 5
+---
+ 1S1
+PS@SP
+ 1S1
+---
+MagicStonePillar 1 1 4
+--------------------
+StoneMage+ 9
+---
+ 11S11
+PPS@SPP
+ 11S11
+---
+MagicStonePillar 1 1 4
+--------------------
+StoneMage++ 12
+---
+ 111S111
+PPPS@SPPP
+ 111S111
+---
+MagicStonePillar 1 1 4
+--------------------
+StoneMage+++ 15
+---
+ 1111S1111
+PPPPS@SPPPP
+ 1111S1111
+---
+MagicStonePillar 1 1 4
+--------------------
 Taurus 6
 ---
    1
@@ -461,6 +493,82 @@ N1N1N
 ---
 MagicPushFreeze 1 1 2
 OnMagicCastDecayDeath 1
+--------------------
+WindMage 7
+---
+1T1T1
+TNNNT
+1N@N1
+TNNNT
+1T1T1
+---
+MagicPush 1 1 3
+--------------------
+WindMage+ 8
+---
+   1
+ 1T1T1
+ TNSNT
+11S@S11
+ TNSNT
+ 1T1T1
+   1
+---
+MagicPush 1 1 3
+--------------------
+WindMage++ 9
+---
+1  1  1
+ 1T1T1
+ TSSST
+11S@S11
+ TSSST
+ 1T1T1
+1  1  1
+---
+MagicPush 1 1 3
+--------------------
+WindMage+++ 10
+---
+    1
+ 1  1  1
+  1P1P1
+  PSSSP
+111S@S111
+  PSSSP
+  1P1P1
+ 1  1  1
+    1
+---
+MagicPush 1 1 3
+--------------------
+Wisp 4
+---
+TTTTTTT
+TTTTTTT
+TTTTTTT
+TTT@TTT
+TTTTTTT
+TTTTTTT
+TTTTTTT
+---
+WispReflect
+--------------------
+Wisp+ 5
+---
+TTTTTTTTTTT
+TTTTTTTTTTT
+TTTTTTTTTTT
+TTTTTTTTTTT
+TTTTTTTTTTT
+TTTTT@TTTTT
+TTTTTTTTTTT
+TTTTTTTTTTT
+TTTTTTTTTTT
+TTTTTTTTTTT
+TTTTTTTTTTT
+---
+WispReflect
 --------------------
 Wizard 13
 ---

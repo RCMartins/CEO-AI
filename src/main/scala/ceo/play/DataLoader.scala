@@ -96,9 +96,10 @@ object DataLoader {
       val name_white = pieceName + "_" + White
       val name_black = pieceName + "_" + Black
       val isMinion = fileName.startsWith("minions")
+      val isChampion = fileName.startsWith("champions") && !pieceName.startsWith("King")
       Seq(
-        PieceData(name_white, isMinion, morale.toInt, movesBottomTop, powers ++ extraPowersWhite, White),
-        PieceData(name_black, isMinion, morale.toInt, movesTopBottom, powers ++ extraPowersBlack, Black)
+        PieceData(name_white, isMinion, isChampion, morale.toInt, movesBottomTop, powers ++ extraPowersWhite, White),
+        PieceData(name_black, isMinion, isChampion, morale.toInt, movesTopBottom, powers ++ extraPowersBlack, Black)
       )
     }
   }
@@ -201,6 +202,14 @@ object DataLoader {
         Powers.OnMagicVanish
       case "OnEnemyDeathMovesForward" =>
         Powers.OnEnemyDeathMovesForward
+      case "OnMoveAdjacentHoplitesMove" =>
+        Powers.OnMoveAdjacentHoplitesMove
+      case "CannotBeTargetedByMinions" =>
+        Powers.CannotBeTargetedByMinions
+      case "WispReflect" =>
+        Powers.WispReflect
+      case "OnChampionKillSwapEnemyKing" =>
+        Powers.OnChampionKillSwapEnemyKing
       // 1-arg Powers:
       case str if str.startsWith("DummyNothingPower ") =>
         Powers.DummyNothingPower(getLetter(str.drop("DummyNothingPower ".length)))
@@ -210,18 +219,18 @@ object DataLoader {
         Powers.PromoteTo(pieceToCheck)
       case str if str.startsWith("OnAnyDeathPlayerChangeMorale ") =>
         Powers.OnAnyDeathPlayerChangeMorale(str.drop("OnAnyDeathPlayerChangeMorale ".length).toInt)
-      case str if str.startsWith("PieceChangeMoraleOnKill ") =>
-        Powers.PieceChangeMoraleOnKill(str.drop("PieceChangeMoraleOnKill ".length).toInt)
-      case str if str.startsWith("PlayerChangeMoraleOnKill ") =>
-        Powers.PlayerChangeMoraleOnKill(str.drop("PlayerChangeMoraleOnKill ".length).toInt)
+      case str if str.startsWith("OnKillPieceGainMorale ") =>
+        Powers.OnKillPieceGainMorale(str.drop("OnKillPieceGainMorale ".length).toInt)
+      case str if str.startsWith("OnKillPlayerChangeMorale ") =>
+        Powers.OnKillPlayerChangeMorale(str.drop("OnKillPlayerChangeMorale ".length).toInt)
       case str if str.startsWith("OnKillTransformInto ") =>
         val pieceToCheck = str.drop("OnKillTransformInto ".length)
         piecesToCheck = pieceToCheck :: piecesToCheck
         Powers.OnKillTransformInto(pieceToCheck)
-      case str if str.startsWith("PromoteOnSpellCastTo ") =>
-        val pieceToCheck = str.drop("PromoteOnSpellCastTo ".length)
+      case str if str.startsWith("OnSpellCastPromoteTo ") =>
+        val pieceToCheck = str.drop("OnSpellCastPromoteTo ".length)
         piecesToCheck = pieceToCheck :: piecesToCheck
-        Powers.PromoteOnSpellCastTo(pieceToCheck)
+        Powers.OnSpellCastPromoteTo(pieceToCheck)
       case str if str.startsWith("TriggerWrathOnAdjacentAllyDeath ") =>
         Powers.TriggerWrathOnAdjacentAllyDeath(str.drop("TriggerWrathOnAdjacentAllyDeath ".length).toInt)
       case str if str.startsWith("BeginsGameEnchanted ") =>
@@ -232,6 +241,14 @@ object DataLoader {
         Powers.OnDeathEnchantAdjacentChampions(str.drop("OnDeathEnchantAdjacentChampions ".length).toInt)
       case str if str.startsWith("OnDeathEnchantGlobalMinions ") =>
         Powers.OnDeathEnchantGlobalMinions(str.drop("OnDeathEnchantGlobalMinions ".length).toInt)
+      case str if str.startsWith("OnDeathEnemyChangesMorale ") =>
+        Powers.OnDeathEnemyChangesMorale(str.drop("OnDeathEnemyChangesMorale ".length).toInt)
+      case str if str.startsWith("OnDeathPhoenix ") =>
+        val pieceName = str.drop("OnDeathPhoenix ".length)
+        piecesToCheck = pieceName :: piecesToCheck
+        Powers.OnDeathPhoenix(pieceName)
+      case str if str.startsWith("OnKillPromoteToKing ") =>
+        Powers.OnKillPromoteToKing(str.drop("OnKillPromoteToKing ".length).toInt)
       // Multiple-arg Powers:
       case str if str.startsWith("DecayAfterTurn ") =>
         val List(turnStarts, moralePerTurn) = str.drop("DecayAfterTurn ".length).split(" ").toList
@@ -249,6 +266,13 @@ object DataLoader {
         val List(decayAmount, limitToDevolve, pieceName) = str.drop("OnMagicCastDecayTo ".length).split(" ").toList
         piecesToCheck = pieceName :: piecesToCheck
         Powers.OnMagicCastDecayTo(decayAmount.toInt, limitToDevolve.toInt, pieceName)
+      case str if str.startsWith("HatchToPhoenixAt ") =>
+        val List(moraleToPromote, pieceName) = str.drop("HatchToPhoenixAt ".length).split(" ").toList
+        piecesToCheck = pieceName :: piecesToCheck
+        Powers.HatchToPhoenixAt(moraleToPromote.toInt, pieceName)
+      case str if str.startsWith("OnMeleeDeathPoisonIfMoraleLess ") =>
+        val List(maxMoraleToPoison, turnsToDeath) = str.drop("OnMeleeDeathPoisonIfMoraleLess ".length).split(" ").toList
+        Powers.OnMeleeDeathPoisonIfMoraleLess(maxMoraleToPoison.toInt, turnsToDeath.toInt)
       // Move Powers:
       case str if str.startsWith("MagicDestroy ") =>
         Powers.MagicDestroyMovePower(getLetter(str.drop("MagicDestroy ".length)))
@@ -270,8 +294,8 @@ object DataLoader {
       case str if str.startsWith("MagicCharmMinion ") =>
         Powers.MagicCharmMinionMovePower(getLetter(str.drop("MagicCharmMinion ".length)))
       case str if str.startsWith("RangedPush ") =>
-        val List(letterStr, moraleCost, maxPushDistance) = str.drop("RangedPush ".length).split(" ").toList
-        Powers.RangedPushMovePower(getLetter(letterStr), moraleCost.toInt, maxPushDistance.toInt)
+        val List(letterStr, moraleCost, pushDistance) = str.drop("RangedPush ".length).split(" ").toList
+        Powers.RangedPushMovePower(getLetter(letterStr), moraleCost.toInt, pushDistance.toInt)
       case str if str.startsWith("MagicPushFreeze ") =>
         val List(letterStr, maxPushDistance, freezeDuration) = str.drop("MagicPushFreeze ".length).split(" ").toList
         Powers.MagicPushFreezeMovePower(getLetter(letterStr), maxPushDistance.toInt, freezeDuration.toInt)
@@ -299,6 +323,12 @@ object DataLoader {
         Powers.MagicWeakEnchantMovePower(getLetter(letterStr), durationTurns.toInt)
       case str if str.startsWith("MagicEnvyClone ") =>
         Powers.MagicEnvyCloneMovePower(getLetter(str.drop("MagicEnvyClone ".length)))
+      case str if str.startsWith("MagicMeteor ") =>
+        val List(letterStr, moraleCost, turnsToMeteor, pushDistance) = str.drop("MagicMeteor ".length).split(" ").toList
+        Powers.MagicMeteorMovePower(getLetter(letterStr), moraleCost.toInt, turnsToMeteor.toInt, pushDistance.toInt)
+      case str if str.startsWith("MagicPush ") =>
+        val List(letterStr, moraleCost, pushDistance) = str.drop("MagicPush ".length).split(" ").toList
+        Powers.MagicPushMovePower(getLetter(letterStr), moraleCost.toInt, pushDistance.toInt)
       // Move Power Complete:
       case str if str.startsWith("KingCastling ") =>
         Powers.KingCastlingMovePowerComplete(str.drop("KingCastling ".length).split(" ").toList.map(getLetter))
@@ -310,10 +340,10 @@ object DataLoader {
         val List(moveOrAttack, attack, untilTurn) = str.drop("PatienceCannotAttackBeforeTurn ".length).split(" ").toList
         Powers.PatienceCannotAttackBeforeTurnMovePowerComplete(List(getLetter(moveOrAttack), getLetter(attack)), untilTurn.toInt)
       // Positional Powers:
-      case str if str.startsWith("OnMeleeDeathSpawnPieces ") =>
-        val List(letterStr, pieceToCheck) = str.drop("OnMeleeDeathSpawnPieces ".length).split(" ").toList
+      case str if str.startsWith("OnMeleeDeathSpawnSlimes ") =>
+        val List(letterStr, pieceToCheck) = str.drop("OnMeleeDeathSpawnSlimes ".length).split(" ").toList
         piecesToCheck = pieceToCheck :: piecesToCheck
-        Powers.OnMeleeDeathSpawnPiecesPositionalPower(getLetter(letterStr), pieceToCheck)
+        Powers.OnMeleeDeathSpawnSlimesPositionalPower(getLetter(letterStr), pieceToCheck)
       case str if str.startsWith("OnMeleeDeathKillAttackerPosition ") =>
         Powers.OnMeleeDeathKillAttackerPositionalPower(getLetter(str.drop("OnMeleeDeathKillAttackerPosition ".length)))
       case str if str.startsWith("TriggerGuardian ") =>

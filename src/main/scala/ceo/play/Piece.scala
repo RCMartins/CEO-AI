@@ -1,6 +1,5 @@
 package ceo.play
 
-import ceo.play.EffectStatus._
 import ceo.play.Powers._
 
 case class Piece(
@@ -15,6 +14,7 @@ case class Piece(
   }
 
   def onSuicide(state: GameState): GameState = {
+    // TODO I think dove power triggers on this!
     state
   }
 
@@ -80,19 +80,19 @@ case class Piece(
     //        //        }
     //      }
 
-    val updatedState1 =
-      DynamicRunner.foldLeft(startingState, pieceToKill, pieceToKill.data.afterAnyDeathRunners)
+    val (updatedState1, updatedPiece1) =
+      DynamicRunner.foldLeft((startingState, Some(this)), pieceToKill, pieceToKill.data.afterAnyDeathRunners)
 
-    val (updatedState2, updatedPiece1) =
-      DynamicRunner.foldLeft((updatedState1, Some(this)), (this, pieceToKill), pieceToKill.data.afterMeleeDeathRunners)
+    val (updatedState2, updatedPiece2) =
+      DynamicRunner.foldLeft((updatedState1, updatedPiece1), (this, pieceToKill), pieceToKill.data.afterMeleeDeathRunners)
 
-    val (updatedState3, updatedPiece2) =
-      DynamicRunner.foldLeft((updatedState2, updatedPiece1), pieceToKill, data.afterKillRunners)
+    val (updatedState3, updatedPiece3) =
+      DynamicRunner.foldLeft((updatedState2, updatedPiece2), pieceToKill, data.afterKillRunners)
 
     val updatedState4 =
       DynamicRunner.foldLeft(updatedState3, pieceToKill, updatedState3.gameRunner.globalPieceDeathRunners)
 
-    updatedPiece2 match {
+    updatedPiece3 match {
       case None =>
         (updatedState4, None)
       case Some(finalPiece) =>
@@ -102,24 +102,24 @@ case class Piece(
   }
 
   def afterMagicKill(startingState: GameState, pieceToKill: Piece): (GameState, Option[Piece]) = {
-    val updatedState1 =
-      DynamicRunner.foldLeft(startingState, pieceToKill, pieceToKill.data.afterAnyDeathRunners)
+    val (updatedState1, updatedPiece1) =
+      DynamicRunner.foldLeft((startingState, Some(this)), pieceToKill, pieceToKill.data.afterAnyDeathRunners)
 
-    val (updatedState2, updatedPiece) =
-      DynamicRunner.foldLeft((updatedState1, Some(this)), pieceToKill, data.afterKillRunners)
+    val (updatedState2, updatedPiece2) =
+      DynamicRunner.foldLeft((updatedState1, updatedPiece1), pieceToKill, data.afterKillRunners)
 
     val updatedState3 =
       DynamicRunner.foldLeft(updatedState2, pieceToKill, updatedState2.gameRunner.globalPieceDeathRunners)
 
-    updatedPiece match {
+    updatedPiece2 match {
       case Some(piece) => piece.afterMagicCast(updatedState3)
       case None => (updatedState3, None)
     }
   }
 
   def afterPoisonDeath(startingState: GameState): GameState = {
-    val updatedState1 =
-      DynamicRunner.foldLeft(startingState, this, data.afterAnyDeathRunners)
+    val (updatedState1, _) =
+      DynamicRunner.foldLeft((startingState, None), this, data.afterAnyDeathRunners)
 
     val updatedState2 =
       DynamicRunner.foldLeft(updatedState1, this, updatedState1.gameRunner.globalPieceDeathRunners)
@@ -127,22 +127,68 @@ case class Piece(
     updatedState2
   }
 
-  def afterPoisonPiece(pieceToPoison: Piece, turnsToDeath: Int, currentState: GameState): (GameState, Piece, Piece) = {
-    val turnOfDeath = currentState.currentTurn + turnsToDeath
-    (currentState, this, pieceToPoison.addEffect(EffectStatus.Poison(turnOfDeath)))
+  def poisonPiece(
+    currentState: GameState,
+    pieceToPoison: Piece,
+    turnsToDeath: Int
+  ): (Option[Piece] /* attacker piece updated */ , Option[Piece] /* affected piece updated */ ) = {
+    val effectStatus = EffectStatus.Poison(currentState.currentTurn + turnsToDeath)
+    applyStatusEffectToPiece(currentState, pieceToPoison, effectStatus)
   }
 
-  def petrify(currentState: GameState, turnsPetrified: Int): Piece =
-    addEffect(Petrified(currentState.currentTurn + turnsPetrified))
+  def petrifyPiece(
+    currentState: GameState,
+    pieceToPetrify: Piece,
+    turnsPetrified: Int
+  ): (Option[Piece] /* attacker piece updated */ , Option[Piece] /* affected piece updated */ ) = {
+    val effectStatus = EffectStatus.Petrified(currentState.currentTurn + turnsPetrified)
+    applyStatusEffectToPiece(currentState, pieceToPetrify, effectStatus)
+  }
 
-  def freeze(currentState: GameState, turnsFrozen: Int): Piece =
-    addEffect(Frozen(currentState.currentTurn + turnsFrozen))
+  def freezePiece(
+    currentState: GameState,
+    pieceToFreeze: Piece,
+    turnsFrozen: Int
+  ): (Option[Piece] /* attacker piece updated */ , Option[Piece] /* affected piece updated */ ) = {
+    val effectStatus = EffectStatus.Frozen(currentState.currentTurn + turnsFrozen)
+    applyStatusEffectToPiece(currentState, pieceToFreeze, effectStatus)
+  }
 
-  def enchant(currentState: GameState, turnsEnchanted: Int): Piece =
-    addEffect(Enchanted(currentState.currentTurn + turnsEnchanted))
+  def enchantPiece(
+    currentState: GameState,
+    pieceToEnchant: Piece,
+    turnsEnchanted: Int
+  ): (Option[Piece] /* attacker piece updated */ , Option[Piece] /* affected piece updated */ ) = {
+    val effectStatus = EffectStatus.Enchanted(currentState.currentTurn + turnsEnchanted)
+    applyStatusEffectToPiece(currentState, pieceToEnchant, effectStatus)
+  }
 
-  def weakEnchant(currentState: GameState, turnsWeakEnchanted: Int): Piece =
-    addEffect(WeakEnchanted(currentState.currentTurn + turnsWeakEnchanted))
+  def weakEnchantPiece(
+    currentState: GameState,
+    pieceToWeakEnchant: Piece,
+    turnsWeakEnchanted: Int
+  ): (Option[Piece] /* attacker piece updated */ , Option[Piece] /* affected piece updated */ ) = {
+    val effectStatus = EffectStatus.WeakEnchanted(currentState.currentTurn + turnsWeakEnchanted)
+    applyStatusEffectToPiece(currentState, pieceToWeakEnchant, effectStatus)
+  }
+
+  private def applyStatusEffectToPiece(
+    currentState: GameState,
+    pieceToAffect: Piece,
+    effectStatus: EffectStatus
+  ): (Option[Piece] /* attacker piece updated */ , Option[Piece] /* affected piece updated */ ) = {
+    val updatedPieceToPoison: Option[Piece] =
+      if (pieceToAffect.data.isDestroyedBy(EffectType.Poison)) {
+        None
+      } else {
+        Some(pieceToAffect.addEffect(effectStatus))
+      }
+
+    val updatedAttackerPiece =
+      DynamicRunner.foldLeft(Some(this), (currentState, effectStatus), pieceToAffect.data.attackerUsesStatusEffectRunners)
+
+    (updatedAttackerPiece, updatedPieceToPoison)
+  }
 
   def swapTeams: Piece =
     copy(data = DataLoader.getPieceData(data.officialName, team.enemy))

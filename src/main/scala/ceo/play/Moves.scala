@@ -25,7 +25,9 @@ object Moves {
     piece.pos.allPosUntilAreEmptyOrGhost(target, state.board) && target.isValid && target.getPiece(state.board).isEmpty
   }
 
-  @inline def generalCanTargetEnemy(piece: Piece, targetPiece: Piece): Boolean = !targetPiece.data.isKing || !piece.isWeakEnchanted
+  @inline def generalCanTargetEnemy(piece: Piece, targetPiece: Piece): Boolean =
+    (!targetPiece.data.isKing || !piece.isWeakEnchanted) &&
+      (!targetPiece.data.cannotBeTargetedByMinions || !piece.data.isMinion)
 
   private def canMove(piece: Piece, target: BoardPos, state: GameState): Option[PlayerMove.Move] = {
     if (piece.pos.allPosUntilAreEmptyOrGhost(target, state.board) && target.isEmpty(state.board))
@@ -256,7 +258,7 @@ object Moves {
     }
   }
 
-  private def canPushFreeze(
+  private def canMagicPushFreeze(
     piece: Piece,
     target: BoardPos,
     maxPushDistance: Int,
@@ -264,7 +266,11 @@ object Moves {
     state: GameState
   ): Option[PlayerMove] = {
     target.getPiece(state.board) match {
-      case Some(targetPiece) if targetPiece.team != piece.team && generalCanTargetEnemy(piece, targetPiece) =>
+      case Some(targetPiece) if {
+        targetPiece.team != piece.team &&
+          !targetPiece.data.isImmuneTo(EffectType.Magic) &&
+          generalCanTargetEnemy(piece, targetPiece)
+      } =>
         (!targetPiece.data.isImmuneTo(EffectType.Freeze), {
           val dirDist = targetPiece.pos - piece.pos
           val absRow = Math.abs(dirDist.rowDiff)
@@ -282,7 +288,7 @@ object Moves {
           case (true, true) =>
             Some(PlayerMove.MagicPushFreeze(piece, targetPiece, maxPushDistance, freezeDuration))
           case (false, true) =>
-            Some(PlayerMove.MagicPush(piece, targetPiece, maxPushDistance))
+            Some(PlayerMove.MagicPush(piece, targetPiece, 0, maxPushDistance))
           case (true, false) =>
             Some(PlayerMove.MagicFreeze(piece, targetPiece, freezeDuration))
           case _ =>
@@ -293,7 +299,7 @@ object Moves {
     }
   }
 
-  private def canFreeze(
+  private def canMagicFreeze(
     piece: Piece,
     target: BoardPos,
     freezeDuration: Int,
@@ -303,9 +309,34 @@ object Moves {
       case Some(targetPiece) if {
         targetPiece.team != piece.team &&
           !targetPiece.data.isImmuneTo(EffectType.Freeze) &&
+          !targetPiece.data.isImmuneTo(EffectType.Magic) &&
           generalCanTargetEnemy(piece, targetPiece)
       } =>
         Some(PlayerMove.MagicFreeze(piece, targetPiece, freezeDuration))
+      case _ =>
+        None
+    }
+  }
+
+  private def canMagicPush(
+    piece: Piece,
+    target: BoardPos,
+    moraleCost: Int,
+    maxPushDistance: Int,
+    state: GameState
+  ): Option[PlayerMove] = {
+    target.getPiece(state.board) match {
+      case Some(targetPiece) if {
+        targetPiece.team != piece.team &&
+          !targetPiece.data.isImmuneTo(EffectType.Displacement) &&
+          !targetPiece.data.isImmuneTo(EffectType.Magic) &&
+          generalCanTargetEnemy(piece, targetPiece)
+      } =>
+        val dir = (targetPiece.pos - piece.pos).toUnitVector
+        if ((targetPiece.pos + dir).isEmpty(state.board))
+          Some(PlayerMove.MagicPush(piece, targetPiece, moraleCost, maxPushDistance))
+        else
+          None
       case _ =>
         None
     }
@@ -485,7 +516,7 @@ object Moves {
     }
   }
 
-  case class PushPiece(dist: Distance, moraleCost: Int, pushDistance: Int) extends SingleMove {
+  case class RangedPushPiece(dist: Distance, moraleCost: Int, pushDistance: Int) extends SingleMove {
     def getValidMove(piece: Piece, state: GameState, currentPlayer: Player): Option[PlayerMove] = {
       canRangedPush(piece, piece.pos + dist, moraleCost, pushDistance, state)
     }
@@ -500,7 +531,7 @@ object Moves {
 
   case class MagicPushFreezePiece(dist: Distance, maxPushDistance: Int, freezeDuration: Int) extends SingleMove {
     def getValidMove(piece: Piece, state: GameState, currentPlayer: Player): Option[PlayerMove] = {
-      canPushFreeze(piece, piece.pos + dist, maxPushDistance, freezeDuration, state)
+      canMagicPushFreeze(piece, piece.pos + dist, maxPushDistance, freezeDuration, state)
     }
   }
 
@@ -529,7 +560,7 @@ object Moves {
 
   case class MagicFreezePiece(dist: Distance, freezeDuration: Int) extends SingleMove {
     def getValidMove(piece: Piece, state: GameState, currentPlayer: Player): Option[PlayerMove] = {
-      canFreeze(piece, piece.pos + dist, freezeDuration, state)
+      canMagicFreeze(piece, piece.pos + dist, freezeDuration, state)
     }
   }
 
@@ -616,6 +647,23 @@ object Moves {
         case _ =>
           None
       }
+    }
+  }
+
+  case class MagicMeteor(dist: Distance, moraleCost: Int, turnsToMeteor: Int, pushDistance: Int) extends SingleMove {
+    def getValidMove(piece: Piece, state: GameState, currentPlayer: Player): Option[PlayerMove] = {
+      val target = piece.pos + dist
+      if (state.boardEffects.collectFirst { case BoardEffect.Meteor(pos, _, _) if pos == target => () }.isEmpty) {
+        Some(PlayerMove.MagicMeteor(piece, target, moraleCost, turnsToMeteor, pushDistance))
+      } else {
+        None
+      }
+    }
+  }
+
+  case class MagicPush(dist: Distance, moraleCost: Int, pushDistance: Int) extends SingleMove {
+    def getValidMove(piece: Piece, state: GameState, currentPlayer: Player): Option[PlayerMove] = {
+      canMagicPush(piece, piece.pos + dist, moraleCost, pushDistance, state)
     }
   }
 

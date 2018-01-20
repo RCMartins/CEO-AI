@@ -90,8 +90,29 @@ MN@NM
  1N1
   M
 ---
-// TODO add a conditional to this ability: "if GiantSlime is Frozen or Petrified this ability cannot activate"
-OnMeleeDeathSpawnPieces 1 Slime
+OnMeleeDeathSpawnSlimes 1 Slime
+--------------------
+GiantSlime+ 8
+---
+  N
+  N
+NN@NN
+ 1N1
+  N
+---
+OnMeleeDeathSpawnSlimes 1 Slime
+--------------------
+GiantSlime++ 10
+---
+   M
+   N
+   N
+MNN@NNM
+  1N1
+   N
+   M
+---
+OnMeleeDeathSpawnSlimes 1 Slime
 --------------------
 GiantSlime+++ 12
 ---
@@ -103,8 +124,7 @@ NNN@NNN
    N
    N
 ---
-// TODO add a conditional to this ability: "if GiantSlime is Frozen or Petrified this ability cannot activate"
-OnMeleeDeathSpawnPieces 1 Slime
+OnMeleeDeathSpawnSlimes 1 Slime
 --------------------
 Guardian 7
 ---
@@ -165,6 +185,156 @@ MMMMMN@NMMMMM
 M     M     M
 ---
 TriggerGuardian 1
+--------------------
+Harpy 11
+---
+    N
+ TT N TT
+ TT N TT
+   N1N
+NNN1@1NNN
+   N1N
+ TT N TT
+ TT N TT
+    N
+---
+RangedPush 1 1 3
+--------------------
+Harpy+ 12
+---
+     N
+     N
+  TT N TT
+  TT N TT
+    N1N
+NNNN1@1NNNN
+    N1N
+  TT N TT
+  TT N TT
+     N
+     N
+---
+RangedPush 1 1 3
+--------------------
+Harpy++ 13
+---
+      N
+      N
+      N
+   TT N TT
+   TT N TT
+     N1N
+NNNNN1@1NNNNN
+     N1N
+   TT N TT
+   TT N TT
+      N
+      N
+      N
+---
+RangedPush 1 1 3
+--------------------
+Harpy+++ 14
+---
+       N
+       N
+       N
+       N
+    PP N PP
+    PP N PP
+      N1N
+NNNNNN1@1NNNNNN
+      N1N
+    PP N PP
+    PP N PP
+       N
+       N
+       N
+       N
+---
+RangedPush 1 1 3
+--------------------
+HauntedArmor 8
+---
+BBB
+B@B
+BBB
+---
+--------------------
+HauntedArmor+ 11
+---
+M M M
+ BBB
+MB@BM
+ BBB
+M M M
+---
+--------------------
+HauntedArmor++ 13
+---
+T T T
+ BBB
+TB@BT
+ BBB
+T T T
+---
+--------------------
+HauntedArmor+++ 16
+---
+TTTTT
+TBBBT
+TB@BT
+TBBBT
+TTTTT
+---
+--------------------
+Hydromancer 4
+---
+ T T T
+T     T
+  111
+T 1@1 T
+  111
+T     T
+ T T T
+---
+MagicPushFreeze 1 1 2
+--------------------
+Hydromancer+ 6
+---
+ T T T
+T  A  T
+  111
+TA1@1AT
+  111
+T  A  T
+ T T T
+---
+MagicPushFreeze 1 1 2
+--------------------
+Hydromancer++ 8
+---
+ T T T
+TA A AT
+  111
+TA1@1AT
+  111
+TA A AT
+ T T T
+---
+MagicPushFreeze 1 1 2
+--------------------
+Hydromancer+++ 10
+---
+ TTTTT
+TA A AT
+T 111 T
+TA1@1AT
+T 111 T
+TA A AT
+ TTTTT
+---
+MagicPushFreeze 1 1 2
 --------------------
 King 0
 ---
@@ -237,6 +407,17 @@ A     A
 A     A
 ---
 --------------------
+Legionary++ 13
+---
+A  A  A
+ A A A
+  NNN
+AAN@NAA
+  NNN
+ A A A
+A  A  A
+---
+--------------------
 Legionary+++ 14
 ---
 A     A
@@ -255,6 +436,38 @@ T111T
  1@1
 T111T
  T T
+---
+MagicCharmMinion 1
+--------------------
+Lilith+ 5
+---
+TT TT
+T111T
+ 1@1
+T111T
+TT TT
+---
+MagicCharmMinion 1
+--------------------
+Lilith++ 6
+---
+TTTTT
+T111T
+T1@1T
+T111T
+TTTTT
+---
+MagicCharmMinion 1
+--------------------
+Lilith+++ 8
+---
+  TTT
+ TTTTT
+TT111TT
+TT1@1TT
+TT111TT
+ TTTTT
+  TTT
 ---
 MagicCharmMinion 1
 --------------------
@@ -284,6 +497,38 @@ MageTower+ 10
 NNNTS@STNNN
      S
      T
+     N
+     N
+     N
+---
+ImmuneTo Status
+--------------------
+MageTower++ 11
+---
+     N
+     N
+     N
+   T T T
+     S
+NNNTS@STNNN
+     S
+   T T T
+     N
+     N
+     N
+---
+ImmuneTo Status
+--------------------
+MageTower+++ 12
+---
+     N
+     N
+     N
+   TTTTT
+   T S T
+NNNTS@STNNN
+   T S T
+   TTTTT
      N
      N
      N
@@ -347,6 +592,60 @@ N   1   N
 ---
 RangedPetrify 1 5
 ImmuneTo Petrify
+--------------------
+Minotaur 12
+---
+   N
+   N
+   N
+NNN@NNN
+   N
+   N
+   N
+---
+OnChampionKillSwapEnemyKing
+--------------------
+Minotaur+ 14
+---
+    N
+    N
+    N
+    N
+NNNN@NNNN
+    N
+    N
+    N
+    N
+---
+OnChampionKillSwapEnemyKing
+--------------------
+Minotaur++ 15
+---
+    N
+    N
+    N
+   MNM
+NNNN@NNNN
+   MNM
+    N
+    N
+    N
+---
+OnChampionKillSwapEnemyKing
+--------------------
+Minotaur+++ 18
+---
+    N
+    N
+  M N M
+   NNN
+NNNN@NNNN
+   NNN
+  M N M
+    N
+    N
+---
+OnChampionKillSwapEnemyKing
 --------------------
 MoonFox 12
 ---
@@ -421,6 +720,37 @@ Nexus 0
   121
 ---
 TeleportPiece 2 3 3 1
+ImmuneTo Status
+--------------------
+Nexus+ 1
+---
+    1
+   121
+  1   1
+ 1  3  1
+12 2@2 21
+ 1  2  1
+  1   1
+   121
+    1
+---
+TeleportPiece 2 3 3 1
+ImmuneTo Status
+--------------------
+Nexus++ 3
+---
+    1
+   121
+  12 21
+ 12 3 21
+12 2@2 21
+ 12 2 21
+  12 21
+   121
+    1
+---
+TeleportPiece 2 3 3 1
+ImmuneTo Status
 --------------------
 Nexus+++ 5
 ---
@@ -435,6 +765,7 @@ Nexus+++ 5
     1
 ---
 TeleportPiece 2 3 3 1
+ImmuneTo Status
 --------------------
 Ninja 13
 ---
@@ -630,6 +961,46 @@ A  A  A
 ImmuneTo Displacement
 OnMeleeDeathKillAttackerPosition 1
 --------------------
+Phoenix 14
+---
+T T T
+ NNN
+TN@NT
+ NNN
+T T T
+---
+OnDeathPhoenix PhoenixEgg
+--------------------
+Phoenix+ 16
+---
+T T T
+ NSN
+TS@ST
+ NSN
+T T T
+---
+OnDeathPhoenix PhoenixEgg+
+--------------------
+Phoenix++ 18
+---
+T T T
+ SSS
+TS@ST
+ SSS
+T T T
+---
+OnDeathPhoenix PhoenixEgg++
+--------------------
+Phoenix+++ 21
+---
+P P P
+ SSS
+PS@SP
+ SSS
+P P P
+---
+OnDeathPhoenix PhoenixEgg+++
+--------------------
 PoisonMage 5
 ---
    T
@@ -642,4 +1013,131 @@ T1M@M1T
 ---
 MagicPoison 1 3
 ImmuneTo Poison
+--------------------
+PoisonMage+ 8
+---
+   T
+ T 1 T
+  1N1
+T1N@N1T
+  1N1
+ T 1 T
+   T
+---
+MagicPoison 1 3
+ImmuneTo Poison
+--------------------
+PoisonMage++ 10
+---
+   T
+ T 1 T
+  1S1
+T1S@S1T
+  1S1
+ T 1 T
+   T
+---
+MagicPoison 1 3
+ImmuneTo Poison
+--------------------
+PoisonMage+++ 13
+---
+   T
+ T 1 T
+1 1S1 1
+T1S@S1T
+1 1S1 1
+ T 1 T
+   T
+---
+MagicPoison 1 3
+ImmuneTo Poison
+--------------------
+Prince 10
+---
+NNN
+N@N
+NNN
+---
+OnKillPromoteToKing 20
+--------------------
+Prince+ 11
+---
+M M M
+ NNN
+MN@NM
+ NNN
+M M M
+---
+OnKillPromoteToKing 20
+--------------------
+Prince++ 12
+---
+N N N
+ NNN
+NN@NN
+ NNN
+N N N
+---
+OnKillPromoteToKing 20
+--------------------
+Prince+++ 13
+---
+N N N
+ SSS
+NS@SN
+ SSS
+N N N
+---
+OnKillPromoteToKing 20
+--------------------
+Pyromancer 10
+---
+ T T T
+T     T
+  111
+T 1@1 T
+  111
+T     T
+ T T T
+---
+MagicDestroy 1
+--------------------
+Pyromancer+ 11
+---
+ T T T
+T  M  T
+  111
+TM1@1MT
+  111
+T  M  T
+ T T T
+---
+MagicDestroy 1
+--------------------
+Pyromancer++ 12
+---
+ T T T
+TM M MT
+  111
+TM1@1MT
+  111
+TM M MT
+ T T T
+---
+MagicDestroy 1
+--------------------
+Pyromancer+++ 14
+---
+    T
+ TT T TT
+ TM M MT
+   111
+TTM1@1MTT
+   111
+ TM M MT
+ TT T TT
+    T
+---
+MagicDestroy 1
 --------------------

@@ -1,3 +1,35 @@
+PhoenixEgg 0
+---
+@
+---
+HatchToPhoenixAt 13 Phoenix
+OnAnyDeathPlayerChangeMorale -11
+ImmuneTo Compel
+--------------------
+PhoenixEgg+ 3
+---
+@
+---
+HatchToPhoenixAt 15 Phoenix+
+OnAnyDeathPlayerChangeMorale -9
+ImmuneTo Compel
+--------------------
+PhoenixEgg++ 6
+---
+@
+---
+HatchToPhoenixAt 17 Phoenix++
+OnAnyDeathPlayerChangeMorale -7
+ImmuneTo Compel
+--------------------
+PhoenixEgg+++ 11
+---
+@
+---
+HatchToPhoenixAt 20 Phoenix+++
+OnAnyDeathPlayerChangeMorale -4
+ImmuneTo Compel
+--------------------
 StonePillar 1
 ---
 @

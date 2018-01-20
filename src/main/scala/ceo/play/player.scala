@@ -19,12 +19,17 @@ case class Player(
   def changeMorale(diff: Int): Player = copy(morale = morale + diff)
 
   def removePiece(piece: Piece): Player = {
+    def removeFirst(list: List[Piece]): List[Piece] = list match {
+      case Nil => Nil
+      case x :: xs => if (x eq piece) xs else x :: removeFirst(xs)
+    }
+
     if (piece.data.isKing)
-      copy(pieces = pieces.filterNot(_ eq piece),
-        piecesAffected = piecesAffected.filterNot(_ eq piece), numberOfPieces = numberOfPieces - 1, hasKing = false)
+      copy(pieces = removeFirst(pieces),
+        piecesAffected = removeFirst(piecesAffected), numberOfPieces = numberOfPieces - 1, hasKing = false)
     else
-      copy(pieces = pieces.filterNot(_ eq piece),
-        piecesAffected = piecesAffected.filterNot(_ eq piece), numberOfPieces = numberOfPieces - 1)
+      copy(pieces = removeFirst(pieces),
+        piecesAffected = removeFirst(piecesAffected), numberOfPieces = numberOfPieces - 1)
   }
 
   def placePiece(piece: Piece): Player = {

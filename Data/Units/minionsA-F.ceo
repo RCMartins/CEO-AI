@@ -219,6 +219,22 @@ Beacon+++ 4
 ImmuneTo Status
 AugmentedTeleportBeacon 1 6
 --------------------
+Bomber 1
+---
+ M
+ N
+ @
+-
+-
+-
+-
+-
+-
+T T
+---
+OnAnyKillSuicide
+OnMeleeDeathKillAttacker
+--------------------
 Bomber+ 2
 ---
   M
@@ -440,6 +456,39 @@ FrostMephit 2
 N N
  @
 N N
+---
+ImmuneTo Freeze
+TriggerFrostMephit 1
+--------------------
+FrostMephit+ 3
+---
+M   M
+ N N
+  @
+ N N
+M   M
+---
+ImmuneTo Freeze
+TriggerFrostMephit 1
+--------------------
+FrostMephit++ 4
+---
+M   M
+ NMN
+ M@M
+ NMN
+M   M
+---
+ImmuneTo Freeze
+TriggerFrostMephit 1
+--------------------
+FrostMephit+++ 5
+---
+T   T
+ NPN
+ P@P
+ NPN
+T   T
 ---
 ImmuneTo Freeze
 TriggerFrostMephit 1

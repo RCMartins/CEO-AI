@@ -78,8 +78,8 @@ object PlayerMove {
       s"for max $maxPushDistance distance   ${pieceToPush.pos - piece.pos}"
   }
 
-  case class MagicPush(piece: Piece, pieceToPush: Piece, maxPushDistance: Int) extends PlayerMove(piece.pos, pieceToPush.pos) {
-    def betterHumanString: String = s"$piece magic-pushes $pieceToPush " +
+  case class MagicPush(piece: Piece, pieceToPush: Piece, moraleCost: Int, maxPushDistance: Int) extends PlayerMove(piece.pos, pieceToPush.pos) {
+    def betterHumanString: String = s"$piece magic-pushes${if (moraleCost == 0) "" else s"[$moraleCost cost]"} $pieceToPush " +
       s"for max $maxPushDistance distance   ${pieceToPush.pos - piece.pos}"
   }
 
@@ -130,6 +130,17 @@ object PlayerMove {
 
   case class MagicEnvyClone(piece: Piece, pieceToClone: Piece) extends PlayerMove(piece.pos, pieceToClone.pos) {
     def betterHumanString: String = s"$piece magic-clones $pieceToClone   ${pieceToClone.pos - piece.pos}"
+  }
+
+  case class MagicMeteor(
+    piece: Piece,
+    meteorPosition: BoardPos,
+    moraleCost: Int,
+    durationTurns: Int,
+    pushDistance: Int
+  ) extends PlayerMove(piece.pos, meteorPosition) {
+    def betterHumanString: String = s"$piece casts-meteor[$moraleCost cost] at $meteorPosition " +
+      s"in $durationTurns turns and pushes $pushDistance square   ${meteorPosition - piece.pos}"
   }
 
   case class DummyMove(piece: Piece) extends PlayerMove(???, ???) {

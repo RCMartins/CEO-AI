@@ -130,6 +130,46 @@ TTTTTTS@STTTTTT
 ---
 GhostMovement
 --------------------
+Behemoth 9
+---
+NNN
+N@N
+NNN
+---
+CannotBeTargetedByMinions
+--------------------
+Behemoth+ 12
+---
+M M M
+ NNN
+MN@NM
+ NNN
+M M M
+---
+CannotBeTargetedByMinions
+--------------------
+Behemoth++ 16
+---
+N N N
+ NNN
+NN@NN
+ NNN
+N N N
+---
+CannotBeTargetedByMinions
+--------------------
+Behemoth+++ 20
+---
+N  N  N
+ N N N
+  NNN
+NNN@NNN
+  NNN
+ N N N
+N  N  N
+---
+CannotBeTargetedByMinions
+--------------------
 Berserker 8
 ---
    A
@@ -254,6 +294,56 @@ N             N
   N         N
  N           N
 N             N
+---
+--------------------
+Crusader 10
+---
+   N
+   N
+   B
+NNB@BNN
+   B
+   N
+   N
+---
+--------------------
+Crusader+ 12
+---
+   N
+ M N M
+  MBM
+NNB@BNN
+  MBM
+ M N M
+   N
+---
+--------------------
+Crusader++ 17
+---
+    N
+    N
+  M N M
+   NBN
+NNNB@BNNN
+   NBN
+  M N M
+    N
+    N
+---
+--------------------
+Crusader+++ 20
+---
+     N
+     N
+     N
+   M B M
+    NBN
+NNNBB@BBNNN
+    NBN
+   M B M
+     N
+     N
+     N
 ---
 --------------------
 Demon 10
@@ -545,7 +635,7 @@ FireElemental 15
 1 1 1
 ---
 MagicDestroy 1
-PieceChangeMoraleOnKill +3
+OnKillPieceGainMorale +3
 DecayAfterTurn 35 1
 --------------------
 FireElemental+ 18
@@ -557,7 +647,7 @@ FireElemental+ 18
 1 1 1
 ---
 MagicDestroy 1
-PieceChangeMoraleOnKill +4
+OnKillPieceGainMorale +4
 DecayAfterTurn 30 1
 --------------------
 FireElemental++ 20
@@ -569,7 +659,7 @@ TNNNT
 1T1T1
 ---
 MagicDestroy 1
-PieceChangeMoraleOnKill +5
+OnKillPieceGainMorale +5
 DecayAfterTurn 25 1
 --------------------
 FireElemental+++ 21
@@ -581,8 +671,60 @@ PNNNP
 1P1P1
 ---
 MagicDestroy 1
-PieceChangeMoraleOnKill +6
+OnKillPieceGainMorale +6
 DecayAfterTurn 20 1
+--------------------
+FireMage 8
+---
+   1
+  T T
+ T 2 T
+1 2@2 1
+ T 2 T
+  T T
+   1
+---
+MagicMeteor 1 3 6 1
+MagicDestroy 2
+--------------------
+FireMage+ 10
+---
+   1
+  T T
+ TM2MT
+1 2@2 1
+ TM2MT
+  T T
+   1
+---
+MagicMeteor 1 3 6 1
+MagicDestroy 2
+--------------------
+FireMage++ 12
+---
+   1
+  T T
+ TN2NT
+1 2@2 1
+ TN2NT
+  T T
+   1
+---
+MagicMeteor 1 3 6 1
+MagicDestroy 2
+--------------------
+FireMage+++ 13
+---
+   1
+  P P
+ PN2NP
+1 2@2 1
+ PN2NP
+  P P
+   1
+---
+MagicMeteor 1 3 6 1
+MagicDestroy 2
 --------------------
 FrostMage 4
 ---

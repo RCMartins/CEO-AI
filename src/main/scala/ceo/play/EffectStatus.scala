@@ -38,6 +38,14 @@ object EffectType {
     val name = "Ranged"
   }
 
+  case object Trigger extends EffectType {
+    val name = "Trigger"
+  }
+
+  case object Compel extends EffectType {
+    val name = "Compel"
+  }
+
   case object BlockAttacks extends EffectType {
     val name = "BlockAttacks"
   }
@@ -46,7 +54,11 @@ object EffectType {
     val name = "InstantKillPositional"
   }
 
-  val allNormalEffects: List[EffectType] = List(Petrify, Poison, Freeze, Displacement, Magic, Ranged)
+  case object PhoenixEgg extends EffectType {
+    val name = "PhoenixEgg"
+  }
+
+  val allNormalEffects: List[EffectType] = List(Petrify, Poison, Freeze, Displacement, Magic, Ranged, Trigger, Compel)
 
   def apply(name: String): EffectType = allNormalEffects.find(_.name == name) match {
     case Some(effectStatusType) => effectStatusType
@@ -86,6 +98,10 @@ object EffectStatus {
 
   case class InstantKillPositional(distance: Distance) extends EffectStatus {
     override val effectType: EffectType = EffectType.InstantKillPositional
+  }
+
+  case class PhoenixEgg(moraleToPromote: Int, pieceName: String) extends EffectStatus {
+    override val effectType: EffectType = EffectType.PhoenixEgg
   }
 
 }

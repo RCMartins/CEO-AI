@@ -14,10 +14,11 @@ object PlayGame {
       Board.empty,
       Player(White, 0, Nil, Nil, 0, hasKing = false, PlayerExtraData.empty),
       Player(Black, 0, Nil, Nil, 0, hasKing = false, PlayerExtraData.empty),
-      1,
+      0,
       Nil,
       Nil,
-      GameRunner.empty
+      GameRunner.empty,
+      Nil
     )
 
   def playSomeMatches(startingState: GameState, playerWhiteStrategy: Strategy, playerBlackStrategy: Strategy, numberOfGames: Int): Unit = {
