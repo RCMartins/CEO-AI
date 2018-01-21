@@ -46,8 +46,13 @@ object PlayerMove {
       s"killing it in $turnsToDeath turns   ${pieceToPoison.pos - piece.pos}"
   }
 
-  case class MagicPetrify(piece: Piece, pieceToPetrify: Piece, turnsPetrified: Int) extends PlayerMove(piece.pos, pieceToPetrify.pos) {
-    def betterHumanString: String = s"$piece magic-petrifies $pieceToPetrify " +
+  case class MagicPetrify(
+    piece: Piece,
+    pieceToPetrify: Piece,
+    moraleCost: Int,
+    turnsPetrified: Int
+  ) extends PlayerMove(piece.pos, pieceToPetrify.pos) {
+    def betterHumanString: String = s"$piece magic-petrifies[$moraleCost cost] $pieceToPetrify " +
       s"for $turnsPetrified turns   ${pieceToPetrify.pos - piece.pos}"
   }
 
@@ -65,8 +70,8 @@ object PlayerMove {
     def betterHumanString: String = s"$piece RushEnemy $pieceToRush   ${pieceToRush.pos - piece.pos}"
   }
 
-  case class KingDoesCastling(kingPiece: Piece, allyPiece: Piece, kingTarget: BoardPos, allyTarget: BoardPos) extends PlayerMove(kingPiece.pos, allyPiece.pos) {
-    override def betterHumanString: String = s"$kingPiece does Castling with $allyPiece"
+  case class KingCastling(kingPiece: Piece, allyPiece: Piece, kingTarget: BoardPos, allyTarget: BoardPos) extends PlayerMove(kingPiece.pos, allyPiece.pos) {
+    override def betterHumanString: String = s"$kingPiece does Castling with $allyPiece   ${allyPiece.pos - kingPiece.pos}"
   }
 
   case class MagicCharm(piece: Piece, pieceToCharm: Piece) extends PlayerMove(piece.pos, pieceToCharm.pos) {
@@ -110,17 +115,17 @@ object PlayerMove {
   }
 
   case class TeleportTransformInto(piece: Piece, target: BoardPos, pieceData: PieceData) extends PlayerMove(piece.pos, target) {
-    def betterHumanString: String = s"$piece fly-transforms into ${pieceData.name} " +
+    def betterHumanString: String = s"$piece fly-transforms into $pieceData " +
       s"at $target   ${target - piece.pos}"
   }
 
-  case class MagicCreatePiece(piece: Piece, target: BoardPos, moraleCost: Int, pieceData: PieceData) extends PlayerMove(piece.pos, target) {
-    def betterHumanString: String = s"$piece magic-creates[$moraleCost cost] ${pieceData.name} " +
+  case class MagicSummonPiece(piece: Piece, target: BoardPos, moraleCost: Int, pieceData: PieceData) extends PlayerMove(piece.pos, target) {
+    def betterHumanString: String = s"$piece magic-summons[$moraleCost cost] $pieceData " +
       s"at $target   ${target - piece.pos}"
   }
 
   case class RangedSummonGeminiTwin(piece: Piece, target: BoardPos, moraleCost: Int, pieceData: PieceData) extends PlayerMove(piece.pos, target) {
-    def betterHumanString: String = s"$piece splits-into[$moraleCost cost] ${pieceData.name} " +
+    def betterHumanString: String = s"$piece splits-into[$moraleCost cost] $pieceData " +
       s"at $target   ${target - piece.pos}"
   }
 
@@ -141,6 +146,28 @@ object PlayerMove {
   ) extends PlayerMove(piece.pos, meteorPosition) {
     def betterHumanString: String = s"$piece casts-meteor[$moraleCost cost] at $meteorPosition " +
       s"in $durationTurns turns and pushes $pushDistance square   ${meteorPosition - piece.pos}"
+  }
+
+  case class RangedPushPromoteTo(
+    piece: Piece,
+    pieceToPush: Piece,
+    moraleCost: Int,
+    maxPushDistance: Int,
+    pieceData: PieceData
+  ) extends PlayerMove(piece.pos, pieceToPush.pos) {
+    def betterHumanString: String = s"$piece ranged-pushes[$moraleCost cost] $pieceToPush " +
+      s"for max $maxPushDistance distance and promotes to [$pieceData]   ${pieceToPush.pos - piece.pos}"
+  }
+
+  case class RangedPushSpawn(
+    piece: Piece,
+    pieceToPush: Piece,
+    moraleCost: Int,
+    maxPushDistance: Int,
+    pieceData: PieceData
+  ) extends PlayerMove(piece.pos, pieceToPush.pos) {
+    def betterHumanString: String = s"$piece ranged-pushes-spawns[$moraleCost cost] $pieceToPush " +
+      s"for max $maxPushDistance distance [spawning $pieceData]   ${pieceToPush.pos - piece.pos}"
   }
 
   case class DummyMove(piece: Piece) extends PlayerMove(???, ???) {

@@ -173,16 +173,18 @@ object Moves {
   private def canMagicPetrify(
     piece: Piece,
     target: BoardPos,
+    moraleCost: Int,
     durationTurns: Int,
     state: GameState
   ): Option[PlayerMove] = {
     target.getPiece(state.board) match {
       case Some(targetPiece) if {
-        !targetPiece.data.isImmuneTo(EffectType.Petrify) &&
+        targetPiece.team != piece.team &&
+          !targetPiece.data.isImmuneTo(EffectType.Petrify) &&
           !targetPiece.data.isImmuneTo(EffectType.Magic) &&
           generalCanTargetEnemy(piece, targetPiece)
       } =>
-        Some(PlayerMove.MagicPetrify(piece, targetPiece, durationTurns))
+        Some(PlayerMove.MagicPetrify(piece, targetPiece, moraleCost, durationTurns))
       case _ =>
         None
     }
@@ -240,6 +242,7 @@ object Moves {
     target: BoardPos,
     moraleCost: Int,
     maxPushDistance: Int,
+    pieceNameToSpawn: Option[String],
     state: GameState
   ): Option[PlayerMove] = {
     canRangedReachEnemy(piece, target, state) match {
@@ -249,9 +252,15 @@ object Moves {
           generalCanTargetEnemy(piece, targetPiece)
       } =>
         val dir = (targetPiece.pos - piece.pos).toUnitVector
-        if ((targetPiece.pos + dir).isEmpty(state.board))
-          Some(PlayerMove.RangedPush(piece, targetPiece, moraleCost, maxPushDistance))
-        else
+        if ((targetPiece.pos + dir).isEmpty(state.board)) {
+          pieceNameToSpawn match {
+            case None =>
+              Some(PlayerMove.RangedPush(piece, targetPiece, moraleCost, maxPushDistance))
+            case Some(pieceName) =>
+              val pieceData = DataLoader.getPieceData(pieceName, piece.team)
+              Some(PlayerMove.RangedPushSpawn(piece, targetPiece, moraleCost, maxPushDistance, pieceData))
+          }
+        } else
           None
       case _ =>
         None
@@ -457,12 +466,12 @@ object Moves {
     }
   }
 
-  case class Castling(posAllyPiece: Distance, posAfterKing: Distance, posAfterAllyPiece: Distance) extends SingleMove {
+  case class KingCastling(posAllyPiece: Distance, posAfterKing: Distance, posAfterAllyPiece: Distance) extends SingleMove {
     def getValidMove(piece: Piece, state: GameState, currentPlayer: Player): Option[PlayerMove] = {
       // TODO check for ghost pieces in 'LONG' castling
       (canMove(piece, piece.pos + posAfterKing, state), isAllyAt(piece.pos + posAllyPiece, state, currentPlayer)) match {
-        case (Some(kingMove), Some(allyPiece)) if !allyPiece.data.isMinion =>
-          Some(PlayerMove.KingDoesCastling(piece, allyPiece, kingMove.to, piece.pos + posAfterAllyPiece))
+        case (Some(kingMove), Some(allyPiece)) if allyPiece.data.isChampion && !allyPiece.data.isImmuneTo(EffectType.Displacement) =>
+          Some(PlayerMove.KingCastling(piece, allyPiece, kingMove.to, piece.pos + posAfterAllyPiece))
         case _ =>
           None
       }
@@ -484,9 +493,9 @@ object Moves {
     def getValidMove(piece: Piece, state: GameState, currentPlayer: Player): Option[PlayerMove] = {
       val target = piece.pos + dist
       if (target.isEmpty(state.board))
-        Some(PlayerMove.MagicCreatePiece(piece, target, moraleCost, DataLoader.getPieceData("StonePillar", piece.team)))
+        Some(PlayerMove.MagicSummonPiece(piece, target, moraleCost, DataLoader.getPieceData("StonePillar", piece.team)))
       else
-        canMagicPetrify(piece, target, durationTurns, state)
+        canMagicPetrify(piece, target, moraleCost, durationTurns, state)
     }
   }
 
@@ -516,9 +525,9 @@ object Moves {
     }
   }
 
-  case class RangedPushPiece(dist: Distance, moraleCost: Int, pushDistance: Int) extends SingleMove {
+  case class RangedPush(dist: Distance, moraleCost: Int, pushDistance: Int) extends SingleMove {
     def getValidMove(piece: Piece, state: GameState, currentPlayer: Player): Option[PlayerMove] = {
-      canRangedPush(piece, piece.pos + dist, moraleCost, pushDistance, state)
+      canRangedPush(piece, piece.pos + dist, moraleCost, pushDistance, None, state)
     }
   }
 
@@ -664,6 +673,22 @@ object Moves {
   case class MagicPush(dist: Distance, moraleCost: Int, pushDistance: Int) extends SingleMove {
     def getValidMove(piece: Piece, state: GameState, currentPlayer: Player): Option[PlayerMove] = {
       canMagicPush(piece, piece.pos + dist, moraleCost, pushDistance, state)
+    }
+  }
+
+  case class RangedPushSpawn(dist: Distance, moraleCost: Int, pushDistance: Int, pieceName: String) extends SingleMove {
+    def getValidMove(piece: Piece, state: GameState, currentPlayer: Player): Option[PlayerMove] = {
+      canRangedPush(piece, piece.pos + dist, moraleCost, pushDistance, Some(pieceName), state)
+    }
+  }
+
+  case class MagicSummonPiece(dist: Distance, moraleCost: Int, pieceName: String) extends SingleMove {
+    def getValidMove(piece: Piece, state: GameState, currentPlayer: Player): Option[PlayerMove] = {
+      val target = piece.pos + dist
+      if (target.isEmpty(state.board))
+        Some(PlayerMove.MagicSummonPiece(piece, target, moraleCost, DataLoader.getPieceData(pieceName, piece.team)))
+      else
+        None
     }
   }
 

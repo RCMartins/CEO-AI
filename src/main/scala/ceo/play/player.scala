@@ -8,11 +8,13 @@ case class Player(
   pieces: List[Piece] = List.empty,
   piecesAffected: List[Piece] = List.empty,
   numberOfPieces: Int,
-  hasKing: Boolean = false,
+  kingMode: Int,
   extraData: PlayerExtraData
 ) {
 
   override def toString: String = s"Player$team($morale)"
+
+  def hasKing: Boolean = kingMode > 0
 
   def allPieces: List[Piece] = pieces ++ piecesAffected
 
@@ -26,7 +28,7 @@ case class Player(
 
     if (piece.data.isKing)
       copy(pieces = removeFirst(pieces),
-        piecesAffected = removeFirst(piecesAffected), numberOfPieces = numberOfPieces - 1, hasKing = false)
+        piecesAffected = removeFirst(piecesAffected), numberOfPieces = numberOfPieces - 1, kingMode = kingMode - 1)
     else
       copy(pieces = removeFirst(pieces),
         piecesAffected = removeFirst(piecesAffected), numberOfPieces = numberOfPieces - 1)
@@ -36,9 +38,9 @@ case class Player(
     val isAffected = piece.effectStatus.nonEmpty
     if (piece.data.isKing) {
       if (isAffected)
-        copy(piecesAffected = piece :: piecesAffected, numberOfPieces = numberOfPieces + 1, hasKing = true)
+        copy(piecesAffected = piece :: piecesAffected, numberOfPieces = numberOfPieces + 1, kingMode = if (kingMode <= 0) 1 else kingMode + 1)
       else
-        copy(pieces = piece :: pieces, numberOfPieces = numberOfPieces + 1, hasKing = true)
+        copy(pieces = piece :: pieces, numberOfPieces = numberOfPieces + 1, kingMode = if (kingMode <= 0) 1 else kingMode + 1)
     } else {
       if (isAffected)
         copy(piecesAffected = piece :: piecesAffected, numberOfPieces = numberOfPieces + 1)

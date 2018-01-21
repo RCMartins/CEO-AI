@@ -242,18 +242,32 @@ case class PieceData(
         )
       }
     }
+    case OnKillDecayTo(moraleLostOnKill, moraleLimit, pieceName) => new DynamicRunner[(GameState, Option[Piece]), Piece] {
+      override def update(state: (GameState, Option[Piece]), pieceToKill: Piece): (GameState, Option[Piece]) = {
+        modify(state)(_._2).using(
+          _.map { piece =>
+            val pieceUpdated = piece.changeMorale(-moraleLostOnKill)
+            if (pieceUpdated.currentMorale <= moraleLimit) {
+              DataLoader.getPieceData(pieceName, team).createPiece(piece.pos)
+            } else {
+              pieceUpdated
+            }
+          }
+        )
+      }
+    }
   }
 
   val afterMagicCastRunners: List[DynamicRunner[
     (GameState, Option[Piece] /* piece updated */ ),
-    Piece /* this piece */ ]] = powers.collect {
-    case OnMagicCastDecayTo(decayAmount, limitToDevolve, pieceName) => new DynamicRunner[(GameState, Option[Piece]), Piece] {
-      override def update(state: (GameState, Option[Piece]), thisPiece: Piece): (GameState, Option[Piece]) = {
+    (Piece /* this piece */ , Option[Piece] /* piece attacked by magic */ )]] = powers.collect {
+    case OnMagicCastDecayTo(decayAmount, limitToDevolve, pieceName) => new DynamicRunner[(GameState, Option[Piece]), (Piece, Option[Piece])] {
+      override def update(state: (GameState, Option[Piece]), data: (Piece, Option[Piece])): (GameState, Option[Piece]) = {
         modify(state)(_._2).using {
           case None => None
           case Some(piece) =>
             val updatedPiece = piece.changeMorale(-decayAmount)
-            if (updatedPiece.currentMorale == limitToDevolve) {
+            if (updatedPiece.currentMorale <= limitToDevolve) {
               Some(DataLoader.getPieceData(pieceName, piece.team).createPiece(piece.pos))
             } else {
               Some(updatedPiece)
@@ -261,13 +275,13 @@ case class PieceData(
         }
       }
     }
-    case OnMagicCastDecayDeath(decayAmount) => new DynamicRunner[(GameState, Option[Piece]), Piece] {
-      override def update(state: (GameState, Option[Piece]), thisPiece: Piece): (GameState, Option[Piece]) = {
+    case OnMagicCastDecayDeath(decayAmount) => new DynamicRunner[(GameState, Option[Piece]), (Piece, Option[Piece])] {
+      override def update(state: (GameState, Option[Piece]), data: (Piece, Option[Piece])): (GameState, Option[Piece]) = {
         modify(state)(_._2).using {
           case None => None
           case Some(piece) =>
             val updatedPiece = piece.changeMorale(-decayAmount)
-            if (updatedPiece.currentMorale == 0) {
+            if (updatedPiece.currentMorale <= 0) {
               None
             } else {
               Some(updatedPiece)
@@ -275,8 +289,8 @@ case class PieceData(
         }
       }
     }
-    case OnSpellCastPromoteTo(pieceName) => new DynamicRunner[(GameState, Option[Piece]), Piece] {
-      override def update(state: (GameState, Option[Piece]), thisPiece: Piece): (GameState, Option[Piece]) = {
+    case OnSpellCastPromoteTo(pieceName) => new DynamicRunner[(GameState, Option[Piece]), (Piece, Option[Piece])] {
+      override def update(state: (GameState, Option[Piece]), data: (Piece, Option[Piece])): (GameState, Option[Piece]) = {
         modify(state)(_._2).using {
           _.map(piece =>
             DataLoader.getPieceData(pieceName, piece.team).createPiece(piece.pos)
@@ -284,9 +298,23 @@ case class PieceData(
         }
       }
     }
-    case OnMagicVanish => new DynamicRunner[(GameState, Option[Piece]), Piece] {
-      override def update(state: (GameState, Option[Piece]), thisPiece: Piece): (GameState, Option[Piece]) = {
+    case OnMagicVanish => new DynamicRunner[(GameState, Option[Piece]), (Piece, Option[Piece])] {
+      override def update(state: (GameState, Option[Piece]), data: (Piece, Option[Piece])): (GameState, Option[Piece]) = {
         state.copy(_2 = None)
+      }
+    }
+    case OnMagicCastPromoteIfEnemy(pieceName) => new DynamicRunner[(GameState, Option[Piece]), (Piece, Option[Piece])] {
+      override def update(state: (GameState, Option[Piece]), data: (Piece, Option[Piece])): (GameState, Option[Piece]) = {
+        modify(state)(_._2).using {
+          _.map(piece =>
+            data._2 match {
+              case Some(attackedPiece) if attackedPiece.team != data._1.team =>
+                DataLoader.getPieceData(pieceName, piece.team).createPiece(piece.pos)
+              case _ =>
+                piece
+            }
+          )
+        }
       }
     }
   }

@@ -251,6 +251,8 @@ object DataLoader {
         Powers.OnDeathPhoenix(pieceName)
       case str if str.startsWith("OnKillPromoteToKing ") =>
         Powers.OnKillPromoteToKing(str.drop("OnKillPromoteToKing ".length).toInt)
+      case str if str.startsWith("OnMagicCastPromoteIfEnemy ") =>
+        Powers.OnMagicCastPromoteIfEnemy(str.drop("OnMagicCastPromoteIfEnemy ".length))
       // Multiple-arg Powers:
       case str if str.startsWith("DecayAfterTurn ") =>
         val List(turnStarts, moralePerTurn) = str.drop("DecayAfterTurn ".length).split(" ").toList
@@ -275,6 +277,10 @@ object DataLoader {
       case str if str.startsWith("OnMeleeDeathPoisonIfMoraleLess ") =>
         val List(maxMoraleToPoison, turnsToDeath) = str.drop("OnMeleeDeathPoisonIfMoraleLess ".length).split(" ").toList
         Powers.OnMeleeDeathPoisonIfMoraleLess(maxMoraleToPoison.toInt, turnsToDeath.toInt)
+      case str if str.startsWith("OnKillDecayTo ") =>
+        val List(moraleLostOnKill, moraleLimit, pieceName) = str.drop("OnKillDecayTo ".length).split(" ").toList
+        piecesToCheck = pieceName :: piecesToCheck
+        Powers.OnKillDecayTo(moraleLostOnKill.toInt, moraleLimit.toInt, pieceName)
       // Move Powers:
       case str if str.startsWith("MagicDestroy ") =>
         Powers.MagicDestroyMovePower(getLetter(str.drop("MagicDestroy ".length)))
@@ -331,6 +337,10 @@ object DataLoader {
       case str if str.startsWith("MagicPush ") =>
         val List(letterStr, moraleCost, pushDistance) = str.drop("MagicPush ".length).split(" ").toList
         Powers.MagicPushMovePower(getLetter(letterStr), moraleCost.toInt, pushDistance.toInt)
+      case str if str.startsWith("MagicSummonPiece ") =>
+        val List(letterStr, moraleCost, pieceName) = str.drop("MagicSummonPiece ".length).split(" ").toList
+        piecesToCheck = pieceName :: piecesToCheck
+        Powers.MagicSummonPieceMovePower(getLetter(letterStr), moraleCost.toInt, pieceName)
       // Move Power Complete:
       case str if str.startsWith("KingCastling ") =>
         Powers.KingCastlingMovePowerComplete(str.drop("KingCastling ".length).split(" ").toList.map(getLetter))
@@ -341,6 +351,10 @@ object DataLoader {
       case str if str.startsWith("PatienceCannotAttackBeforeTurn ") =>
         val List(moveOrAttack, attack, untilTurn) = str.drop("PatienceCannotAttackBeforeTurn ".length).split(" ").toList
         Powers.PatienceCannotAttackBeforeTurnMovePowerComplete(List(getLetter(moveOrAttack), getLetter(attack)), untilTurn.toInt)
+      case str if str.startsWith("RangedPushSpawn ") =>
+        val List(letterStr, moraleCost, pushDistance, pieceName) = str.drop("RangedPushSpawn ".length).split(" ").toList
+        piecesToCheck = pieceName :: piecesToCheck
+        Powers.RangedPushSpawnMovePower(getLetter(letterStr), moraleCost.toInt, pushDistance.toInt, pieceName)
       // Positional Powers:
       case str if str.startsWith("OnMeleeDeathSpawnSlimes ") =>
         val List(letterStr, pieceToCheck) = str.drop("OnMeleeDeathSpawnSlimes ".length).split(" ").toList

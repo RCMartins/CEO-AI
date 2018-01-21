@@ -9,12 +9,10 @@ case class Piece(
   currentMorale: Int,
   effectStatus: List[EffectStatus]
 ) {
-  def afterMagicCast(startingState: GameState): (GameState, Option[Piece]) = {
-    DynamicRunner.foldLeft((startingState, Some(this)), this, data.afterMagicCastRunners)
-  }
 
-  def onSuicide(state: GameState): GameState = {
-    // TODO I think dove power triggers on this!
+  def onTransform(state: GameState): GameState = {
+    // TODO I think this has do be done to simulate a bug of v0.52:
+    // Example: Vampire transforms into bat -> Dove move triggers, but technically no piece died ...
     state
   }
 
@@ -101,7 +99,7 @@ case class Piece(
         (updatedState4, None)
       case Some(finalPiece) =>
         val (updatedState5, piece) = finalPiece.moveTo(updatedState4, pieceToKill.pos)
-        (updatedState5, Some(piece))
+        (updatedState5, piece)
     }
   }
 
@@ -116,9 +114,13 @@ case class Piece(
       DynamicRunner.foldLeft(updatedState2, pieceToKill, updatedState2.gameRunner.globalPieceDeathRunners)
 
     updatedPiece2 match {
-      case Some(piece) => piece.afterMagicCast(updatedState3)
+      case Some(piece) => piece.afterMagicCast(updatedState3, Some(pieceToKill))
       case None => (updatedState3, None)
     }
+  }
+
+  def afterMagicCast(startingState: GameState, pieceAttacked: Option[Piece]): (GameState, Option[Piece]) = {
+    DynamicRunner.foldLeft((startingState, Some(this)), (this, pieceAttacked), data.afterMagicCastRunners)
   }
 
   def afterPoisonDeath(startingState: GameState): GameState = {
@@ -188,10 +190,17 @@ case class Piece(
         Some(pieceToAffect.addEffect(effectStatus))
       }
 
-    val updatedAttackerPiece =
+    val attackerPieceUpdatedOption1: Option[Piece] =
       DynamicRunner.foldLeft(Some(this), (currentState, effectStatus), pieceToAffect.data.attackerUsesStatusEffectRunners)
 
-    (updatedAttackerPiece, updatedPieceToPoison)
+    val attackerPieceUpdatedOption2 =
+      attackerPieceUpdatedOption1 match {
+        case None => None
+        case Some(attackerPiece) =>
+          attackerPiece.afterMagicCast(currentState, updatedPieceToPoison)._2 // TODO does this simplification works always?
+      }
+
+    (attackerPieceUpdatedOption2, updatedPieceToPoison)
   }
 
   def swapTeams: Piece =

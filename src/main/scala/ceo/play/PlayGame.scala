@@ -11,14 +11,14 @@ object PlayGame {
 
   val emptyGameState: GameState =
     GameState(
-      Board.empty,
-      Player(White, 0, Nil, Nil, 0, hasKing = false, PlayerExtraData.empty),
-      Player(Black, 0, Nil, Nil, 0, hasKing = false, PlayerExtraData.empty),
-      0,
-      Nil,
-      Nil,
-      GameRunner.empty,
-      Nil
+      board = Board.empty,
+      playerWhite = Player(White, morale = 0, Nil, Nil, numberOfPieces = 0, kingMode = 0, PlayerExtraData.empty),
+      playerBlack = Player(Black, morale = 0, Nil, Nil, numberOfPieces = 0, kingMode = 0, PlayerExtraData.empty),
+      currentTurn = 0,
+      movesHistory = Nil,
+      boardEffects = Nil,
+      gameRunner = GameRunner.empty,
+      endOfTurnActions = Nil
     )
 
   def playSomeMatches(startingState: GameState, playerWhiteStrategy: Strategy, playerBlackStrategy: Strategy, numberOfGames: Int): Unit = {

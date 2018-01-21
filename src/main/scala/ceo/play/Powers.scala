@@ -56,6 +56,8 @@ object Powers {
 
   case class OnKillPromoteToKing(moraleBonus: Int) extends Powers
 
+  case class OnMagicCastPromoteIfEnemy(pieceName: String) extends Powers
+
   case class PromoteTo(pieceName: String) extends Powers
 
   case class OnAnyDeathPlayerChangeMorale(moraleAmount: Int) extends Powers
@@ -92,6 +94,8 @@ object Powers {
   case class OnKillVampireAbility(moraleTakenFromEnemy: Int, moraleToKing: Int) extends Powers
 
   case class OnMeleeDeathPoisonIfMoraleLess(maxMoraleToPoison: Int, turnsToDeath: Int) extends Powers
+
+  case class OnKillDecayTo(moraleLostOnKill: Int, moraleLimit: Int, pieceName: String) extends Powers
 
   case class BlockAttacksFrom(positionsToBlockAttacks: Set[Distance]) extends Powers
 
@@ -146,7 +150,7 @@ object Powers {
   }
 
   case class RangedPushMovePower(letterOfMove: Char, moraleCost: Int, maxPushDistance: Int) extends MovePower {
-    override def createMove(dist: Distance): Moves = RangedPushPiece(dist, moraleCost, maxPushDistance)
+    override def createMove(dist: Distance): Moves = RangedPush(dist, moraleCost, maxPushDistance)
   }
 
   case class MagicPushFreezeMovePower(letterOfMove: Char, maxPushDistance: Int, freezeDuration: Int) extends MovePower {
@@ -193,12 +197,20 @@ object Powers {
     override def createMove(dist: Distance): Moves = MagicPush(dist, moraleCost, pushDistance)
   }
 
+  case class RangedPushSpawnMovePower(letterOfMove: Char, moraleCost: Int, maxPushDistance: Int, pieceName: String) extends MovePower {
+    override def createMove(dist: Distance): Moves = RangedPushSpawn(dist, moraleCost, maxPushDistance, pieceName)
+  }
+
+  case class MagicSummonPieceMovePower(letterOfMove: Char, moraleCost: Int, pieceName: String) extends MovePower {
+    override def createMove(dist: Distance): Moves = MagicSummonPiece(dist, moraleCost, pieceName)
+  }
+
   case class KingCastlingMovePowerComplete(lettersOfMoves: List[Char]) extends MovePowerComplete {
     override def createMoves(distances: Map[Char, List[Distance]]): List[Moves] = {
       distances.values.flatten.toList.map {
         dist =>
           val dir = dist.toUnitVector
-          Castling(dist, dist - dir, dist - (dir * 2))
+          KingCastling(dist, dist - dir, dist - (dir * 2))
       }
     }
   }

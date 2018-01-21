@@ -126,6 +126,58 @@ NNN@NNN
 ---
 OnMeleeDeathSpawnSlimes 1 Slime
 --------------------
+Greed 3
+---
+  N
+ MNM
+NN@NN
+ MNM
+  N
+---
+OnAnyDeathPlayerChangeMorale -4
+--------------------
+Greed+ 2
+---
+   N
+   N
+  MNM
+NNN@NNN
+  MNM
+   N
+   N
+---
+OnAnyDeathPlayerChangeMorale -12
+--------------------
+Greed++ 1
+---
+    N
+    N
+    N
+   MNM
+NNNN@NNNN
+   MNM
+    N
+    N
+    N
+---
+OnAnyDeathPlayerChangeMorale -19
+--------------------
+Greed+++ 0
+---
+     N
+     N
+     N
+     N
+    MNM
+NNNNN@NNNNN
+    MNM
+     N
+     N
+     N
+     N
+---
+OnAnyDeathPlayerChangeMorale -25
+--------------------
 Guardian 7
 ---
 M  M  M
@@ -429,6 +481,46 @@ ANN@NNA
 A     A
 ---
 --------------------
+Lich 4
+---
+1 1 1
+ MMM
+1M@M1
+ MMM
+1 1 1
+---
+MagicSummonPiece 1 5 Skeleton0
+--------------------
+Lich+ 6
+---
+1 1 1
+ MNM
+1N@N1
+ MNM
+1 1 1
+---
+MagicSummonPiece 1 5 Skeleton0
+--------------------
+Lich++ 8
+---
+1 1 1
+ NNN
+1N@N1
+ NNN
+1 1 1
+---
+MagicSummonPiece 1 5 Skeleton0
+--------------------
+Lich+++ 10
+---
+11111
+1NNN1
+1N@N1
+1NNN1
+11111
+---
+MagicSummonPiece 1 5 Skeleton0
+--------------------
 Lilith 4
 ---
  T T
@@ -471,6 +563,7 @@ TT111TT
 ---
 MagicCharmMinion 1
 --------------------
+// TODO Lust
 MageTower 9
 ---
      N
