@@ -243,6 +243,8 @@ object DataLoader {
         Powers.OnDeathEnchantGlobalMinions(str.drop("OnDeathEnchantGlobalMinions ".length).toInt)
       case str if str.startsWith("OnDeathEnemyChangesMorale ") =>
         Powers.OnDeathEnemyChangesMorale(str.drop("OnDeathEnemyChangesMorale ".length).toInt)
+      case str if str.startsWith("HostageCaught ") =>
+        Powers.HostageCaught(str.drop("HostageCaught ".length).toInt)
       case str if str.startsWith("OnDeathPhoenix ") =>
         val pieceName = str.drop("OnDeathPhoenix ".length)
         piecesToCheck = pieceName :: piecesToCheck

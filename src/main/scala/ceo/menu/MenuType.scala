@@ -143,7 +143,9 @@ object MenuType {
   case object OpenBoxMenu extends MenuType {
     def isInThisMenu(pixels: Array[Int]): Boolean = {
       testPixel(at(pixels, 297, 170), 0, 0, 0) &&
-        testPixel(at(pixels, 701, 530), 0, 0, 0)
+        testPixel(at(pixels, 701, 530), 0, 0, 0) &&
+        testPixel(at(pixels, 499, 345), 224, 99, 99) &&
+        testPixel(at(pixels, 606, 220), 255, 189, 189)
     }
 
     val chooseBoxCoordinate: Coordinate = (500, 345)

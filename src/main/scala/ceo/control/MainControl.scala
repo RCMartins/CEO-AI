@@ -46,7 +46,7 @@ object MainControl { // use ui.MainPlayUI.main() instead!!!
         val screen = MouseControl.robot.createScreenCapture(new Rectangle(minX, minY, sizeX, sizeY))
         val loader = new ImageBoardLoader(screen)
         if (loader.isValid && loader.currentTeam == White) {
-          Thread.sleep(500)
+          Thread.sleep(750)
           val screenFinal = MouseControl.robot.createScreenCapture(new Rectangle(minX, minY, sizeX, sizeY))
           if (new ImageBoardLoader(screen).isValid) {
             screenFinal

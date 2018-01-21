@@ -34,14 +34,18 @@ case class Piece(
     }
   }
 
-  def moveTo(currentState: GameState, target: BoardPos): (GameState, Piece) = {
-    val updatedPiece = copy(pos = target).promoteIfPossible(currentState)
-    val updatedState =
+  def moveTo(currentState: GameState, target: BoardPos, isFromPlayerMove: Boolean = false): (GameState, Option[Piece]) = {
+    val updatedPiece1 = copy(pos = target).promoteIfPossible(currentState)
+    val updatedState1 =
       if (data.isGuardian)
-        currentState.updatePlayer(currentState.getPlayer(team).updateGuardedPositions(Some(this), Some(updatedPiece)))
+        currentState.updatePlayer(currentState.getPlayer(team).updateGuardedPositions(Some(this), Some(updatedPiece1)))
       else
         currentState
-    (updatedState, updatedPiece)
+
+    val (updatedState2, updatedPiece2) =
+      DynamicRunner.foldLeft((updatedState1, Some(updatedPiece1)), (updatedPiece1, target - this.pos, isFromPlayerMove), data.afterPieceMovesRunners)
+
+    (updatedState2, updatedPiece2)
   }
 
   def afterMeleeKill(startingState: GameState, pieceToKill: Piece): (GameState, Option[Piece]) = {

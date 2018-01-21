@@ -46,6 +46,8 @@ object Powers {
 
   case object OnEnemyDeathMovesForward extends Powers
 
+  case object OnMoveAdjacentHoplitesMove extends Powers
+
   case object CannotBeTargetedByMinions extends Powers
 
   case object WispReflect extends Powers
@@ -106,6 +108,8 @@ object Powers {
   case class TriggerInstantKill(distance: Distance) extends Powers
 
   case class OnMeleeDeathTriggerRevive(distance: Distance, moraleMinimum: Int) extends Powers
+
+  case class HostageCaught(moraleAmount: Int) extends Powers
 
   case class OnDeathPhoenix(eggPieceName: String) extends Powers
 

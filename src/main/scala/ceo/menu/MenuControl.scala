@@ -99,13 +99,17 @@ object MenuControl {
         println("In 'ChallengeVictoryWindow'")
         clickWaitRestart(menu.okButtonCoordinate, 4000)
       case MenuType.FindingPracticePartner =>
+        println("In 'FindingPracticePartner'")
         Wait(2000)
         start()
       case menu @ MenuType.PlayingInMultiplayer =>
+        println("In 'PlayingInMultiplayer'")
         checkOptions(menu)
       case menu @ MenuType.MultiplayerGameOverScreen =>
+        println("In 'MultiplayerGameOverScreen'")
         clickWaitRestart(menu.returnToTitleCoordinate, 4000)
       case menu @ MenuType.SelectTestMethod =>
+        println("In 'SelectTestMethod'")
         clickWaitRestart(menu.startCoordinate, 5000)
     }
 
@@ -193,7 +197,7 @@ object MenuControl {
     MenuType.findMenu(screen) match {
       case None =>
         println("Error, can't figure out which menu it's in...")
-        Thread.sleep(2000)
+        Thread.sleep(1000)
         start()
       case Some(currentMenu) =>
         controlGame(currentMenu)

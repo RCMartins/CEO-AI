@@ -307,7 +307,58 @@ case class PieceData(
         val effectStatus = data._2
         attackerPieceOption.map {
           case attackerPiece if attackerPiece.data.isImmuneTo(effectStatus.effectType) => attackerPiece
-          case attackerPiece => attackerPiece.addEffect(effectStatus) // TODO check if this covers all cases ? -> are there some kind of immune to champions?
+          case attackerPiece => attackerPiece.addEffect(effectStatus)
+        }
+      }
+    }
+  }
+
+  val afterPieceMovesRunners: List[DynamicRunner[
+    (GameState, Option[Piece] /* piece that moved updated */ ),
+    (Piece /* original piece that moved */ , Distance /* distance of the move */ , Boolean /* from a player move */ )]] = powers.collect {
+    case OnMoveAdjacentHoplitesMove => new DynamicRunner[(GameState, Option[Piece]), (Piece, Distance, Boolean)] {
+      override def update(state: (GameState, Option[Piece]), data: (Piece, Distance, Boolean)): (GameState, Option[Piece]) = {
+        val piecePosAfterMove = data._1.pos
+        val distance = data._2
+        val center = piecePosAfterMove - distance
+        state.copy(_1 =
+          Distance.adjacentDistances.map(_ + center).foldLeft(state._1) {
+            case (gameState, boardPos) if boardPos != piecePosAfterMove =>
+              boardPos.getPiece(gameState.board) match {
+                case None => gameState
+                case Some(piece) if piece.team == team && piece.data.isHoplite =>
+                  val (updatedGameState, updatePiece) = piece.moveTo(gameState, piece.pos + distance)
+                  updatedGameState
+                    .removePiece(piece)
+                    .doActionIfCondition(updatePiece.isDefined, _.addEndOfTurnPiece(updatePiece.get))
+              }
+            case (gameState, _) => gameState
+          }
+        )
+      }
+    }
+    case HostageCaught(moraleAmount) => new DynamicRunner[(GameState, Option[Piece]), (Piece, Distance, Boolean)] {
+      val possibleDistancePairs: List[(Distance, Distance)] =
+        List(Distance(-1, -1), Distance(-1, 0), Distance(-1, +1), Distance(0, -1)).map(dist => (dist, dist * -1))
+
+      override def update(state: (GameState, Option[Piece]), data: (Piece, Distance, Boolean)): (GameState, Option[Piece]) = {
+        val hostageOption = state._2
+        hostageOption match {
+          case Some(hostage) =>
+            val pos = hostage.pos
+            val board = state._1.board
+            val enemyTeam = hostage.team.enemy
+            val hostageCaught =
+              possibleDistancePairs.exists { case (dist1, dist2) =>
+                (dist1 + pos).getPiece(board).exists(piece => piece.team == enemyTeam && piece.data.isChampion) &&
+                  (dist2 + pos).getPiece(board).exists(piece => piece.team == enemyTeam && piece.data.isChampion)
+              }
+            if (hostageCaught)
+              (state._1.changeMorale(enemyTeam, moraleAmount), None)
+            else
+              state
+          case _ =>
+            state
         }
       }
     }
@@ -378,6 +429,11 @@ case class PieceData(
 
   val cannotBeTargetedByMinions: Boolean = powers.exists {
     case CannotBeTargetedByMinions => true
+    case _ => false
+  }
+
+  val isHoplite: Boolean = powers.exists {
+    case OnMoveAdjacentHoplitesMove => true
     case _ => false
   }
 }
