@@ -4,7 +4,7 @@ import java.awt.image.BufferedImage
 import java.io.File
 import javax.imageio.ImageIO
 
-import ceo.play.PlayerTeam
+import ceo.play.PlayerColor
 
 class ImageBoardLoader(imageIn: BufferedImage) extends SimpleImageLoader {
 
@@ -33,14 +33,14 @@ class ImageBoardLoader(imageIn: BufferedImage) extends SimpleImageLoader {
     red == 204 && green == 204 && blue == 204
   }
 
-  def currentTeam: PlayerTeam = {
+  def currentTeam: PlayerColor = {
     val x = cornerX + 505
     val y = cornerY - 53
     val i = y * width + x
     val red = (imageInPixels(i) & 0x00FF0000) >> 16
     val green = (imageInPixels(i) & 0x0000FF00) >> 8
     val blue = (imageInPixels(i) & 0x000000FF) >> 0
-    if (red == 255 && green == 255 && blue == 255) PlayerTeam.White else PlayerTeam.Black
+    if (red == 255 && green == 255 && blue == 255) PlayerColor.White else PlayerColor.Black
   }
 
   def getImageAt(row: Int, column: Int): PieceImage = {

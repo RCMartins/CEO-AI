@@ -1,7 +1,6 @@
 package ceo.play
 
 import ceo.play.Moves.UnstoppableTeleportTransformInto
-import ceo.play.PlayerTeam.{Black, White}
 import com.softwaremill.quicklens._
 
 case class GameState(
@@ -28,7 +27,7 @@ case class GameState(
     }
   }
 
-  def getPlayer(team: PlayerTeam): Player = if (team == White) playerWhite else playerBlack
+  def getPlayer(team: PlayerTeam): Player = if (team.isWhite) playerWhite else playerBlack
 
   def nextTurn: GameState = copy(currentTurn = currentTurn + 0.5)
 
@@ -97,10 +96,17 @@ case class GameState(
     }
 
   def updatePlayer(playerUpdated: Player): GameState = {
-    if (playerUpdated.team == White)
+    if (playerUpdated.team.isWhite)
       copy(playerWhite = playerUpdated)
     else
       copy(playerBlack = playerUpdated)
+  }
+
+  def updatePlayer(team: PlayerTeam, changePlayerFunction: Player => Player): GameState = {
+    if (team.isWhite)
+      copy(playerWhite = changePlayerFunction(playerWhite))
+    else
+      copy(playerBlack = changePlayerFunction(playerBlack))
   }
 
   /**
@@ -109,7 +115,7 @@ case class GameState(
   def placePiece(piece: Piece): GameState = {
     val withNewPiece = copy(board = board.place(piece))
 
-    if (piece.team == White) {
+    if (piece.team.isWhite) {
       withNewPiece.copy(playerWhite =
         withNewPiece.playerWhite
           .changeMorale(piece.currentMorale)
@@ -137,7 +143,7 @@ case class GameState(
   def removePiece(piece: Piece): GameState = {
     val withoutPiece = copy(board = board.remove(piece.pos))
 
-    if (piece.team == White) {
+    if (piece.team.isWhite) {
       withoutPiece.copy(playerWhite =
         withoutPiece.playerWhite
           .changeMorale(-piece.currentMorale)
@@ -157,7 +163,7 @@ case class GameState(
   }
 
   def changeMorale(playerTeam: PlayerTeam, moraleDiff: Int): GameState = {
-    if (playerTeam == White)
+    if (playerTeam.isWhite)
       copy(playerWhite = playerWhite.changeMorale(moraleDiff))
     else
       copy(playerBlack = playerBlack.changeMorale(moraleDiff))
@@ -244,10 +250,9 @@ case class GameState(
           .updatePieceIfAlive(piece, pieceNewPosOption)
       case AttackCanBeBlocked(piece, _pieceToAttack) =>
         val (updatedState, pieceToAttack) = guardianSwapPiece(this, piece, _pieceToAttack)
-        if (pieceToAttack == _pieceToAttack) {
+        if (pieceToAttack eq _pieceToAttack) {
           val pieceToKillUpdated = pieceToAttack.removeBlockEffect
-          updatedState
-            .updatePiece(pieceToAttack, pieceToKillUpdated)
+          updatedState.updatePiece(pieceToAttack, pieceToKillUpdated)
         } else {
           playPlayerMove(Attack(piece, pieceToAttack), turnUpdate = false)
         }

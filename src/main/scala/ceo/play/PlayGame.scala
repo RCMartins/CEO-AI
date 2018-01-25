@@ -1,6 +1,6 @@
 package ceo.play
 
-import ceo.play.PlayerTeam.{Black, White}
+import ceo.play.PlayerTeam._
 
 import scala.util.Try
 
@@ -9,17 +9,20 @@ object PlayGame {
   final val DEBUG_SHOW_TURNS: Boolean = false
   final val DEBUG_SHOW_CALC_TIME: Boolean = true
 
-  val emptyGameState: GameState =
+  def emptyGameState(whitePlayerInBottom: Boolean): GameState = {
+    val playerWhite = if (whitePlayerInBottom) WhiteBottom else WhiteTop
+    val playerBlack = if (whitePlayerInBottom) BlackTop else BlackBottom
     GameState(
       board = Board.empty,
-      playerWhite = Player(White, morale = 0, Nil, Nil, numberOfPieces = 0, kingMode = 0, PlayerExtraData.empty),
-      playerBlack = Player(Black, morale = 0, Nil, Nil, numberOfPieces = 0, kingMode = 0, PlayerExtraData.empty),
+      playerWhite = Player(playerWhite, morale = 0, Nil, Nil, numberOfPieces = 0, kingMode = 0, PlayerExtraData.empty),
+      playerBlack = Player(playerBlack, morale = 0, Nil, Nil, numberOfPieces = 0, kingMode = 0, PlayerExtraData.empty),
       currentTurn = 0,
       movesHistory = Nil,
       boardEffects = Nil,
       gameRunner = GameRunner.empty,
       endOfTurnActions = Nil
     )
+  }
 
   def playSomeMatches(startingState: GameState, playerWhiteStrategy: Strategy, playerBlackStrategy: Strategy, numberOfGames: Int): Unit = {
     println(startingState)

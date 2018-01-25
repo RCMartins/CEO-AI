@@ -2,7 +2,7 @@ package ceo.play
 
 import java.io.{BufferedReader, File, StringReader}
 
-import ceo.play.PlayerTeam.{Black, White}
+import ceo.play.PlayerTeam._
 
 import scala.collection.mutable
 import scala.io.Source
@@ -22,7 +22,7 @@ object DataLoader {
 
   def main(args: Array[String]): Unit = {
     loadPieceFiles()
-    println(initialize())
+    println(initialize(boardFileName = "Data/boardTest.ceo", whitePlayerInBottom = true, showErrors = true))
   }
 
   def loadPieceFiles(file: File = new File("Data/Units")): Unit = {
@@ -41,9 +41,9 @@ object DataLoader {
       val gamePieces = loadUnit(file.getName, br)
       gamePieces.foreach {
         gamePiece =>
-          if (gamePiece.team == White)
+          if (gamePiece.team == PlayerTeam.WhiteBottom) // we only need to add it once per piece name
             names = gamePiece :: names
-          pieces.put(gamePiece.name, gamePiece)
+          pieces.put(gamePiece.nameWithPlayerBase, gamePiece)
       }
       if (gamePieces.nonEmpty)
         loadUnits()
@@ -90,16 +90,18 @@ object DataLoader {
       val powersStr = Stream.continually(readLine()).takeWhile(!_.startsWith("-" * 20)).toList
 
       val powers = loadPowers(powersStr)
-      val (movesBottomTop, extraPowersWhite) = loadMoves(pieceName, movesStr, powers)
-      val (movesTopBottom, extraPowersBlack) = loadMoves(pieceName, movesStr.reverse, powers)
+      val (movesBottomTop, extraPowersBottomTop) = loadMoves(pieceName, movesStr, powers)
+      val (movesTopBottom, extraPowersTopBottom) = loadMoves(pieceName, movesStr.reverse, powers)
 
-      val name_white = pieceName + "_" + White
-      val name_black = pieceName + "_" + Black
+      val nameWhite = pieceName + "_" + PlayerColor.White
+      val nameBlack = pieceName + "_" + PlayerColor.Black
       val isMinion = fileName.startsWith("minions")
       val isChampion = fileName.startsWith("champions") && !pieceName.startsWith("King")
       Seq(
-        PieceData(name_white, isMinion, isChampion, morale.toInt, movesBottomTop, powers ++ extraPowersWhite, White),
-        PieceData(name_black, isMinion, isChampion, morale.toInt, movesTopBottom, powers ++ extraPowersBlack, Black)
+        PieceData(nameWhite, isMinion, isChampion, morale.toInt, movesBottomTop, powers ++ extraPowersBottomTop, WhiteBottom),
+        PieceData(nameWhite, isMinion, isChampion, morale.toInt, movesTopBottom, powers ++ extraPowersTopBottom, WhiteTop),
+        PieceData(nameBlack, isMinion, isChampion, morale.toInt, movesBottomTop, powers ++ extraPowersBottomTop, BlackBottom),
+        PieceData(nameBlack, isMinion, isChampion, morale.toInt, movesTopBottom, powers ++ extraPowersTopBottom, BlackTop)
       )
     }
   }
@@ -385,20 +387,19 @@ object DataLoader {
     }
   }
 
-  def initialize(boardFileName: String = "Data/boardTest.ceo", showErrors: Boolean = true): (GameState, List[String]) = {
-    initialize(new File(boardFileName), showErrors)
+  def initialize(boardFileName: String, whitePlayerInBottom: Boolean, showErrors: Boolean): (GameState, List[String]) = {
+    initialize(new File(boardFileName), whitePlayerInBottom, showErrors)
   }
 
-  def initialize(boardFile: File, showErrors: Boolean): (GameState, List[String]) = {
+  def initialize(boardFile: File, whitePlayerInBottom: Boolean, showErrors: Boolean): (GameState, List[String]) = {
     val lines = Source.fromFile(boardFile).getLines.toVector
     if (lines.size == 9 && lines(8).nonEmpty || lines.size > 9)
       throw new Exception(s"file $boardFile has more than 8 lines!")
 
-    val board = loadBoard(lines)
+    val board = loadBoard(lines, whitePlayerInBottom)
 
     val unknownPieces =
-      (piecesToCheck.flatMap(piece => if (Try(getPieceData(piece, White)).isFailure) Some(piece) else None) ++
-        piecesToCheck.flatMap(piece => if (Try(getPieceData(piece, Black)).isFailure) Some(piece) else None))
+      piecesToCheck.flatMap(piece => if (Try(getPieceData(piece, WhiteBottom)).isFailure) Some(piece) else None)
         .distinct
         .sorted
 
@@ -412,8 +413,8 @@ object DataLoader {
       (board, unknownPieces)
   }
 
-  def loadBoard(lines: Seq[String]): GameState = {
-    var gameState = PlayGame.emptyGameState
+  def loadBoard(lines: Seq[String], whitePlayerInBottom: Boolean): GameState = {
+    var gameState = PlayGame.emptyGameState(whitePlayerInBottom)
     for (row <- lines.indices) {
       val line = lines(row).replaceAll("""\s+""", " ")
       val pieceNames = line.split(" ")
@@ -422,7 +423,7 @@ object DataLoader {
           gameState = gameState.placePiece(PieceData.empty.copy(name = pieceName).createPiece(BoardPos(row, column)))
         else if (pieceName.length > 1) {
           val List(name, team) = pieceName.split("_").toList
-          Try(getPieceData(name, PlayerTeam(team))) match {
+          Try(getPieceData(name, PlayerTeam(team, whitePlayerInBottom))) match {
             case Failure(_) =>
               piecesToCheck = name :: piecesToCheck
               gameState = gameState.placePiece(PieceData.empty.copy(name = "?" + pieceName).createPiece(BoardPos(row, column)))

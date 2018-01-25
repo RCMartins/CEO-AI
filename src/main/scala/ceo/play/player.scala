@@ -1,6 +1,6 @@
 package ceo.play
 
-import ceo.play.PlayerTeam.White
+import com.softwaremill.quicklens._
 
 case class Player(
   team: PlayerTeam,
@@ -69,9 +69,9 @@ case class Player(
     copy(extraData = extraData.copy(guardedPositions = updatedGuardedPositions))
   }
 
-  def inBaseRow(pos: BoardPos): Boolean = pos.row == (if (team == White) 7 else 0)
+  def inBaseRow(pos: BoardPos): Boolean = pos.row == (if (team.isBottom) 7 else 0)
 
-  def directionForward: Distance = if (team == White) Distance(-1, 0) else Distance(1, 0)
+  def directionForward: Distance = if (team.isBottom) Distance(-1, 0) else Distance(1, 0)
 }
 
 case class PlayerExtraData(

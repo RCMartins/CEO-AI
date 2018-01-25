@@ -2,12 +2,12 @@ package ceo.image
 
 import java.awt.Graphics2D
 import java.awt.image.BufferedImage
-import java.io.{BufferedWriter, File, FileWriter}
+import java.io.File
 import javax.imageio.ImageIO
 
 import ceo.image.BoardImageData.isBackgroundWhite
-import ceo.play.PlayerTeam.{Black, White}
-import ceo.play.{BoardPos, PieceData, PlayerTeam}
+import ceo.play.PlayerColor.{Black, White}
+import ceo.play.{BoardPos, PieceData, PlayerColor, PlayerTeam}
 
 object BoardImageData {
   val pieceImagesFolder: File = new File("Data/piece-images")
@@ -29,9 +29,9 @@ class BoardImageData(pieceName: String) {
 
   def allImages: List[PieceImage] = positions.flatMap(_.flatMap(_.toSeq)).toList
 
-  def getImage(team: PlayerTeam, whiteSquare: Boolean, tier: Int): Option[PieceImage] = {
+  def getImage(color: PlayerColor, whiteSquare: Boolean, tier: Int): Option[PieceImage] = {
     require(tier >= 0 && tier <= 3)
-    val (rowImage, columnImage) = (team, whiteSquare) match {
+    val (rowImage, columnImage) = (color, whiteSquare) match {
       case (Black, true) => (0, tier * 2)
       case (Black, false) => (0, tier * 2 + 1)
       case (White, true) => (7, tier * 2 + 1)
@@ -46,7 +46,7 @@ class BoardImageData(pieceName: String) {
   }
 
   def getImage(pieceData: PieceData, inWhiteSquare: Boolean): Option[PieceImage] = {
-    val (rowImage, columnImage) = (pieceData.team, inWhiteSquare) match {
+    val (rowImage, columnImage) = (pieceData.team.color, inWhiteSquare) match {
       case (Black, true) => (0, pieceData.tier * 2)
       case (Black, false) => (0, pieceData.tier * 2 + 1)
       case (White, true) => (7, pieceData.tier * 2 + 1)
@@ -55,9 +55,9 @@ class BoardImageData(pieceName: String) {
     positions(rowImage)(columnImage)
   }
 
-  def setImage(pieceImage: PieceImage, team: PlayerTeam, whiteSquare: Boolean, tier: Int): Unit = {
+  def setImage(pieceImage: PieceImage, color: PlayerColor, whiteSquare: Boolean, tier: Int): Unit = {
     require(tier >= 0 && tier <= 3)
-    val (rowImage, columnImage) = (team, whiteSquare) match {
+    val (rowImage, columnImage) = (color, whiteSquare) match {
       case (Black, true) => (0, tier * 2)
       case (Black, false) => (0, tier * 2 + 1)
       case (White, true) => (7, tier * 2 + 1)
@@ -70,7 +70,7 @@ class BoardImageData(pieceName: String) {
   }
 
   def setImage(pieceImage: PieceImage, pieceData: PieceData, boardPos: BoardPos): Unit = {
-    val (rowImage, columnImage) = (pieceData.team, isBackgroundWhite(boardPos.row, boardPos.column)) match {
+    val (rowImage, columnImage) = (pieceData.team.color, isBackgroundWhite(boardPos.row, boardPos.column)) match {
       case (Black, true) => (0, pieceData.tier * 2)
       case (Black, false) => (0, pieceData.tier * 2 + 1)
       case (White, true) => (7, pieceData.tier * 2 + 1)

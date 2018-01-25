@@ -10,10 +10,9 @@ import ceo.image.ImageLoader.ImageState
 import ceo.image._
 import ceo.menu.Exceptions.{AllPiecesAreKnown, BoardStartsWithUnknownPieces}
 import ceo.menu.{MenuControl, OathObjective}
-import ceo.play.PlayerTeam.White
 import ceo.play.{BoardPos, _}
 
-object MainControl { // use ui.MainPlayUI.main() instead!!!
+object MainControl {
 
   private val autoScreenFolder = new File("Images/auto-screen")
 
@@ -22,8 +21,10 @@ object MainControl { // use ui.MainPlayUI.main() instead!!!
   val sizeX = 1000
   val sizeY = 650
 
+  var playerColor: PlayerColor = PlayerColor.White
+
   // private val strategy = Strategy.AlphaBetaPruning(5)
-  private val strategy = new Strategy.AlphaBetaPruningIterativeDeepening with ValueOfState.ImprovedHeuristic
+  private val strategy = new Strategy.AlphaBetaPruningIterativeDeepening(20000) with ValueOfState.ImprovedHeuristic
 
   def start(): Unit = {
     ImageLoader.initialize()
@@ -42,12 +43,16 @@ object MainControl { // use ui.MainPlayUI.main() instead!!!
       println("Result: " + gameState.get.winner)
     } else {
 
+      def captureScreen: BufferedImage = {
+        MouseControl.robot.createScreenCapture(new Rectangle(minX, minY, sizeX, sizeY))
+      }
+
       def getScreen: BufferedImage = {
-        val screen = MouseControl.robot.createScreenCapture(new Rectangle(minX, minY, sizeX, sizeY))
+        val screen = captureScreen
         val loader = new ImageBoardLoader(screen)
-        if (loader.isValid && loader.currentTeam == White) {
+        if (loader.isValid && loader.currentTeam == playerColor) {
           Thread.sleep(750)
-          val screenFinal = MouseControl.robot.createScreenCapture(new Rectangle(minX, minY, sizeX, sizeY))
+          val screenFinal = captureScreen
           if (new ImageBoardLoader(screen).isValid) {
             screenFinal
           } else {
@@ -64,13 +69,13 @@ object MainControl { // use ui.MainPlayUI.main() instead!!!
       ImageLoader.getPiecesFromUnknownBoard(currentScreen) match {
         case None =>
           println("Board not found!")
-        case Some(ImageState(PlayerTeam.Black, _, _, _)) =>
+        case Some(ImageState(color, _, _, _)) if color != playerColor =>
           println("Still in Black turn, waiting...")
           // TODO use this information to detect errors in state update?
           Thread.sleep(500)
           playTurn(gameFolder, gameState)
-        case Some(ImageState(PlayerTeam.White, loader, pieceNames, lastMoveCoordinates)) =>
-          val stateOption = ImageLoader.loadBoardFromPieceNamesNoFilter(pieceNames)
+        case Some(ImageState(_, loader, pieceNames, lastMoveCoordinates)) =>
+          val stateOption = ImageLoader.loadBoardFromPieceNamesNoFilter(pieceNames, playerColor == PlayerColor.White)
           if (gameState.isEmpty && stateOption.nonEmpty) {
             // TODO: check that we have images for all the pieces / white and black squares / possible evolutions / charm / etc
             val unknownPieces = stateOption.get.allPieces.filter(_.data.isUnknown)
@@ -148,16 +153,14 @@ object MainControl { // use ui.MainPlayUI.main() instead!!!
 
               def doMoveAction(): Unit = {
                 MouseControl.moveMouse(minX + toScreenX(sq1), minY + toScreenY(sq1))
-                Thread.sleep(5)
+                Thread.sleep(25)
                 MouseControl.mouseDown()
-                Thread.sleep(5)
+                Thread.sleep(25)
                 MouseControl.moveMouse(minX + toScreenX(sq2), minY + toScreenY(sq2))
-                Thread.sleep(5)
+                Thread.sleep(25)
                 MouseControl.mouseUp()
               }
 
-              doMoveAction()
-              Thread.sleep(5)
               doMoveAction()
               MouseControl.moveMouse(beforeX, beforeY)
 

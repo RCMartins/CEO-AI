@@ -6,7 +6,7 @@ import ceo.play.PlayerTeam._
 
 import scala.collection.parallel.immutable.ParSeq
 
-trait Strategy {
+sealed trait Strategy {
   def chooseMove(gameState: GameState): Option[GameState]
 
   def valueOfState(gameState: GameState, team: PlayerTeam): Int = gameState.defaultValueOfState(team)
@@ -55,8 +55,6 @@ object Strategy {
         } else {
           val playerMoves = state.getCurrentPlayerMoves
           val states = playerMoves.map(move => state.playPlayerMove(move, turnUpdate = true))
-          if (states.isEmpty)
-            println(state)
 
           val subTrees = states
             .map(state => createTree(state, depth - 1, !maximize))
@@ -206,7 +204,7 @@ object Strategy {
     }
   }
 
-  class AlphaBetaPruningIterativeDeepening extends Strategy {
+  class AlphaBetaPruningIterativeDeepening(timeLimit: Int) extends Strategy {
     override def chooseMove(startingState: GameState): Option[GameState] = {
       val currentPlayer = startingState.getCurrentPlayer.team
 
@@ -216,8 +214,6 @@ object Strategy {
       val showAtIndex = if (firstLevelStatesSize <= 20) 1 else 2
 
       val startTime = System.currentTimeMillis()
-      //      var continue = true
-      val timeLimit = 15000
 
       def createTreeFirstLevel(state: GameState, depth: Int, _alpha: Int, _beta: Int): Option[(Int, Array[Int])] = {
         def calcFinalValue(): Option[(Int, Array[Int])] = {
@@ -259,8 +255,6 @@ object Strategy {
         } else {
           val playerMoves = state.getCurrentPlayerMoves
           val states = playerMoves.map(move => state.playPlayerMove(move, turnUpdate = true))
-          if (states.isEmpty)
-            println(state)
 
           def calcFinalValue(): Int =
             if (maximize) {
@@ -337,6 +331,7 @@ object ValueOfState {
       gameState.winner match {
         case PlayerWinType.NotFinished =>
           def value(player: Player): Int = {
+            val allPieces = player.allPieces
             player.morale * 100 +
               player.numberOfPieces * 10 +
               (if (player.hasKing) 0 else -1000) + {
@@ -352,7 +347,9 @@ object ValueOfState {
                     0
               }.getOrElse(0)).sum + {
                 val dir = player.directionForward.rowDiff
-                player.allPieces.map(piece => if (piece.data.canMinionPromote) piece.pos.row * dir else 0).sum
+                allPieces.map(piece => if (piece.data.canMinionPromote) piece.pos.row * dir else 0).sum
+              } + {
+                allPieces.count(_.data.isDummyPiece) * -10
               }
             }
           }
@@ -368,8 +365,8 @@ object ValueOfState {
             whitePoints - blackPoints,
             blackPoints - whitePoints
           )
-        case PlayerWinType.PlayerWhite => if (team == White) ValueOfStateMaxValue else -ValueOfStateMaxValue
-        case PlayerWinType.PlayerBlack => if (team == Black) ValueOfStateMaxValue else -ValueOfStateMaxValue
+        case PlayerWinType.PlayerWhite => if (team.isWhite) ValueOfStateMaxValue else -ValueOfStateMaxValue
+        case PlayerWinType.PlayerBlack => if (team.isBlack) ValueOfStateMaxValue else -ValueOfStateMaxValue
         case PlayerWinType.Draw => -ValueOfStateMaxValue / 2
       }
     }

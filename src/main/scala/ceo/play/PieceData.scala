@@ -26,6 +26,8 @@ case class PieceData(
 
   def officialName: String = s"$simpleName${"+" * tier}"
 
+  def nameWithPlayerBase: String = s"${officialName}_$team"
+
   val isUnknown: Boolean = name.startsWith("?")
 
   val afterAnyDeathRunners: List[DynamicRunner[
@@ -473,6 +475,6 @@ case class PieceData(
 
 object PieceData {
 
-  val empty = PieceData("", isMinion = false, isChampion = false, 0, Nil, Nil, PlayerTeam.White)
+  val empty = PieceData("", isMinion = false, isChampion = false, 0, Nil, Nil, PlayerTeam.WhiteBottom)
 
 }

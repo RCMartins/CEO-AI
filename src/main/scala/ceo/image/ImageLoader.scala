@@ -13,7 +13,7 @@ object ImageLoader {
 
   val UNKNOWN_PIECE = "?"
 
-  val backgroundImages: mutable.Set[(PieceImage, Option[PlayerTeam], Boolean)] = mutable.HashSet.empty
+  val backgroundImages: mutable.Set[(PieceImage, Option[PlayerColor], Boolean)] = mutable.HashSet.empty
   val allPieceImages: mutable.Map[PieceImage, String /* piece name */ ] = mutable.HashMap.empty
   val pieceImagesByName: mutable.Map[
     String /* OfficialName_Team */ ,
@@ -46,7 +46,7 @@ object ImageLoader {
   }
 
   def loadBackgroundSpecials(file: File): Unit = {
-    val (state, _) = DataLoader.initialize(file, showErrors = false)
+    val (state, _) = DataLoader.initialize(file, whitePlayerInBottom = true, showErrors = false)
 
     val imageLoader =
       new CuttedImageBoardLoader(new File(file.getAbsolutePath.stripSuffix("ceo") + "png"))
@@ -58,13 +58,13 @@ object ImageLoader {
         case Some(piece) if piece.data.name == "i" =>
         //          backgroundImagesToIgnore += currentImage
         case Some(piece) if piece.data.name == "1" =>
-          backgroundImages += ((currentImage, Some(PlayerTeam.White), true))
+          backgroundImages += ((currentImage, Some(PlayerColor.White), true))
         case Some(piece) if piece.data.name == "2" =>
-          backgroundImages += ((currentImage, Some(PlayerTeam.White), false))
+          backgroundImages += ((currentImage, Some(PlayerColor.White), false))
         case Some(piece) if piece.data.name == "3" =>
-          backgroundImages += ((currentImage, Some(PlayerTeam.Black), true))
+          backgroundImages += ((currentImage, Some(PlayerColor.Black), true))
         case Some(piece) if piece.data.name == "4" =>
-          backgroundImages += ((currentImage, Some(PlayerTeam.Black), false))
+          backgroundImages += ((currentImage, Some(PlayerColor.Black), false))
         case Some(piece) if piece.data.name == "u" => //ignore
         case Some(piece) if piece.data.name == "w" => //ignore
           backgroundImages += ((currentImage, None, true))
@@ -188,7 +188,7 @@ object ImageLoader {
       }
     } else {
       DataLoader.clearPiecesToCheck()
-      val (state, unknownPieces) = DataLoader.initialize(file, showErrors = false)
+      val (state, unknownPieces) = DataLoader.initialize(file, whitePlayerInBottom = true, showErrors = false)
       if (unknownPieces.isEmpty) {
         println(file.getName + " -> OK")
       } else {
@@ -228,7 +228,7 @@ object ImageLoader {
     }
   }
 
-  def getTeamPlay(pieceImage: PieceImage, useEqualPixels: Boolean = true): (Option[PlayerTeam], Boolean, Double) = {
+  def getTeamPlay(pieceImage: PieceImage, useEqualPixels: Boolean = true): (Option[PlayerColor], Boolean, Double) = {
     val image = pieceImage.bufferedImage
     if (useEqualPixels) {
       val list =
@@ -248,7 +248,7 @@ object ImageLoader {
   }
 
   case class ImageState(
-    currentTurnTeam: PlayerTeam,
+    currentTurnColor: PlayerColor,
     imageLoader: ImageBoardLoader,
     pieces: List[List[String]],
     lastMoveCoordinates: List[BoardPos]
@@ -368,15 +368,15 @@ object ImageLoader {
     sb.toString
   }
 
-  def loadBoardFromPieceNames(pieceNames: List[List[String]]): Option[GameState] = {
+  def loadBoardFromPieceNames(pieceNames: List[List[String]], whitePlayerInBottom: Boolean): Option[GameState] = {
     if (pieceNames.exists(_.exists(_.startsWith("?"))))
       None
     else
-      Some(DataLoader.loadBoard(pieceNames.map(_.mkString(" "))))
+      Some(DataLoader.loadBoard(pieceNames.map(_.mkString(" ")), whitePlayerInBottom))
   }
 
-  def loadBoardFromPieceNamesNoFilter(pieceNames: List[List[String]]): Option[GameState] = {
-    Some(DataLoader.loadBoard(pieceNames.map(_.mkString(" "))))
+  def loadBoardFromPieceNamesNoFilter(pieceNames: List[List[String]], whitePlayerInBottom: Boolean): Option[GameState] = {
+    Some(DataLoader.loadBoard(pieceNames.map(_.mkString(" ")), whitePlayerInBottom))
   }
 
   def addPossibleUnknownImage(pieceImage: PieceImage): Unit =
@@ -396,7 +396,7 @@ object ImageLoader {
       val List(namePartFull, team) = pieceName.split("_").toList
       val namePart = namePartFull.takeWhile(_ != '+')
       val tier = namePartFull.count(_ == '+')
-      allBoardImageData.get(namePart).flatMap(_.getImage(PlayerTeam.apply(team), isInWhiteSquare, tier))
+      allBoardImageData.get(namePart).flatMap(_.getImage(PlayerColor(team), isInWhiteSquare, tier))
     }
   }
 
@@ -416,7 +416,7 @@ object ImageLoader {
       allBoardImageData.getOrElseUpdate(simpleName, {
         new BoardImageData(simpleName)
       })
-    boardImageData.setImage(pieceImage, PlayerTeam(team), inWhiteSquare, tier)
+    boardImageData.setImage(pieceImage, PlayerColor(team), inWhiteSquare, tier)
     boardImageData.saveToFile()
   }
 
