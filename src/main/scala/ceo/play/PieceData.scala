@@ -353,12 +353,12 @@ case class PieceData(
           Distance.adjacentDistances.map(_ + center).foldLeft(state._1) {
             case (gameState, boardPos) if boardPos != piecePosAfterMove =>
               boardPos.getPiece(gameState.board) match {
-                case None => gameState
                 case Some(piece) if piece.team == team && piece.data.isHoplite =>
                   val (updatedGameState, updatePiece) = piece.moveTo(gameState, piece.pos + distance)
                   updatedGameState
                     .removePiece(piece)
                     .doActionIfCondition(updatePiece.isDefined, _.addEndOfTurnPiece(updatePiece.get))
+                case _ => gameState
               }
             case (gameState, _) => gameState
           }
@@ -435,8 +435,8 @@ case class PieceData(
         EffectStatus.BlocksAttacksFrom(distances)
       case TriggerInstantKill(distance) =>
         EffectStatus.InstantKillPositional(distance)
-      case HatchToPhoenixAt(moraleToPromote, pieceName) =>
-        EffectStatus.PhoenixEgg(moraleToPromote, pieceName)
+      case GrowMoraleUntilTransform(moraleToPromote, pieceName) =>
+        EffectStatus.PieceGrow(moraleToPromote, pieceName)
     }
   }
 
@@ -462,6 +462,11 @@ case class PieceData(
 
   val isHoplite: Boolean = powers.exists {
     case OnMoveAdjacentHoplitesMove => true
+    case _ => false
+  }
+
+  val isDummyPiece: Boolean = powers.exists {
+    case Dummy => true
     case _ => false
   }
 }

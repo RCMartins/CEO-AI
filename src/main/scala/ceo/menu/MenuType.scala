@@ -5,13 +5,13 @@ import java.awt.image.BufferedImage
 import ceo.control.MainControl
 import ceo.menu.MenuType.{Coordinate, at, testPixel}
 
-trait MenuType {
+sealed trait MenuType {
 
   def isInThisMenu(pixels: Array[Int]): Boolean
 
 }
 
-trait InGameMenuType extends MenuType {
+sealed trait InGameMenuType extends MenuType {
 
   def isInThisMenu(pixels: Array[Int]): Boolean = {
     testPixel(at(pixels, 378, 4), 0, 0, 0) && // PlayingMatch
@@ -190,6 +190,8 @@ object MenuType {
         testPixel(at(pixels, 796, 584), 120, 150, 158)
 
     val claimPrizeCoordinate: Coordinate = (323, 537)
+
+    val claimPrizeOkButtonCoordinate: Coordinate = (500, 398)
 
     val playChallengeCoordinate: Coordinate = (678, 538)
 

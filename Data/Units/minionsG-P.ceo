@@ -426,7 +426,7 @@ Portal 0
  1
 ---
 ImmuneTo Status
-TeleportPiece 1 2
+TeleportOneToMany 1 2
 --------------------
 Portal+ 1
 ---
@@ -436,7 +436,7 @@ Portal+ 1
    1
 ---
 ImmuneTo Status
-TeleportPiece 1 2
+TeleportOneToMany 1 2
 --------------------
 Portal++ 2
 ---
@@ -446,7 +446,7 @@ Portal++ 2
    1
 ---
 ImmuneTo Status
-TeleportPiece 1 2
+TeleportOneToMany 1 2
 --------------------
 Portal+++ 3
 ---
@@ -456,7 +456,7 @@ Portal+++ 3
    1
 ---
 ImmuneTo Status
-TeleportPiece 1 2
+TeleportOneToMany 1 2
 --------------------
 Princess 0
 ---

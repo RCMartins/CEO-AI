@@ -20,6 +20,10 @@ object MenuControl {
     start()
   }
 
+  private val DEFAULT_TIMEOUT = 1000
+  private val MAX_TIMEOUT = 60000
+
+  private var timeOutFromNotFindingAnyMenu = DEFAULT_TIMEOUT
   private var settingsReady = false
   private var challengeAlreadyWon = false
 
@@ -78,7 +82,8 @@ object MenuControl {
       case menu @ MenuType.TodaysChallengeWindow =>
         println("In 'TodaysChallengeWindow'")
         if (oathObjective == CompleteDailyChallenge) {
-          clickWait(menu.claimPrizeCoordinate, 50)
+          clickWait(menu.claimPrizeCoordinate, 1500)
+          clickWait(menu.claimPrizeOkButtonCoordinate, 500)
           if (MenuType.menuMatch(screen, menu.challengeWon))
             challengeAlreadyWon = true
           if (challengeAlreadyWon)
@@ -197,9 +202,11 @@ object MenuControl {
     MenuType.findMenu(screen) match {
       case None =>
         println("Error, can't figure out which menu it's in...")
-        Thread.sleep(1000)
+        Thread.sleep(timeOutFromNotFindingAnyMenu)
+        timeOutFromNotFindingAnyMenu = Math.min(MAX_TIMEOUT, timeOutFromNotFindingAnyMenu + 100)
         start()
       case Some(currentMenu) =>
+        timeOutFromNotFindingAnyMenu = DEFAULT_TIMEOUT
         controlGame(currentMenu)
     }
   }

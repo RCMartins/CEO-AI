@@ -222,7 +222,7 @@ object Moves {
     }
   }
 
-  private def canTransformEnemyIntoAllyPiece(
+  private def canMagicTransformEnemyIntoAllyPiece(
     piece: Piece,
     target: BoardPos,
     moraleCost: Int,
@@ -230,7 +230,11 @@ object Moves {
     state: GameState
   ): Option[PlayerMove] = {
     target.getPiece(state.board) match {
-      case Some(targetPiece) if targetPiece.team != piece.team && generalCanTargetEnemy(piece, targetPiece) =>
+      case Some(targetPiece) if {
+        targetPiece.team != piece.team &&
+          !targetPiece.data.isImmuneTo(EffectType.Magic) &&
+          generalCanTargetEnemy(piece, targetPiece)
+      } =>
         Some(PlayerMove.TransformEnemyIntoAllyPiece(piece, targetPiece, moraleCost, AllyPieceData))
       case _ =>
         None
@@ -459,10 +463,9 @@ object Moves {
     }
   }
 
-  case class TransformEnemyIntoAllyPiece(dist: Distance, moraleCost: Int, allyPieceName: String) extends SingleMove {
+  case class MagicTransformEnemyIntoAllyPiece(dist: Distance, moraleCost: Int, allyPieceName: String) extends SingleMove {
     def getValidMove(piece: Piece, state: GameState, currentPlayer: Player): Option[PlayerMove] = {
-      val allyUnitPieceData = DataLoader.getPieceData(allyPieceName, piece.team)
-      canTransformEnemyIntoAllyPiece(piece, piece.pos + dist, moraleCost, allyUnitPieceData, state)
+      canMagicTransformEnemyIntoAllyPiece(piece, piece.pos + dist, moraleCost, DataLoader.getPieceData(allyPieceName, piece.team), state)
     }
   }
 
@@ -544,25 +547,37 @@ object Moves {
     }
   }
 
-  /**
-    * @param fromLocationMode true -> player drags teleporter piece to targetPiece,
-    *                         false -> player drags teleporter piece to target empty location
-    */
-  case class TeleportPiece(distFrom: Distance, distTo: Distance, fromLocationMode: Boolean) extends SingleMove {
-    def getValidMove(piece: Piece, state: GameState, currentPlayer: Player): Option[PlayerMove] = {
-      val target = piece.pos + distTo
-      (piece.pos + distFrom).getPiece(state.board) match {
-        case Some(targetPiece) if {
-          targetPiece.team == piece.team &&
-            !targetPiece.data.isImmuneTo(EffectType.Displacement) &&
-            target.isEmpty(state.board)
-        } =>
-          if (fromLocationMode)
-            Some(PlayerMove.TeleportPiece(piece, targetPiece, target, piece.pos, targetPiece.pos))
-          else
-            Some(PlayerMove.TeleportPiece(piece, targetPiece, target, piece.pos, target))
+  case class TeleportManyToOne(distancesFrom: List[Distance], distancesTo: List[Distance]) extends MultipleMoves {
+    def getValidMoves(piece: Piece, state: GameState, currentPlayer: Player): List[PlayerMove] = {
+      val pos = piece.pos
+      distancesTo.map(_ + pos).find(_.isEmpty(state.board)) match {
+        case None => List.empty
+        case Some(target) =>
+          distancesFrom.map(_ + pos).flatMap { boardPosFrom =>
+            boardPosFrom.getPiece(state.board) match {
+              case Some(targetPiece) if !targetPiece.data.isImmuneTo(EffectType.Displacement) =>
+                Some(PlayerMove.TeleportPiece(piece, targetPiece, target, piece.pos, targetPiece.pos))
+              case _ =>
+                None
+            }
+          }
+      }
+    }
+  }
+
+  case class TeleportOneToMany(distancesFrom: List[Distance], distancesTo: List[Distance]) extends MultipleMoves {
+    def getValidMoves(piece: Piece, state: GameState, currentPlayer: Player): List[PlayerMove] = {
+      val pos = piece.pos
+      distancesFrom.map(dist => (dist + pos).getPiece(state.board)).flatMap {
+        case Some(pieceToTeleport) if !pieceToTeleport.data.isImmuneTo(EffectType.Displacement) =>
+          distancesTo.map(_ + pos).flatMap { target =>
+            if (target.isEmpty(state.board))
+              Some(PlayerMove.TeleportPiece(piece, pieceToTeleport, target, piece.pos, target))
+            else
+              None
+          }
         case _ =>
-          None
+          List.empty
       }
     }
   }

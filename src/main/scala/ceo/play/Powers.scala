@@ -54,6 +54,8 @@ object Powers {
 
   case object OnChampionKillSwapEnemyKing extends Powers
 
+  case object Dummy extends Powers
+
   case class OnKillPromoteToKing(moraleBonus: Int) extends Powers
 
   case class OnMagicCastPromoteIfEnemy(pieceName: String) extends Powers
@@ -101,7 +103,7 @@ object Powers {
 
   case class OnMagicCastDecayTo(decayAmount: Int, limitToDevolve: Int, pieceName: String) extends Powers
 
-  case class HatchToPhoenixAt(moraleToPromote: Int, pieceName: String) extends Powers
+  case class GrowMoraleUntilTransform(moraleToPromote: Int, pieceName: String) extends Powers
 
   case class OnMagicCastDecayDeath(decayAmount: Int) extends Powers
 
@@ -138,7 +140,7 @@ object Powers {
   }
 
   case class TransformIntoAllyMovePower(letterOfMove: Char, moraleCost: Int, allyPieceName: String) extends MovePower {
-    override def createMove(dist: Distance): Moves = TransformEnemyIntoAllyPiece(dist, moraleCost, allyPieceName)
+    override def createMove(dist: Distance): Moves = MagicTransformEnemyIntoAllyPiece(dist, moraleCost, allyPieceName)
   }
 
   case class JumpMinionMovePower(letterOfMove: Char) extends MovePower {
@@ -215,17 +217,21 @@ object Powers {
     }
   }
 
-  case class TeleportPiecesMovePowerComplete(lettersOfMoves: List[Char]) extends MovePowerComplete {
+  case class TeleportManyToOneMovePowerComplete(lettersOfMoves: List[Char]) extends MovePowerComplete {
     override def createMoves(distances: Map[Char, List[Distance]]): List[Moves] = {
-      lettersOfMoves.grouped(2).toList.flatMap {
-        case List(c1, c2) =>
-          val distances1 = distances(c1)
-          val distances2 = distances(c2)
-          if (distances1.lengthCompare(1) == 0)
-            distances2.map(dist2 => TeleportPiece(distances1.head, dist2, fromLocationMode = false))
-          else
-            distances1.map(dist1 => TeleportPiece(dist1, distances2.head, fromLocationMode = true))
-      }
+      val List(c1, c2) = lettersOfMoves
+      val distances1 = distances(c1)
+      val distances2 = distances(c2)
+      List(TeleportManyToOne(distances1, distances2))
+    }
+  }
+
+  case class TeleportOneToManyMovePowerComplete(lettersOfMoves: List[Char]) extends MovePowerComplete {
+    override def createMoves(distances: Map[Char, List[Distance]]): List[Moves] = {
+      val List(c1, c2) = lettersOfMoves
+      val distances1 = distances(c1)
+      val distances2 = distances(c2)
+      List(TeleportOneToMany(distances1, distances2))
     }
   }
 

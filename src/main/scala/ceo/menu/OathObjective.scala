@@ -1,6 +1,6 @@
 package ceo.menu
 
-trait OathObjective
+sealed trait OathObjective
 
 object OathObjective {
 

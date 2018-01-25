@@ -16,7 +16,7 @@ object DynamicRunner {
   }
 }
 
-trait SimpleRunner[A] extends DynamicRunner[A, Unit] {
+sealed trait SimpleRunner[A] extends DynamicRunner[A, Unit] {
 
   override def update(state: A, data: Unit): A = update(state)
 

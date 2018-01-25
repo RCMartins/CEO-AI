@@ -463,7 +463,7 @@ case class GameState(
 
         val stateAfterPenalties = {
           val decayPenalty =
-            if (currentTurn >= 50.0)
+            if (currentTurn >= 49.5)
               startOfNextTurn.changeMorale(startOfNextTurn.getCurrentPlayer.team, -1)
             else
               startOfNextTurn
@@ -523,7 +523,7 @@ case class GameState(
                 case _ =>
                   skipEffect
               }
-            case EffectStatus.PhoenixEgg(moraleToPromote, pieceName) if gameState.getCurrentPlayer.team != piece.team =>
+            case EffectStatus.PieceGrow(moraleToPromote, pieceName) if gameState.getCurrentPlayer.team != piece.team =>
               val updatedPiece = piece.changeMorale(+1)
               if (updatedPiece.currentMorale >= moraleToPromote) {
                 (gameState, Some(DataLoader.getPieceData(pieceName, updatedPiece.team).createPiece(updatedPiece.pos)))
@@ -626,8 +626,6 @@ case class GameState(
 
   def getNextPlayer: Player = if (currentTurn == currentTurn.toInt) playerBlack else playerWhite
 
-  @inline private final val MaxValue: Int = 1e9.toInt
-
   def defaultValueOfState(team: PlayerTeam): Int = {
     winner match {
       case PlayerWinType.NotFinished =>
@@ -635,9 +633,9 @@ case class GameState(
         val blackPoints = playerBlack.morale * 10 + playerBlack.numberOfPieces
 
         team.chooseWhiteBlack(whitePoints - blackPoints, blackPoints - whitePoints)
-      case PlayerWinType.PlayerWhite => if (team == White) MaxValue else -MaxValue
-      case PlayerWinType.PlayerBlack => if (team == Black) MaxValue else -MaxValue
-      case PlayerWinType.Draw => -MaxValue / 2
+      case PlayerWinType.PlayerWhite => if (team.isWhite) Util.ValueOfStateMaxValue else -Util.ValueOfStateMaxValue
+      case PlayerWinType.PlayerBlack => if (team.isBlack) Util.ValueOfStateMaxValue else -Util.ValueOfStateMaxValue
+      case PlayerWinType.Draw => -Util.ValueOfStateMaxValue / 2
     }
   }
 

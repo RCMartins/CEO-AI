@@ -2,7 +2,7 @@ PhoenixEgg 0
 ---
 @
 ---
-HatchToPhoenixAt 13 Phoenix
+GrowMoraleUntilTransform 13 Phoenix
 OnAnyDeathPlayerChangeMorale -11
 ImmuneTo Compel
 --------------------
@@ -10,7 +10,7 @@ PhoenixEgg+ 3
 ---
 @
 ---
-HatchToPhoenixAt 15 Phoenix+
+GrowMoraleUntilTransform 15 Phoenix+
 OnAnyDeathPlayerChangeMorale -9
 ImmuneTo Compel
 --------------------
@@ -18,7 +18,7 @@ PhoenixEgg++ 6
 ---
 @
 ---
-HatchToPhoenixAt 17 Phoenix++
+GrowMoraleUntilTransform 17 Phoenix++
 OnAnyDeathPlayerChangeMorale -7
 ImmuneTo Compel
 --------------------
@@ -26,13 +26,29 @@ PhoenixEgg+++ 11
 ---
 @
 ---
-HatchToPhoenixAt 20 Phoenix+++
+GrowMoraleUntilTransform 20 Phoenix+++
 OnAnyDeathPlayerChangeMorale -4
 ImmuneTo Compel
+--------------------
+Sapling 1
+---
+@
+---
+GrowMoraleUntilTransform 3 Tree
+ImmuneTo Status
+Dummy
 --------------------
 StonePillar 1
 ---
 @
 ---
 ImmuneTo Magic Ranged Status
+Dummy
+--------------------
+Tree 3
+---
+@
+---
+ImmuneTo Status
+Dummy
 --------------------

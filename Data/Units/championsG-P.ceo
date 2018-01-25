@@ -812,7 +812,8 @@ Nexus 0
  1   1
   121
 ---
-TeleportPiece 2 3 3 1
+TeleportManyToOne 2 3
+TeleportOneToMany 3 1
 ImmuneTo Status
 --------------------
 Nexus+ 1
@@ -827,7 +828,8 @@ Nexus+ 1
    121
     1
 ---
-TeleportPiece 2 3 3 1
+TeleportManyToOne 2 3
+TeleportOneToMany 3 1
 ImmuneTo Status
 --------------------
 Nexus++ 3
@@ -842,7 +844,8 @@ Nexus++ 3
    121
     1
 ---
-TeleportPiece 2 3 3 1
+TeleportManyToOne 2 3
+TeleportOneToMany 3 1
 ImmuneTo Status
 --------------------
 Nexus+++ 5
@@ -857,7 +860,8 @@ Nexus+++ 5
    121
     1
 ---
-TeleportPiece 2 3 3 1
+TeleportManyToOne 2 3
+TeleportOneToMany 3 1
 ImmuneTo Status
 --------------------
 Ninja 13

@@ -54,8 +54,8 @@ object EffectType {
     val name = "InstantKillPositional"
   }
 
-  case object PhoenixEgg extends EffectType {
-    val name = "PhoenixEgg"
+  case object PieceGrow extends EffectType {
+    val name = "PieceGrow"
   }
 
   val allNormalEffects: List[EffectType] = List(Petrify, Poison, Freeze, Displacement, Magic, Ranged, Trigger, Compel)
@@ -100,8 +100,8 @@ object EffectStatus {
     override val effectType: EffectType = EffectType.InstantKillPositional
   }
 
-  case class PhoenixEgg(moraleToPromote: Int, pieceName: String) extends EffectStatus {
-    override val effectType: EffectType = EffectType.PhoenixEgg
+  case class PieceGrow(moraleToPromote: Int, pieceName: String) extends EffectStatus {
+    override val effectType: EffectType = EffectType.PieceGrow
   }
 
 }

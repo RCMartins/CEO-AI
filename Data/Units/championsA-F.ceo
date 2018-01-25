@@ -503,6 +503,48 @@ TJNNNJT
   T T
 ---
 --------------------
+Dryad 5
+---
+ TTT
+T 1 T
+T1@1T
+T 1 T
+ TTT
+---
+MagicTransformIntoAlly 1 1 Sapling
+--------------------
+Dryad+ 6
+---
+ TTT
+TM1MT
+T1@1T
+TM1MT
+ TTT
+---
+MagicTransformIntoAlly 1 1 Sapling
+--------------------
+Dryad++ 7
+---
+MTTTM
+TM1MT
+T1@1T
+TM1MT
+MTTTM
+---
+MagicTransformIntoAlly 1 1 Sapling
+--------------------
+Dryad+++ 8
+---
+  T T
+ MTTTM
+TTM1MTT
+ T1@1T
+TTM1MTT
+ MTTTM
+  T T
+---
+MagicTransformIntoAlly 1 1 Sapling
+--------------------
 EarthElemental 4
 ---
    1

@@ -1,6 +1,6 @@
 package ceo.play
 
-trait BoardEffect
+sealed trait BoardEffect
 
 object BoardEffect {
 

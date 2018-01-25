@@ -210,6 +210,8 @@ object DataLoader {
         Powers.WispReflect
       case "OnChampionKillSwapEnemyKing" =>
         Powers.OnChampionKillSwapEnemyKing
+      case "Dummy" =>
+        Powers.Dummy
       // 1-arg Powers:
       case str if str.startsWith("DummyNothingPower ") =>
         Powers.DummyNothingPower(getLetter(str.drop("DummyNothingPower ".length)))
@@ -270,10 +272,10 @@ object DataLoader {
         val List(decayAmount, limitToDevolve, pieceName) = str.drop("OnMagicCastDecayTo ".length).split(" ").toList
         piecesToCheck = pieceName :: piecesToCheck
         Powers.OnMagicCastDecayTo(decayAmount.toInt, limitToDevolve.toInt, pieceName)
-      case str if str.startsWith("HatchToPhoenixAt ") =>
-        val List(moraleToPromote, pieceName) = str.drop("HatchToPhoenixAt ".length).split(" ").toList
+      case str if str.startsWith("GrowMoraleUntilTransform ") =>
+        val List(moraleToPromote, pieceName) = str.drop("GrowMoraleUntilTransform ".length).split(" ").toList
         piecesToCheck = pieceName :: piecesToCheck
-        Powers.HatchToPhoenixAt(moraleToPromote.toInt, pieceName)
+        Powers.GrowMoraleUntilTransform(moraleToPromote.toInt, pieceName)
       case str if str.startsWith("OnMeleeDeathPoisonIfMoraleLess ") =>
         val List(maxMoraleToPoison, turnsToDeath) = str.drop("OnMeleeDeathPoisonIfMoraleLess ".length).split(" ").toList
         Powers.OnMeleeDeathPoisonIfMoraleLess(maxMoraleToPoison.toInt, turnsToDeath.toInt)
@@ -344,8 +346,10 @@ object DataLoader {
       // Move Power Complete:
       case str if str.startsWith("KingCastling ") =>
         Powers.KingCastlingMovePowerComplete(str.drop("KingCastling ".length).split(" ").toList.map(getLetter))
-      case str if str.startsWith("TeleportPiece ") =>
-        Powers.TeleportPiecesMovePowerComplete(str.drop("TeleportPiece ".length).split(" ").toList.map(getLetter))
+      case str if str.startsWith("TeleportManyToOne ") =>
+        Powers.TeleportManyToOneMovePowerComplete(str.drop("TeleportManyToOne ".length).split(" ").toList.map(getLetter))
+      case str if str.startsWith("TeleportOneToMany ") =>
+        Powers.TeleportOneToManyMovePowerComplete(str.drop("TeleportOneToMany ".length).split(" ").toList.map(getLetter))
       case str if str.startsWith("TeleportKingToLocation ") =>
         Powers.TeleportKingToLocationMovePowerComplete(str.drop("TeleportKingToLocation ".length).split(" ").toList.map(getLetter))
       case str if str.startsWith("PatienceCannotAttackBeforeTurn ") =>

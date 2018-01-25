@@ -1,6 +1,6 @@
 package ceo.play
 
-trait EndOfTurnAction
+sealed trait EndOfTurnAction
 
 object EndOfTurnAction {
 
