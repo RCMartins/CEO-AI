@@ -186,6 +186,78 @@ NNNNNNN@NNNNNNN
        N
 ---
 --------------------
+Siren 4
+---
+      1
+      1
+      1
+-
+-
+      M
+111  M@M  111
+      M
+-
+-
+      1
+      1
+      1
+---
+RangedCompel 1 3
+--------------------
+Siren+ 6
+---
+      1
+      1
+      1
+-
+-
+      N
+111  N@N  111
+      N
+-
+-
+      1
+      1
+      1
+---
+RangedCompel 1 3
+--------------------
+Siren++ 8
+---
+      1
+      1
+      1
+-
+-
+     MNM
+111  N@N  111
+     MNM
+-
+-
+      1
+      1
+      1
+---
+RangedCompel 1 3
+--------------------
+Siren+++ 10
+---
+      1
+      1
+      1
+-
+-
+     NNN
+111  N@N  111
+     NNN
+-
+-
+      1
+      1
+      1
+---
+RangedCompel 1 3
+--------------------
 SoulKeeper 13
 ---
 TS ST
@@ -308,6 +380,20 @@ Taurus+++ 12
 ---
 TaurusRush 1 3
 --------------------
+ThunderMage 4
+---
+    1
+ 1     1
+    T
+  T N T
+1  N@N  1
+  T N T
+    T
+ 1     1
+    1
+---
+MagicLightningOnLocation 1 1 4
+--------------------
 ThunderMage+ 7
 ---
     1
@@ -319,6 +405,38 @@ ThunderMage+ 7
     T
  1     1
     1
+---
+MagicLightningOnLocation 1 1 4
+--------------------
+ThunderMage++ 9
+---
+     1
+     1
+  1     1
+     T
+   TNSNT
+11  S@S  11
+   TNSNT
+     T
+  1     1
+     1
+     1
+---
+MagicLightningOnLocation 1 1 4
+--------------------
+ThunderMage+++ 10
+---
+     1
+ 1   1   1
+  1     1
+     T
+   TSSST
+11  S@S  11
+   TSSST
+     T
+  1     1
+ 1   1   1
+     1
 ---
 MagicLightningOnLocation 1 1 4
 --------------------

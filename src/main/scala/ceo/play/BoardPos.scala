@@ -59,7 +59,8 @@ class BoardPos private(val row: Int, val column: Int) {
     case _ => false
   }
 
-  override def hashCode(): Int = row * 8 + column
+  override def hashCode: Int = row * 8 + column
+
 }
 
 object BoardPos {
@@ -84,4 +85,12 @@ object BoardPos {
     row <- 0 until 8
     column <- 0 until 8
   } yield BoardPos(row, column)).toList
+
+  def byScanOrder: Ordering[BoardPos] = (pos1: BoardPos, pos2: BoardPos) => {
+    val diffColumn = pos2.column - pos1.column
+    if (diffColumn != 0)
+      diffColumn
+    else
+      pos1.row - pos2.row
+  }
 }

@@ -38,39 +38,42 @@ AAA@AAA
 ---
 OnKillPlayerChangeMorale -9
 --------------------
+// 1 -> N
+// 2 -> M
+// 3 -> T
 RoyalGuard 3
 ---
- N
-N@N
- N
+ 1
+1@1
+ 1
 ---
-AugmentedTeleportRoyalGuard
+AugmentedTeleportRoyalGuard 1
 --------------------
 RoyalGuard+ 4
 ---
-MNM
-N@N
-MNM
+212
+1@1
+212
 ---
-AugmentedTeleportRoyalGuard
+AugmentedTeleportRoyalGuard 1 2
 --------------------
 RoyalGuard++ 5
 ---
-NNN
-N@N
-NNN
+111
+1@1
+111
 ---
-AugmentedTeleportRoyalGuard
+AugmentedTeleportRoyalGuard 1
 --------------------
 RoyalGuard+++ 6
 ---
-  T
- NNN
-TN@NT
- NNN
-  T
+  3
+ 111
+31@13
+ 111
+  3
 ---
-AugmentedTeleportRoyalGuard
+AugmentedTeleportRoyalGuard 1 3
 --------------------
 Salamander 0
 ---

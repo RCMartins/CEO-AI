@@ -5,6 +5,7 @@ import java.awt._
 import javax.swing._
 
 import ceo.image.ImageLoader
+import ceo.menu.MenuControl
 
 import scala.util.{Failure, Success}
 
@@ -36,12 +37,14 @@ class PlayUI() extends JFrame {
 
   final val GAME_TITLE = "Chess Evolved Online - Bot"
   final val DEFAULT_WIDTH = 250
-  final val DEFAULT_HEIGHT = 400
+  final val DEFAULT_HEIGHT = 600
 
   def createAndShowGUI() {
     this.setSize(DEFAULT_WIDTH, DEFAULT_HEIGHT)
     setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE)
     setLocationRelativeTo(null)
+    setAlwaysOnTop(true)
+    setLocation(10, 100)
 
     setTitle(GAME_TITLE)
 
@@ -68,9 +71,6 @@ class PlayUI() extends JFrame {
         button.addActionListener((_: ActionEvent) => {
           val (image, pieceData, inWhiteSquare) = ImageLoader.imagesToConfirm.dequeue()
           ImageLoader.addNewPieceName(image, pieceData.name, inWhiteSquare)
-          val allImagesToConfirm = ImageLoader.imagesToConfirm
-          ImageLoader.imagesToConfirm.clear()
-          ImageLoader.imagesToConfirm ++= allImagesToConfirm.filterNot(_._1 == image)
           component.requestFocusInWindow()
           component.repaint()
         })
@@ -118,12 +118,14 @@ class PlayUI() extends JFrame {
       {
         val button = new JButton("Skip piece!")
         button.addActionListener((_: ActionEvent) => {
-          ImageLoader.imagesUnknown.synchronized {
-            val first = ImageLoader.imagesUnknown.dequeue()
-            ImageLoader.imagesUnknown.enqueue(first)
+          if (ImageLoader.imagesUnknown.nonEmpty) {
+            ImageLoader.imagesUnknown.synchronized {
+              val first = ImageLoader.imagesUnknown.dequeue()
+              ImageLoader.imagesUnknown.enqueue(first)
+            }
+            component.requestFocusInWindow()
+            component.repaint()
           }
-          component.requestFocusInWindow()
-          component.repaint()
         })
         buttonsPane.add(button)
       }
@@ -132,11 +134,13 @@ class PlayUI() extends JFrame {
       {
         val button = new JButton("Delete!")
         button.addActionListener((_: ActionEvent) => {
-          ImageLoader.imagesUnknown.synchronized {
-            ImageLoader.imagesUnknown.dequeue()
+          if (ImageLoader.imagesUnknown.nonEmpty) {
+            ImageLoader.imagesUnknown.synchronized {
+              ImageLoader.imagesUnknown.dequeue()
+            }
+            component.requestFocusInWindow()
+            component.repaint()
           }
-          component.requestFocusInWindow()
-          component.repaint()
         })
         buttonsPane.add(button)
       }
@@ -159,40 +163,40 @@ class GameComponent(val playUI: PlayUI) extends JComponent with ComponentListene
     var x = 20
     var y = 0
 
-        ImageLoader.imagesToConfirm.headOption.foreach { case (pieceImage, pieceData, _) =>
-          g2.drawImage(pieceImage.bufferedImage, x, y, null)
-          g2.drawString(pieceData.name, x, y + 75)
-          x += 80
-        }
-        ImageLoader.imagesToConfirm.drop(1).foreach { case (pieceImage, pieceData, _) =>
-          g2.drawImage(pieceImage.bufferedImage, x, y, null)
-          x += 80
-        }
+    ImageLoader.imagesToConfirm.headOption.foreach { case (pieceImage, pieceData, _) =>
+      g2.drawImage(pieceImage.bufferedImage, x, y, null)
+      g2.drawString(pieceData.name, x, y + 75)
+      x += 80
+    }
+    ImageLoader.imagesToConfirm.drop(1).foreach { case (pieceImage, pieceData, _) =>
+      g2.drawImage(pieceImage.bufferedImage, x, y, null)
+      x += 80
+    }
 
-        x = 20
-        y = 150
-        var plusY = 60
-        var plusX = 60
-        ImageLoader.imagesUnknown.foreach { case (pieceImage, _) =>
-          g2.drawImage(pieceImage.bufferedImage, x, y, null)
-          y += plusY
-          x += plusX
-          plusY = Math.max(10, plusY - 10)
-          plusX = Math.max(10, plusX - 50)
-        }
+    x = 20
+    y = 150
+    var plusY = 60
+    var plusX = 60
+    ImageLoader.imagesUnknown.foreach { case (pieceImage, _) =>
+      g2.drawImage(pieceImage.bufferedImage, x, y, null)
+      y += plusY
+      x += plusX
+      plusY = Math.max(10, plusY - 10)
+      plusX = Math.max(10, plusX - 50)
+    }
 
     // Check all images:
-//    x = 0
-//    y = 0
-//    ImageLoader.allPieceImages.toList.sortBy(_._2).map(_._1).foreach { pieceImage =>
-//      g2.drawImage(pieceImage.bufferedImage, x, y, null)
-//      if (x > 1500) {
-//        x = 0
-//        y += 30
-//      } else {
-//        x += 30
-//      }
-//    }
+    //    x = 0
+    //    y = 0
+    //    ImageLoader.allPieceImages.toList.sortBy(_._2).map(_._1).foreach { pieceImage =>
+    //      g2.drawImage(pieceImage.bufferedImage, x, y, null)
+    //      if (x > 1500) {
+    //        x = 0
+    //        y += 30
+    //      } else {
+    //        x += 30
+    //      }
+    //    }
   }
 
   def componentHidden(e: ComponentEvent) {

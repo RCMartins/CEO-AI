@@ -1,5 +1,6 @@
 package ceo.play
 
+import ceo.play.Powers._
 import com.softwaremill.quicklens._
 
 case class Player(
@@ -72,13 +73,81 @@ case class Player(
   def inBaseRow(pos: BoardPos): Boolean = pos.row == (if (team.isBottom) 7 else 0)
 
   def directionForward: Distance = if (team.isBottom) Distance(-1, 0) else Distance(1, 0)
+
+  def optimizeRunners(gameState: GameState): Player = modify(this)(_.extraData).using(_.copy(
+    globalDeathPieceRunners = createGlobalDeathPieceRunners(gameState),
+    hasEndOfTurnTriggers = allPieces.exists(_.data.powers.exists { case _: MagicTriggerLust => true; case _ => false })
+  ))
+
+  def createGlobalDeathPieceRunners(gameState: GameState): List[DynamicRunner[GameState, Piece /* piece that died */ ]] = {
+    /**
+      * TODO: there is a problem here if we don't consider that enemy units can be charmed while checking several turns ahead ...
+      * So, if any of that units are in the game, we should check if we have some of them
+      * (OR really complex check if it is possible to charm those pieces (only to be more optimized - not to be correct))
+      * (Same problem for lust "hasEndOfTurnTriggers")
+      *
+      * val all = gameState.allPieces ...
+      */
+
+    (allPieces.find(_.data.powers.contains(OnEnemyDeathMovesForward)) match {
+      case None =>
+        List.empty
+      case Some(_) =>
+        List(new DynamicRunner[GameState, Piece] {
+          override def update(startingState: GameState, deadPiece: Piece): GameState = {
+            if (deadPiece.team == team || !allPieces.exists(_.data.powers.contains(OnEnemyDeathMovesForward)))
+              startingState
+            else {
+              startingState.addEndOfTurnAction(EndOfTurnAction.MoveDoves(team))
+            }
+          }
+        })
+    }) ++ (allPieces.find(_.data.powers.exists { case _: TriggerWrathOnAdjacentAllyDeath => true; case _ => false }) match {
+      case None =>
+        List.empty
+      case Some(_) =>
+        List(new DynamicRunner[GameState, Piece] {
+          override def update(startingState: GameState, deadPiece: Piece): GameState = {
+            if (deadPiece.team != team)
+              startingState
+            else {
+              val enemyPlayer = startingState.getPlayer(team.enemy)
+              if (!enemyPlayer.hasKing)
+                startingState
+              else {
+                var wrathDurationOption = Option.empty[Int]
+                val pos = deadPiece.pos
+                Distance.adjacentDistances.map(pos + _).exists { adjacentPos =>
+                  adjacentPos.getPiece(startingState.board).exists { piece =>
+                    piece.team == team && piece.data.powers.collectFirst {
+                      case Powers.TriggerWrathOnAdjacentAllyDeath(turnsToLightUpLocation) =>
+                        wrathDurationOption = Some(turnsToLightUpLocation)
+                      case _ =>
+                    }.isDefined
+                  }
+                }
+                wrathDurationOption match {
+                  case None => startingState
+                  case Some(wrathDuration) =>
+                    val kingPiece = enemyPlayer.allPieces.find(_.data.isKing).get
+                    val lightning = BoardEffect.Lightning(kingPiece.pos, startingState.currentTurn + wrathDuration)
+                    startingState.copy(boardEffects = lightning :: startingState.boardEffects)
+                }
+              }
+            }
+          }
+        })
+    })
 }
 
 case class PlayerExtraData(
   fallenPiecesPositions: Set[BoardPos],
-  guardedPositions: Map[BoardPos, Piece]
+  fallenPieces: List[PieceData],
+  guardedPositions: Map[BoardPos, Piece],
+  globalDeathPieceRunners: List[DynamicRunner[GameState, Piece /* piece that died */ ]],
+  hasEndOfTurnTriggers: Boolean
 )
 
 object PlayerExtraData {
-  val empty: PlayerExtraData = PlayerExtraData(Set.empty, Map.empty)
+  val empty: PlayerExtraData = PlayerExtraData(Set.empty, List.empty, Map.empty, List.empty, hasEndOfTurnTriggers = false)
 }

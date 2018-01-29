@@ -21,6 +21,18 @@ class Distance private(val rowDiff: Int, val columnDiff: Int) {
   def setRow(newRow: Int) = Distance(newRow, columnDiff)
 
   def setColumn(newColumn: Int) = Distance(rowDiff, newColumn)
+
+  def canEqual(other: Any): Boolean = other.isInstanceOf[Distance]
+
+  override def equals(other: Any): Boolean = other match {
+    case that: Distance =>
+      (that canEqual this) &&
+        rowDiff == that.rowDiff &&
+        columnDiff == that.columnDiff
+    case _ => false
+  }
+
+  override def hashCode(): Int = rowDiff + 7 * 15 + (columnDiff + 7)
 }
 
 object Distance {

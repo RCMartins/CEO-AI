@@ -10,10 +10,14 @@ case class Piece(
   effectStatus: List[EffectStatus]
 ) {
 
-  def onTransform(state: GameState): GameState = {
+  def onTransform(startingState: GameState): GameState = {
     // TODO I think this has do be done to simulate a bug of v0.52:
     // Example: Vampire transforms into bat -> Dove move triggers, but technically no piece died ...
-    state
+
+    val (updatedState, _) =
+      DynamicRunner.foldLeft((startingState, None), this, data.afterAnyDeathRunners)
+
+    updatedState
   }
 
   override def toString: String = s"${data.name}$pos"
@@ -24,7 +28,7 @@ case class Piece(
 
   def changeMorale(moraleDiff: Int): Piece = copy(currentMorale = currentMorale + moraleDiff)
 
-  private def promoteIfPossible(gameState: GameState): Piece = {
+  private def promoteIfPossible(gameState: GameState): Piece = { // TODO remove this and put it in afterPieceMovesRunners
     if (data.canMinionPromote && gameState.getPlayer(team.enemy).inBaseRow(pos)) {
       data.powers.collectFirst { case PromoteTo(pieceName) => DataLoader.getPieceData(pieceName, team).createPiece(pos) }.get
     } else {
@@ -47,41 +51,6 @@ case class Piece(
   }
 
   def afterMeleeKill(startingState: GameState, pieceToKill: Piece): (GameState, Option[Piece]) = {
-    //    val updatedState1 = startingState
-    //      if (data.isGuardian) {
-    //        startingState.updatePlayer(startingState.getPlayer(team).updateGuardedPositions(Some(this), None))
-    //      } else { // TODO Use a gameState level runner for the wrath power:
-    //        //        var kingPieceLocation: BoardPos = null
-    //        //        var wrathDuration: Int = 0
-    //        //        val thisDeathTriggersWrath =
-    //        //          Distance.adjacentDistances.map(pieceToKill.pos + _).exists { adjacentPos =>
-    //        //            adjacentPos.getPiece(startingState.board).exists { piece =>
-    //        //              piece.team == pieceToKill.team && piece.data.powers.collectFirst {
-    //        //                case Powers.TriggerWrathOnAdjacentAllyDeath(turnsToLightUpLocation) =>
-    //        //                  wrathDuration = turnsToLightUpLocation
-    //        //                  true
-    //        //              }.isDefined
-    //        //            }
-    //        //          } && {
-    //        //            val player = startingState.getPlayer(pieceToKill.team)
-    //        //            player.pieces.find(_.data.isKing).orElse(player.piecesAffected.find(_.data.isKing)) match {
-    //        //              case Some(kingPiece) =>
-    //        //                kingPieceLocation = kingPiece.pos
-    //        //                !startingState.boardEffects.exists {
-    //        //                  case BoardEffect.Lightning(boardPos, _) if boardPos == kingPiece.pos => true
-    //        //                  case _ => false
-    //        //                }
-    //        //              case _ => false
-    //        //            }
-    //        //          }
-    //        //        if (thisDeathTriggersWrath) {
-    //        //          val lightning = BoardEffect.Lightning(kingPieceLocation, startingState.currentTurn + wrathDuration)
-    //        //          startingState.copy(boardEffects = lightning :: startingState.boardEffects)
-    //        //        } else {
-    //        startingState
-    //        //        }
-    //      }
-
     val (updatedState1, updatedPiece1) =
       DynamicRunner.foldLeft((startingState, Some(this)), pieceToKill, pieceToKill.data.afterAnyDeathRunners)
 
@@ -92,7 +61,7 @@ case class Piece(
       DynamicRunner.foldLeft((updatedState2, updatedPiece2), pieceToKill, data.afterKillRunners)
 
     val updatedState4 =
-      DynamicRunner.foldLeft(updatedState3, pieceToKill, updatedState3.gameRunner.globalPieceDeathRunners)
+      DynamicRunner.foldLeft(updatedState3, pieceToKill, updatedState3.getPlayers.flatMap(_.extraData.globalDeathPieceRunners))
 
     updatedPiece3 match {
       case None =>
@@ -111,7 +80,7 @@ case class Piece(
       DynamicRunner.foldLeft((updatedState1, updatedPiece1), pieceToKill, data.afterKillRunners)
 
     val updatedState3 =
-      DynamicRunner.foldLeft(updatedState2, pieceToKill, updatedState2.gameRunner.globalPieceDeathRunners)
+      DynamicRunner.foldLeft(updatedState2, pieceToKill, updatedState2.getPlayers.flatMap(_.extraData.globalDeathPieceRunners))
 
     updatedPiece2 match {
       case Some(piece) => piece.afterMagicCast(updatedState3, Some(pieceToKill))
@@ -128,11 +97,12 @@ case class Piece(
       DynamicRunner.foldLeft((startingState, None), this, data.afterAnyDeathRunners)
 
     val updatedState2 =
-      DynamicRunner.foldLeft(updatedState1, this, updatedState1.gameRunner.globalPieceDeathRunners)
+      DynamicRunner.foldLeft(updatedState1, this, updatedState1.getPlayers.flatMap(_.extraData.globalDeathPieceRunners))
 
     updatedState2
   }
 
+  // TODO: change this functions to static ones and make "this" an Option[Piece] so that effects can be used by death pieces like 'Comet'
   def poisonPiece(
     currentState: GameState,
     pieceToPoison: Piece,
@@ -175,6 +145,16 @@ case class Piece(
     turnsWeakEnchanted: Int
   ): (Option[Piece] /* attacker piece updated */ , Option[Piece] /* affected piece updated */ ) = {
     val effectStatus = EffectStatus.WeakEnchanted(currentState.currentTurn + turnsWeakEnchanted)
+    applyStatusEffectToPiece(currentState, pieceToWeakEnchant, effectStatus)
+  }
+
+  def compelPiece(
+    currentState: GameState,
+    pieceToWeakEnchant: Piece,
+    turnsCompelled: Int
+  ): (Option[Piece] /* attacker piece updated */ , Option[Piece] /* affected piece updated */ ) = {
+    val distanceToMove = (pos - pieceToWeakEnchant.pos).toUnitVector
+    val effectStatus = EffectStatus.Compel(currentState.currentTurn + turnsCompelled, distanceToMove)
     applyStatusEffectToPiece(currentState, pieceToWeakEnchant, effectStatus)
   }
 
@@ -238,7 +218,8 @@ case class Piece(
   def canBlockFrom(target: BoardPos): Boolean = {
     data.isABlockerPiece && {
       effectStatus.exists {
-        case EffectStatus.BlocksAttacksFrom(distances) => distances(target - pos)
+        case EffectStatus.BlocksAttacksFrom(distances) =>
+          distances(target - pos)
         case _ => false
       }
     }

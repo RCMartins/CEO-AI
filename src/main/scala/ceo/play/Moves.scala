@@ -1,7 +1,5 @@
 package ceo.play
 
-import ceo.play.Moves.generalCanTargetEnemy
-
 sealed trait Moves
 
 sealed trait SingleMove extends Moves {
@@ -83,16 +81,15 @@ object Moves {
     }
   }
 
-  private def canAttackUnblockableConditional(
+  private def canAttackUnblockableConditional( // TODO This is just used for Tiger Jump, maybe just renamed it ?
     piece: Piece,
     target: BoardPos,
     state: GameState,
     condition: Piece => Boolean
   ): Option[PlayerMove] = {
-    target.getPiece(state.board) match {
+    canRangedReachEnemy(piece, target, state) match {
       case Some(targetPiece) if {
-        targetPiece.team != piece.team &&
-          !targetPiece.isEnchanted &&
+        !targetPiece.isEnchanted &&
           generalCanTargetEnemy(piece, targetPiece) &&
           condition(targetPiece)
       } =>
@@ -226,7 +223,7 @@ object Moves {
     piece: Piece,
     target: BoardPos,
     moraleCost: Int,
-    AllyPieceData: PieceData,
+    allyPieceData: PieceData,
     state: GameState
   ): Option[PlayerMove] = {
     target.getPiece(state.board) match {
@@ -235,7 +232,7 @@ object Moves {
           !targetPiece.data.isImmuneTo(EffectType.Magic) &&
           generalCanTargetEnemy(piece, targetPiece)
       } =>
-        Some(PlayerMove.TransformEnemyIntoAllyPiece(piece, targetPiece, moraleCost, AllyPieceData))
+        Some(PlayerMove.TransformIntoAllyPiece(piece, targetPiece, moraleCost, allyPieceData))
       case _ =>
         None
     }
@@ -615,13 +612,40 @@ object Moves {
     }
   }
 
-  case object TeleportToRoyalPieces extends MultipleMoves {
+  case class TeleportToRoyalPieces(moveOrAttackList: List[Distance], moveList: List[Distance], teleportList: List[Distance]) extends MultipleMoves {
     def getValidMoves(piece: Piece, state: GameState, currentPlayer: Player): List[PlayerMove] = {
-      val royalPieces = currentPlayer.pieces.filter(_.data.isRoyalty) ++ currentPlayer.piecesAffected.filter(_.data.isRoyalty)
-      royalPieces
-        .flatMap(piece => Distance.adjacentDistances.map(_ + piece.pos))
-        .distinct
-        .flatMap(boardPos => canMoveUnblockable(piece, boardPos, state))
+      val piecePos = piece.pos
+      (currentPlayer.allPieces
+        .filter(_.data.isRoyalty)
+        .flatMap(royalPiece => Distance.adjacentDistances.map(_ + royalPiece.pos))
+        .toSet -- (moveOrAttackList ++ moveList ++ teleportList).map(_ + piecePos))
+        .flatMap(boardPos => canMoveUnblockable(piece, boardPos, state)).toList ++
+        moveOrAttackList.flatMap { dist =>
+          val target = piecePos + dist
+          Or(
+            canMove(piece, target, state),
+            canAttack(piece, target, state)
+          )
+        } ++
+        moveList.flatMap(dist => canMove(piece, piecePos + dist, state)) ++
+        teleportList.flatMap(dist => canMoveUnblockable(piece, piecePos + dist, state))
+    }
+  }
+
+  case class MagicFreezeStrikeOnEnemyChampions(freezeDuration: Int) extends MultipleMoves {
+    def getValidMoves(piece: Piece, state: GameState, currentPlayer: Player): List[PlayerMove] = {
+      state.getPlayer(piece.team.enemy).allPieces
+        .filter(_.data.isChampion)
+        .flatMap {
+          case targetPiece if { // TODO test of comet can be stopped by any kind of immunity!
+            !targetPiece.data.isImmuneTo(EffectType.Freeze) &&
+              !targetPiece.data.isImmuneTo(EffectType.Magic) &&
+              generalCanTargetEnemy(piece, targetPiece)
+          } =>
+            Some(PlayerMove.MagicSuicideFreeze(piece, targetPiece, freezeDuration))
+          case _ =>
+            None
+        }
     }
   }
 
@@ -674,11 +698,11 @@ object Moves {
     }
   }
 
-  case class MagicMeteor(dist: Distance, moraleCost: Int, turnsToMeteor: Int, pushDistance: Int) extends SingleMove {
+  case class MagicMeteor(dist: Distance, moraleCost: Int, turnsToMeteor: Int) extends SingleMove {
     def getValidMove(piece: Piece, state: GameState, currentPlayer: Player): Option[PlayerMove] = {
       val target = piece.pos + dist
-      if (state.boardEffects.collectFirst { case BoardEffect.Meteor(pos, _, _) if pos == target => () }.isEmpty) {
-        Some(PlayerMove.MagicMeteor(piece, target, moraleCost, turnsToMeteor, pushDistance))
+      if (state.boardEffects.collectFirst { case BoardEffect.Meteor(pos, _) if pos == target => () }.isEmpty) {
+        Some(PlayerMove.MagicMeteor(piece, target, moraleCost, turnsToMeteor))
       } else {
         None
       }
@@ -704,6 +728,44 @@ object Moves {
         Some(PlayerMove.MagicSummonPiece(piece, target, moraleCost, DataLoader.getPieceData(pieceName, piece.team)))
       else
         None
+    }
+  }
+
+  case class RangedCompel(dist: Distance, turnsCompelled: Int) extends SingleMove {
+    def getValidMove(piece: Piece, state: GameState, currentPlayer: Player): Option[PlayerMove] = {
+      val target = piece.pos + dist
+      canRangedReachEnemy(piece, target, state) match {
+        case Some(targetPiece) if {
+          targetPiece.team != piece.team &&
+            !targetPiece.data.isImmuneTo(EffectType.Ranged) &&
+            !targetPiece.data.isImmuneTo(EffectType.Compel) &&
+            generalCanTargetEnemy(piece, targetPiece)
+        } =>
+          Some(PlayerMove.RangedCompel(piece, targetPiece, turnsCompelled))
+        case _ =>
+          None
+      }
+    }
+  }
+
+  case class MagicPushTowards(dist: Distance, moraleCost: Int, maxPushDistance: Distance) extends SingleMove {
+    def getValidMove(piece: Piece, state: GameState, currentPlayer: Player): Option[PlayerMove] = {
+      val target = piece.pos + dist
+      target.getPiece(state.board) match {
+        case Some(targetPiece) if {
+          targetPiece.team != piece.team &&
+            !targetPiece.data.isImmuneTo(EffectType.Displacement) &&
+            !targetPiece.data.isImmuneTo(EffectType.Magic) &&
+            generalCanTargetEnemy(piece, targetPiece)
+        } =>
+          val dir = maxPushDistance.toUnitVector
+          if ((targetPiece.pos + dir).isEmpty(state.board))
+            Some(PlayerMove.MagicPushTowards(piece, targetPiece, moraleCost, maxPushDistance))
+          else
+            None
+        case _ =>
+          None
+      }
     }
   }
 

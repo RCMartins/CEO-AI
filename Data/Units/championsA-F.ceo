@@ -197,6 +197,46 @@ TTTTTTS@STTTTTT
 ---
 GhostMovement
 --------------------
+Banshee++ 10
+---
+       T
+       T
+       T
+       T
+       T
+     TTTTT
+     TSSST
+TTTTTTS@STTTTTT
+     TSSST
+     TTTTT
+       T
+       T
+       T
+       T
+       T
+---
+GhostMovement
+--------------------
+Banshee+++ 11
+---
+       T
+       T
+       T
+       T
+       T
+     PTPTP
+     TSSST
+TTTTTPS@SPTTTTT
+     TSSST
+     PTPTP
+       T
+       T
+       T
+       T
+       T
+---
+GhostMovement
+--------------------
 Behemoth 9
 ---
 NNN
@@ -362,6 +402,50 @@ N             N
  N           N
 N             N
 ---
+--------------------
+Comet 7
+---
+ 1
+1@1
+ 1
+---
+ImmuneTo Status
+OnDeathTriggerFreezeMinions 1 3
+MagicFreezeStrikeGlobalEnemyChampion 3
+--------------------
+Comet+ 8
+---
+111
+1@1
+111
+---
+ImmuneTo Status
+OnDeathTriggerFreezeMinions 1 3
+MagicFreezeStrikeGlobalEnemyChampion 3
+--------------------
+Comet++ 9
+---
+  1
+ 111
+11@11
+ 111
+  1
+---
+ImmuneTo Status
+OnDeathTriggerFreezeMinions 1 3
+MagicFreezeStrikeGlobalEnemyChampion 3
+--------------------
+Comet+++ 10
+---
+1 1 1
+ 111
+11@11
+ 111
+1 1 1
+---
+ImmuneTo Status
+OnDeathTriggerFreezeMinions 1 3
+MagicFreezeStrikeGlobalEnemyChampion 3
 --------------------
 Crusader 10
 ---
@@ -545,7 +629,7 @@ TTM1MTT
 ---
 MagicTransformIntoAlly 1 1 Sapling
 --------------------
-EarthElemental 4
+EarthElemental 6
 ---
    1
 
@@ -793,7 +877,7 @@ FireMage 8
   T T
    1
 ---
-MagicMeteor 1 3 6 1
+MagicMeteor 1 3 6
 MagicDestroy 2
 --------------------
 FireMage+ 10
@@ -806,7 +890,7 @@ FireMage+ 10
   T T
    1
 ---
-MagicMeteor 1 3 6 1
+MagicMeteor 1 3 6
 MagicDestroy 2
 --------------------
 FireMage++ 12
@@ -819,7 +903,7 @@ FireMage++ 12
   T T
    1
 ---
-MagicMeteor 1 3 6 1
+MagicMeteor 1 3 6
 MagicDestroy 2
 --------------------
 FireMage+++ 13
@@ -832,7 +916,7 @@ FireMage+++ 13
   P P
    1
 ---
-MagicMeteor 1 3 6 1
+MagicMeteor 1 3 6
 MagicDestroy 2
 --------------------
 FrostMage 4

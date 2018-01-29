@@ -26,10 +26,6 @@ sealed trait AugmentedMovePower extends Powers {
   def createMove: List[Moves]
 }
 
-sealed trait InitialStatusEffect {
-  def getInitialStatusEffects: List[EffectStatus]
-}
-
 object Powers {
 
   case object OnAnyKillSuicides extends Powers
@@ -55,6 +51,10 @@ object Powers {
   case object OnChampionKillSwapEnemyKing extends Powers
 
   case object Dummy extends Powers
+
+  case object OnKillGainHalfMorale extends Powers
+
+  case object OnDeathHalfMoraleToKing extends Powers
 
   case class OnKillPromoteToKing(moraleBonus: Int) extends Powers
 
@@ -118,6 +118,10 @@ object Powers {
   case class HostageCaught(moraleAmount: Int) extends Powers
 
   case class OnDeathPhoenix(eggPieceName: String) extends Powers
+
+  case class OnDeathTriggerFreezeMinions(freezeDistances: List[Distance], freezeDuration: Int) extends Powers
+
+  case class MagicTriggerLust(lustDistances: List[Distance]) extends Powers
 
   case class DummyNothingPower(letterOfMove: Char) extends MovePower {
     override def createMove(dist: Distance): Moves = DummyMove
@@ -191,8 +195,8 @@ object Powers {
     override def createMove(dist: Distance): Moves = MagicEnvyClone(dist)
   }
 
-  case class MagicMeteorMovePower(letterOfMove: Char, moraleCost: Int, turnsToMeteor: Int, pushDistance: Int) extends MovePower {
-    override def createMove(dist: Distance): Moves = MagicMeteor(dist, moraleCost, turnsToMeteor, pushDistance)
+  case class MagicMeteorMovePower(letterOfMove: Char, moraleCost: Int, turnsToMeteor: Int) extends MovePower {
+    override def createMove(dist: Distance): Moves = MagicMeteor(dist, moraleCost, turnsToMeteor)
   }
 
   case class MagicPushMovePower(letterOfMove: Char, moraleCost: Int, pushDistance: Int) extends MovePower {
@@ -205,6 +209,10 @@ object Powers {
 
   case class MagicSummonPieceMovePower(letterOfMove: Char, moraleCost: Int, pieceName: String) extends MovePower {
     override def createMove(dist: Distance): Moves = MagicSummonPiece(dist, moraleCost, pieceName)
+  }
+
+  case class RangedCompelMovePower(letterOfMove: Char, turnsCompeled: Int) extends MovePower {
+    override def createMove(dist: Distance): Moves = RangedCompel(dist, turnsCompeled)
   }
 
   case class KingCastlingMovePowerComplete(lettersOfMoves: List[Char]) extends MovePowerComplete {
@@ -241,10 +249,31 @@ object Powers {
     }
   }
 
+  case class MagicMoveTargetTowardsMovePowerComplete(letterFrom: Char, letterTowards: Char, moraleCost: Int) extends MovePowerComplete {
+    val lettersOfMoves: List[Char] = List(letterFrom, letterTowards)
+
+    override def createMoves(distances: Map[Char, List[Distance]]): List[Moves] = {
+      val from = distances(letterFrom).head
+      distances(letterTowards).map { distanceTowards =>
+        val maxDistance = distanceTowards - from
+        MagicPushTowards(distanceTowards, moraleCost, maxDistance)
+      }
+    }
+  }
+
   case class PatienceCannotAttackBeforeTurnMovePowerComplete(lettersOfMoves: List[Char], untilTurn: Int) extends MovePowerComplete {
     override def createMoves(distances: Map[Char, List[Distance]]): List[Moves] = {
       val List(moveOrAttack, attack) = lettersOfMoves.map(distances)
       List(PatienceCannotAttackBeforeTurn(moveOrAttack, attack, untilTurn))
+    }
+  }
+
+  case class AugmentedTeleportRoyalGuardPowerComplete(lettersOfMoves: List[Char]) extends MovePowerComplete {
+    override def createMoves(distances: Map[Char, List[Distance]]): List[Moves] = {
+      val moveOrAttackList = distances.getOrElse('1', List.empty)
+      val moveList = distances.getOrElse('2', List.empty)
+      val teleportList = distances.getOrElse('3', List.empty)
+      List(TeleportToRoyalPieces(moveOrAttackList, moveList, teleportList))
     }
   }
 
@@ -278,15 +307,25 @@ object Powers {
       List(OnMeleeDeathTriggerRevive(distances.values.flatten.head, moraleMinimum))
   }
 
+  case class OnDeathTriggerFreezeMinionsPositionalPower(letterOfMove: Char, freezeDuration: Int) extends PositionalPower {
+    def createPowers(distances: Map[Char, List[Distance]]): List[Powers] =
+      List(OnDeathTriggerFreezeMinions(distances.values.flatten.toList, freezeDuration))
+  }
+
+  case class MagicTriggerLustPositionalPower(letterOfMove: Char) extends PositionalPower {
+    def createPowers(distances: Map[Char, List[Distance]]): List[Powers] =
+      List(MagicTriggerLust(distances.values.flatten.toList))
+  }
+
   case object AugmentedTeleportGhastMovePower extends AugmentedMovePower {
     override def createMove: List[Moves] = List(
       TeleportToFallenAllyPosition
     )
   }
 
-  case object AugmentedTeleportRoyalGuard extends AugmentedMovePower {
+  case class MagicFreezeStrikeGlobalEnemyChampion(freezeDuration: Int) extends AugmentedMovePower {
     override def createMove: List[Moves] = List(
-      TeleportToRoyalPieces
+      MagicFreezeStrikeOnEnemyChampions(freezeDuration)
     )
   }
 

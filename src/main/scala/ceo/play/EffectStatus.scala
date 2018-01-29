@@ -92,6 +92,10 @@ object EffectStatus {
     override val effectType: EffectType = EffectType.WeakEnchanted
   }
 
+  case class Compel(untilTurn: Double, distanceToMove: Distance) extends EffectStatus {
+    override val effectType: EffectType = EffectType.Compel
+  }
+
   case class BlocksAttacksFrom(distances: Set[Distance]) extends EffectStatus {
     override val effectType: EffectType = EffectType.BlockAttacks
   }

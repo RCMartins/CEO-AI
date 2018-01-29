@@ -19,7 +19,6 @@ object PlayGame {
       currentTurn = 0,
       movesHistory = Nil,
       boardEffects = Nil,
-      gameRunner = GameRunner.empty,
       endOfTurnActions = Nil
     )
   }

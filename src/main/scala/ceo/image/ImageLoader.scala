@@ -4,6 +4,7 @@ import java.awt.image.BufferedImage
 import java.io.File
 import javax.imageio.ImageIO
 
+import ceo.menu.MenuControl
 import ceo.play._
 
 import scala.collection.mutable
@@ -131,9 +132,10 @@ object ImageLoader {
       val allFiles = file.listFiles().filter(file => file.isFile && file.getName.endsWith(".png"))
       allFiles.foreach(loadKnownPieceInformation)
       val imageCount = allPieceImages.size
-      val totalCount = allFiles.length * 16
+      val SimplePiecesCount = 11
+      val totalCount = allFiles.length * 16 - SimplePiecesCount * 12
       val percentage = imageCount * 100 / totalCount.toDouble
-      println(f"Percentage of images known: $percentage%.1f%%")
+      println(f"Percentage of images known: $imageCount/$totalCount ($percentage%.1f%%)")
     } else {
       val imageFileName = file.getAbsolutePath
       val imageLoader = new CuttedImageBoardLoader(file)
@@ -278,6 +280,8 @@ object ImageLoader {
           (name, bestValue)
         else if (bestValue < 1)
           (name, bestValue)
+        else if (MenuControl.USE_BEST_GUESS_IMAGES)
+          (name, bestValue)
         else {
           val result = getTeamPlay(pieceImage)
           val result2 = getTeamPlay(pieceImage, useEqualPixels = false)
@@ -305,7 +309,6 @@ object ImageLoader {
   }
 
   def getPiecesFromUnknownBoard(imageToProcess: BufferedImage, showPieces: Boolean = false): Option[ImageState] = {
-
     val imageLoader = new ImageBoardLoader(imageToProcess)
 
     if (!imageLoader.isValid) {
@@ -347,6 +350,26 @@ object ImageLoader {
       }
 
       Some(ImageState(imageLoader.currentTeam, imageLoader, result.map(_.toList).toList, lastMoveCoordinates))
+    }
+  }
+
+  def quickCheckLastMoveCoordinates(imageToProcess: BufferedImage): Option[ImageState] = {
+    val imageLoader = new ImageBoardLoader(imageToProcess)
+
+    if (!imageLoader.isValid) {
+      None
+    } else {
+      var lastMoveCoordinates: List[BoardPos] = Nil
+
+      for (row <- 0 until 8; column <- 0 until 8) {
+        val currentSquare = imageLoader.getImageAt(row, column)
+
+        val (teamPlay, _, _) = getTeamPlay(currentSquare)
+        if (teamPlay.nonEmpty) {
+          lastMoveCoordinates = BoardPos(row, column) :: lastMoveCoordinates
+        }
+      }
+      Some(ImageState(imageLoader.currentTeam, imageLoader, List.empty, lastMoveCoordinates))
     }
   }
 

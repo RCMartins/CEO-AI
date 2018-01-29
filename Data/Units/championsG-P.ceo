@@ -126,6 +126,86 @@ NNN@NNN
 ---
 OnMeleeDeathSpawnSlimes 1 Slime
 --------------------
+GravityMage 4
+---
+ 2 2
+2   2
+33133
+2   2
+ 2 2
+
+ P@P
+ PPP
+  P
+  P
+  P
+  P
+  P
+  P
+---
+TeleportOneToMany 1 2
+MagicMoveTargetTowards 3 1 1
+--------------------
+GravityMage+ 6
+---
+  2 2
+ 2 3 2
+3331333
+ 2 3 2
+  2 2
+
+ PP@PP
+  PPP
+   P
+   P
+   P
+   P
+   P
+   P
+---
+TeleportOneToMany 1 2
+MagicMoveTargetTowards 3 1 1
+--------------------
+GravityMage++ 8
+---
+   2 2
+  23332
+333313333
+  23332
+   2 2
+
+ PPP@PPP
+   PPP
+    P
+    P
+    P
+    P
+    P
+    P
+---
+TeleportOneToMany 1 2
+MagicMoveTargetTowards 3 1 1
+--------------------
+GravityMage+++ 10
+---
+    232
+   23332
+33333133333
+   23332
+    232
+
+ PPPP@PPPP
+    PPP
+     P
+     P
+     P
+     P
+     P
+     P
+---
+TeleportOneToMany 1 2
+MagicMoveTargetTowards 3 1 1
+--------------------
 Greed 3
 ---
   N
@@ -563,7 +643,46 @@ TT111TT
 ---
 MagicCharmMinion 1
 --------------------
-// TODO Lust
+Lust 5
+---
+1   1
+ NMN
+ M@M
+ NMN
+1   1
+---
+MagicTriggerLust 1
+--------------------
+Lust+ 7
+---
+1   1
+ NNN
+ N@N
+ NNN
+1   1
+---
+MagicTriggerLust 1
+--------------------
+Lust++ 9
+---
+1 1 1
+ NNN
+1N@N1
+ NNN
+1 1 1
+---
+MagicTriggerLust 1
+--------------------
+Lust+++ 12
+---
+1T1T1
+TNNNT
+1N@N1
+TNNNT
+1T1T1
+---
+MagicTriggerLust 1
+--------------------
 MageTower 9
 ---
      N
@@ -1149,6 +1268,48 @@ T1S@S1T
 ---
 MagicPoison 1 3
 ImmuneTo Poison
+--------------------
+Pride 6
+---
+NNN
+N@N
+NNN
+---
+OnKillGainHalfMorale
+OnDeathHalfMoraleToKing
+--------------------
+Pride+ 10
+---
+  N
+ NNN
+NN@NN
+ NNN
+  N
+---
+OnKillGainHalfMorale
+OnDeathHalfMoraleToKing
+--------------------
+Pride++ 14
+---
+N N N
+ NNN
+NN@NN
+ NNN
+N N N
+---
+OnKillGainHalfMorale
+OnDeathHalfMoraleToKing
+--------------------
+Pride+++ 18
+---
+S S S
+ NNN
+SN@NS
+ NNN
+S S S
+---
+OnKillGainHalfMorale
+OnDeathHalfMoraleToKing
 --------------------
 Prince 10
 ---

@@ -16,7 +16,7 @@ case class PieceData(
 
   override def toString: String = name
 
-  def createPiece(pos: BoardPos): Piece = Piece(this, pos, pos, initialMorale, effectStatus = List.empty)
+  def createPiece(pos: BoardPos): Piece = Piece(this, pos, pos, initialMorale, effectStatus = initialStatusEffects)
 
   val simpleName: String = name.takeWhile(c => c != '+' && c != '_')
 
@@ -92,6 +92,36 @@ case class PieceData(
         modify(state)(_._1).using(
           _.addEndOfTurnPiece(DataLoader.getPieceData(eggPieceName, deathPiece.team).createPiece(deathPiece.pos))
         )
+      }
+    }
+    case OnDeathHalfMoraleToKing => new DynamicRunner[(GameState, Option[Piece]), Piece] {
+      override def update(state: (GameState, Option[Piece]), deathPiece: Piece): (GameState, Option[Piece]) = {
+        modify(state)(_._1).using { gameState =>
+          val player = gameState.getPlayer(deathPiece.team)
+          player.allPieces.find(_.data.isKing) match {
+            case None =>
+              gameState
+            case Some(kingPiece) =>
+              gameState.updatePiece(kingPiece, kingPiece.changeMorale(Math.floor(deathPiece.currentMorale / 2).toInt))
+          }
+        }
+      }
+    }
+    case OnDeathTriggerFreezeMinions(freezeDistances, freezeDuration) => new DynamicRunner[(GameState, Option[Piece]), Piece] {
+      override def update(state: (GameState, Option[Piece]), deathPiece: Piece): (GameState, Option[Piece]) = {
+        val team = deathPiece.team
+        modify(state)(_._1).using { initialState =>
+          val pos = deathPiece.pos
+          freezeDistances.map(_ + pos).foldLeft(initialState) { case (gameState, boardPos) =>
+            boardPos.getPiece(gameState.board) match {
+              case Some(enemyPiece) if enemyPiece.team != team && enemyPiece.data.isMinion =>
+                val (_, enemyPieceUpdated) = deathPiece.freezePiece(gameState, enemyPiece, freezeDuration)
+                gameState.updatePieceIfAlive(enemyPiece, enemyPieceUpdated)
+              case _ =>
+                gameState
+            }
+          }
+        }
       }
     }
   }
@@ -208,7 +238,6 @@ case class PieceData(
             val newPiece =
               DataLoader.getPieceData("King", team)
                 .createPiece(killerPiece.pos)
-                .setMorale(killerPiece.currentMorale + moraleBonus)
             (state._1.changeMorale(killerPiece.team, moraleBonus), Some(newPiece))
         }
       }
@@ -255,6 +284,13 @@ case class PieceData(
               pieceUpdated
             }
           }
+        )
+      }
+    }
+    case OnKillGainHalfMorale => new DynamicRunner[(GameState, Option[Piece]), Piece] {
+      override def update(state: (GameState, Option[Piece]), pieceToKill: Piece): (GameState, Option[Piece]) = {
+        modify(state)(_._2).using(
+          _.map(_.changeMorale(Math.floor(pieceToKill.currentMorale / 2).toInt))
         )
       }
     }
@@ -469,6 +505,11 @@ case class PieceData(
 
   val isDummyPiece: Boolean = powers.exists {
     case Dummy => true
+    case _ => false
+  }
+
+  val isDove: Boolean = powers.exists {
+    case OnEnemyDeathMovesForward => true
     case _ => false
   }
 }

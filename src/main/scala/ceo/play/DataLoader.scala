@@ -89,19 +89,34 @@ object DataLoader {
       val movesStr = Stream.continually(readLine(false)).takeWhile(!_.startsWith("-" * 3)).toList
       val powersStr = Stream.continually(readLine()).takeWhile(!_.startsWith("-" * 20)).toList
 
-      val powers = loadPowers(powersStr)
-      val (movesBottomTop, extraPowersBottomTop) = loadMoves(pieceName, movesStr, powers)
-      val (movesTopBottom, extraPowersTopBottom) = loadMoves(pieceName, movesStr.reverse, powers)
+      val powers1 = loadPowers(powersStr)
+      val (movesBottomTop1, extraPowersBottomTop) = loadMoves(pieceName, movesStr, powers1)
+      val (movesTopBottom1, extraPowersTopBottom) = loadMoves(pieceName, movesStr.reverse, powers1)
+
+      val augmentedMoves = powers1.collect {
+        case power: AugmentedMovePower => power.createMove
+      }.flatten
+
+      val powers2 = powers1.filter {
+        case _: AugmentedMovePower => false
+        case _ => true
+      }
+
+      val movesBottomTop2 = movesBottomTop1 ++ augmentedMoves
+      val movesTopBottom2 = movesTopBottom1 ++ augmentedMoves
+
+      val powersBottomTop = powers2 ++ extraPowersBottomTop
+      val powersTopBottom = powers2 ++ extraPowersTopBottom
 
       val nameWhite = pieceName + "_" + PlayerColor.White
       val nameBlack = pieceName + "_" + PlayerColor.Black
       val isMinion = fileName.startsWith("minions")
       val isChampion = fileName.startsWith("champions") && !pieceName.startsWith("King")
       Seq(
-        PieceData(nameWhite, isMinion, isChampion, morale.toInt, movesBottomTop, powers ++ extraPowersBottomTop, WhiteBottom),
-        PieceData(nameWhite, isMinion, isChampion, morale.toInt, movesTopBottom, powers ++ extraPowersTopBottom, WhiteTop),
-        PieceData(nameBlack, isMinion, isChampion, morale.toInt, movesBottomTop, powers ++ extraPowersBottomTop, BlackBottom),
-        PieceData(nameBlack, isMinion, isChampion, morale.toInt, movesTopBottom, powers ++ extraPowersTopBottom, BlackTop)
+        PieceData(nameWhite, isMinion, isChampion, morale.toInt, movesBottomTop2, powersBottomTop, WhiteBottom),
+        PieceData(nameWhite, isMinion, isChampion, morale.toInt, movesTopBottom2, powersTopBottom, WhiteTop),
+        PieceData(nameBlack, isMinion, isChampion, morale.toInt, movesBottomTop2, powersBottomTop, BlackBottom),
+        PieceData(nameBlack, isMinion, isChampion, morale.toInt, movesTopBottom2, powersTopBottom, BlackTop)
       )
     }
   }
@@ -214,6 +229,10 @@ object DataLoader {
         Powers.OnChampionKillSwapEnemyKing
       case "Dummy" =>
         Powers.Dummy
+      case "OnKillGainHalfMorale" =>
+        Powers.OnKillGainHalfMorale
+      case "OnDeathHalfMoraleToKing" =>
+        Powers.OnDeathHalfMoraleToKing
       // 1-arg Powers:
       case str if str.startsWith("DummyNothingPower ") =>
         Powers.DummyNothingPower(getLetter(str.drop("DummyNothingPower ".length)))
@@ -336,8 +355,8 @@ object DataLoader {
       case str if str.startsWith("MagicEnvyClone ") =>
         Powers.MagicEnvyCloneMovePower(getLetter(str.drop("MagicEnvyClone ".length)))
       case str if str.startsWith("MagicMeteor ") =>
-        val List(letterStr, moraleCost, turnsToMeteor, pushDistance) = str.drop("MagicMeteor ".length).split(" ").toList
-        Powers.MagicMeteorMovePower(getLetter(letterStr), moraleCost.toInt, turnsToMeteor.toInt, pushDistance.toInt)
+        val List(letterStr, moraleCost, turnsToMeteor) = str.drop("MagicMeteor ".length).split(" ").toList
+        Powers.MagicMeteorMovePower(getLetter(letterStr), moraleCost.toInt, turnsToMeteor.toInt)
       case str if str.startsWith("MagicPush ") =>
         val List(letterStr, moraleCost, pushDistance) = str.drop("MagicPush ".length).split(" ").toList
         Powers.MagicPushMovePower(getLetter(letterStr), moraleCost.toInt, pushDistance.toInt)
@@ -345,11 +364,17 @@ object DataLoader {
         val List(letterStr, moraleCost, pieceName) = str.drop("MagicSummonPiece ".length).split(" ").toList
         piecesToCheck = pieceName :: piecesToCheck
         Powers.MagicSummonPieceMovePower(getLetter(letterStr), moraleCost.toInt, pieceName)
+      case str if str.startsWith("RangedCompel ") =>
+        val List(letterStr, turnsCompelled) = str.drop("RangedCompel ".length).split(" ").toList
+        Powers.RangedCompelMovePower(getLetter(letterStr), turnsCompelled.toInt)
       // Move Power Complete:
       case str if str.startsWith("KingCastling ") =>
         Powers.KingCastlingMovePowerComplete(str.drop("KingCastling ".length).split(" ").toList.map(getLetter))
       case str if str.startsWith("TeleportManyToOne ") =>
         Powers.TeleportManyToOneMovePowerComplete(str.drop("TeleportManyToOne ".length).split(" ").toList.map(getLetter))
+      case str if str.startsWith("MagicMoveTargetTowards ") =>
+        val List(from, towards, moraleCost) = str.drop("MagicMoveTargetTowards ".length).split(" ").toList
+        Powers.MagicMoveTargetTowardsMovePowerComplete(getLetter(from), getLetter(towards), moraleCost.toInt)
       case str if str.startsWith("TeleportOneToMany ") =>
         Powers.TeleportOneToManyMovePowerComplete(str.drop("TeleportOneToMany ".length).split(" ").toList.map(getLetter))
       case str if str.startsWith("TeleportKingToLocation ") =>
@@ -361,6 +386,8 @@ object DataLoader {
         val List(letterStr, moraleCost, pushDistance, pieceName) = str.drop("RangedPushSpawn ".length).split(" ").toList
         piecesToCheck = pieceName :: piecesToCheck
         Powers.RangedPushSpawnMovePower(getLetter(letterStr), moraleCost.toInt, pushDistance.toInt, pieceName)
+      case str if str.startsWith("AugmentedTeleportRoyalGuard ") =>
+        Powers.AugmentedTeleportRoyalGuardPowerComplete(str.drop("AugmentedTeleportRoyalGuard ".length).split(" ").toList.map(getLetter))
       // Positional Powers:
       case str if str.startsWith("OnMeleeDeathSpawnSlimes ") =>
         val List(letterStr, pieceToCheck) = str.drop("OnMeleeDeathSpawnSlimes ".length).split(" ").toList
@@ -377,11 +404,16 @@ object DataLoader {
       case str if str.startsWith("OnMeleeDeathTriggerRevive ") =>
         val List(letterStr, moraleMinimum) = str.drop("OnMeleeDeathTriggerRevive ".length).split(" ").toList
         Powers.OnMeleeDeathTriggerRevivePositionalPower(getLetter(letterStr), moraleMinimum.toInt)
+      case str if str.startsWith("OnDeathTriggerFreezeMinions ") =>
+        val List(letterStr, freezeDuration) = str.drop("OnDeathTriggerFreezeMinions ".length).split(" ").toList
+        Powers.OnDeathTriggerFreezeMinionsPositionalPower(getLetter(letterStr), freezeDuration.toInt)
+      case str if str.startsWith("MagicTriggerLust ") =>
+        Powers.MagicTriggerLustPositionalPower(getLetter(str.drop("MagicTriggerLust ".length)))
       // Augmented Move Powers:
       case "AugmentedTeleportGhast" =>
         Powers.AugmentedTeleportGhastMovePower
-      case "AugmentedTeleportRoyalGuard" =>
-        Powers.AugmentedTeleportRoyalGuard
+      case str if str.startsWith("MagicFreezeStrikeGlobalEnemyChampion ") =>
+        Powers.MagicFreezeStrikeGlobalEnemyChampion(str.drop("MagicFreezeStrikeGlobalEnemyChampion ".length).toInt)
       case str =>
         throw new Exception("Unknown Power: " + str)
     }
@@ -434,21 +466,19 @@ object DataLoader {
       }
     }
 
-    (gameState.playerWhite.pieces ++ gameState.playerWhite.piecesAffected).foreach { piece =>
-      gameState = gameState
-        .updatePlayer(gameState.playerWhite.updateGuardedPositions(None, Some(piece)))
+    gameState.playerWhite.allPieces.foreach {
+      piece =>
+        gameState = gameState
+          .updatePlayer(gameState.playerWhite.updateGuardedPositions(None, Some(piece)))
     }
 
-    (gameState.playerBlack.pieces ++ gameState.playerBlack.piecesAffected).foreach { piece =>
-      gameState = gameState
-        .updatePlayer(gameState.playerBlack.updateGuardedPositions(None, Some(piece)))
+    gameState.playerBlack.allPieces.foreach {
+      piece =>
+        gameState = gameState
+          .updatePlayer(gameState.playerBlack.updateGuardedPositions(None, Some(piece)))
     }
-
-    val gameRunner = GameRunner(
-      GameRunner.globalPieceDeathRunners(gameState)
-    )
-    gameState = gameState.copy(gameRunner = gameRunner)
 
     gameState
+      .updatePlayer(PlayerColor.White, _.optimizeRunners(gameState))
   }
 }

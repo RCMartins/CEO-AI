@@ -27,22 +27,22 @@ object PlayerTeam {
 
   case object WhiteTop extends PlayerTeam {
     val letter = 'W'
-    val enemy: PlayerTeam = BlackTop
+    val enemy: PlayerTeam = BlackBottom
   }
 
   case object WhiteBottom extends PlayerTeam {
     val letter = 'W'
-    val enemy: PlayerTeam = BlackBottom
+    val enemy: PlayerTeam = BlackTop
   }
 
   case object BlackTop extends PlayerTeam {
     val letter = 'B'
-    val enemy: PlayerTeam = WhiteTop
+    val enemy: PlayerTeam = WhiteBottom
   }
 
   case object BlackBottom extends PlayerTeam {
     val letter = 'B'
-    val enemy: PlayerTeam = WhiteBottom
+    val enemy: PlayerTeam = WhiteTop
   }
 
   def apply(str: String, whitePlayerInBottom: Boolean): PlayerTeam =

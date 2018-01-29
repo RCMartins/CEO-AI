@@ -4,7 +4,7 @@ import ceo.play.Piece
 
 object Exceptions {
 
-  class BoardStartsWithUnknownPieces(unknownPieces: List[Piece]) extends Exception
+  class BoardStartsWithUnknownPieces(unknownPieces: Seq[Piece]) extends Exception
 
   class AllPiecesAreKnown extends Exception
 

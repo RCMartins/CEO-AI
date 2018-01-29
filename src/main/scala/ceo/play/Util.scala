@@ -11,4 +11,13 @@ object Util {
   @inline final val ValueOfStateMaxValue = 1e9.toInt
 
   def Beep(): Unit = Toolkit.getDefaultToolkit.beep()
+
+  def Beep5(): Unit = {
+    def b = {
+      Toolkit.getDefaultToolkit.beep()
+      Thread.sleep(300)
+    }
+
+    (1 to 5).foreach(_ => b)
+  }
 }
