@@ -32,6 +32,8 @@ case class GameState(
     }
   }
 
+  def getPlayer(color: PlayerColor): Player = if (color == PlayerColor.White) playerWhite else playerBlack
+
   def getPlayer(team: PlayerTeam): Player = if (team.isWhite) playerWhite else playerBlack
 
   def nextTurn: GameState = copy(currentTurn = currentTurn + 0.5)
@@ -310,9 +312,11 @@ case class GameState(
           .updatePieceIfAlive(pieceToPoison, pieceToPoisonUpdatedOption)
           .updatePieceIfAlive(piece, updatedPieceOption)
       case MagicCharm(piece, _pieceToCharm) =>
-        val (updatedState, pieceToCharm) = guardianSwapPiece(this, piece, _pieceToCharm)
+        val (updatedState1, pieceToCharm) = guardianSwapPiece(this, piece, _pieceToCharm)
         val pieceToCharmUpdated = pieceToCharm.swapTeams
-        updatedState
+        val (updatedState2, pieceUpdated) = piece.afterMagicCast(updatedState1, Some(pieceToCharmUpdated))
+        updatedState2
+          .updatePieceIfAlive(piece, pieceUpdated)
           .updatePiece(pieceToCharm, pieceToCharmUpdated)
       case TransformIntoAllyPiece(piece, _pieceToTransform, moraleCost, allyPieceData) =>
         val (updatedState1, pieceToTransform) = guardianSwapPiece(this, piece, _pieceToTransform)
@@ -434,7 +438,7 @@ case class GameState(
           .updatePieceIfAlive(piece, pieceUpdatedOption)
       case MagicEnvyClone(piece, _pieceToClone) =>
         val (updatedState, pieceToClone) = guardianSwapPiece(this, piece, _pieceToClone)
-        val newClone = pieceToClone.data.createPiece(piece.pos)
+        val newClone = pieceToClone.swapTeams.data.createPiece(piece.pos)
         updatedState
           .updatePiece(piece, newClone)
       case MagicMeteor(piece, meteorPosition, moraleCost, durationTurns) =>
@@ -527,6 +531,8 @@ case class GameState(
   private def startingTurnStatusEffectUpdate: GameState = {
 
     def updatePiece(gameState: GameState, piece: Piece): (GameState, Option[Piece]) = {
+      val playerTeam = gameState.getCurrentPlayer.team
+
       def updateEffectStatusOfPiece(
         effectsToProcess: List[EffectStatus],
         gameState: GameState,
@@ -534,19 +540,19 @@ case class GameState(
       ): (GameState, Option[Piece]) = effectsToProcess match {
         case Nil => (gameState, Some(currentPiece))
         case effect :: others =>
-          def skipEffect: (GameState, Option[Piece]) =
-            updateEffectStatusOfPiece(others, gameState, modify(currentPiece)(_.effectStatus).using(effect :: _))
+          def skipEffect(piece: Piece = currentPiece): (GameState, Option[Piece]) =
+            updateEffectStatusOfPiece(others, gameState, modify(piece)(_.effectStatus).using(effect :: _))
 
-          def removeEffect: (GameState, Option[Piece]) =
-            updateEffectStatusOfPiece(others, gameState, currentPiece)
+          def removeEffect(piece: Piece = currentPiece): (GameState, Option[Piece]) =
+            updateEffectStatusOfPiece(others, gameState, piece)
 
           effect match {
-            case EffectStatus.Petrified(untilTurn) if untilTurn == currentTurn => removeEffect
-            case EffectStatus.Frozen(untilTurn) if untilTurn == currentTurn => removeEffect
-            case EffectStatus.Enchanted(untilTurn) if untilTurn == currentTurn => removeEffect
-            case EffectStatus.WeakEnchanted(untilTurn) if untilTurn == currentTurn => removeEffect
+            case EffectStatus.Petrified(untilTurn) if untilTurn == currentTurn => removeEffect()
+            case EffectStatus.Frozen(untilTurn) if untilTurn == currentTurn => removeEffect()
+            case EffectStatus.Enchanted(untilTurn) if untilTurn == currentTurn => removeEffect()
+            case EffectStatus.WeakEnchanted(untilTurn) if untilTurn == currentTurn => removeEffect()
             case EffectStatus.Poison(turnOfDeath) if turnOfDeath == currentTurn => (gameState, None)
-            case EffectStatus.InstantKillPositional(distance) if gameState.getCurrentPlayer.team == piece.team =>
+            case EffectStatus.InstantKillPositional(distance) if playerTeam == piece.team =>
               (piece.pos + distance).getPiece(gameState.board) match {
                 case Some(targetPiece) if targetPiece.team != piece.team && !targetPiece.data.isImmuneTo(EffectType.Trigger) =>
                   val playerMove =
@@ -560,25 +566,25 @@ case class GameState(
                   val (gameStateUpdated2, pieceUpdated) = updateEffectStatusOfPiece(others, gameStateUpdated1, currentPiece)
                   (gameStateUpdated2, pieceUpdated.map(modify(_)(_.effectStatus).using(effect :: _)))
                 case _ =>
-                  skipEffect
+                  skipEffect()
               }
-            case EffectStatus.PieceGrow(moraleToPromote, pieceName) if gameState.getCurrentPlayer.team != piece.team =>
+            case EffectStatus.PieceGrow(moraleToPromote, pieceName) if playerTeam != piece.team =>
               val updatedPiece = piece.changeMorale(+1)
               if (updatedPiece.currentMorale >= moraleToPromote) {
                 (gameState, Some(DataLoader.getPieceData(pieceName, updatedPiece.team).createPiece(updatedPiece.pos)))
               } else {
                 updateEffectStatusOfPiece(others, gameState, modify(updatedPiece)(_.effectStatus).using(effect :: _))
               }
-            case EffectStatus.Compel(untilTurn, _) if untilTurn == currentTurn => removeEffect
-            case EffectStatus.Compel(_, distanceToMove) if gameState.getCurrentPlayer.team == piece.team =>
-              val target = piece.pos + distanceToMove
+            case EffectStatus.Compel(untilTurn, _) if untilTurn == currentTurn => removeEffect()
+            case EffectStatus.Compel(_, distanceToMove) if playerTeam == piece.team =>
+              val target = currentPiece.pos + distanceToMove
               if (target.isEmpty(gameState.board)) {
-                piece.moveTo(gameState, target)
+                modify(currentPiece)(_.effectStatus).using(effect :: _).moveTo(gameState, target)
               } else {
-                skipEffect
+                skipEffect()
               }
             case _ =>
-              skipEffect
+              skipEffect()
           }
       }
 
@@ -597,7 +603,7 @@ case class GameState(
           }
       }
 
-    def updatePlayer(startingState: GameState, player: Player): (GameState, Player) = {
+    def updatePlayer(startingState: GameState, player: Player): GameState = {
       val (updatedState, deadPieces, updatedPieces) = updatePieces(startingState, player.piecesAffected)
 
       // remove all pieces that have effects
@@ -607,31 +613,19 @@ case class GameState(
       val stateAfterDeadSideEffects =
         deadPieces.foldLeft(stateRemovedAll)((state, deadPiece) => deadPiece.afterPoisonDeath(state))
       // place all the remaining pieces back to the board
-      val stateFinal =
-        updatedPieces.foldLeft(stateAfterDeadSideEffects)((state, updatedPiece) => state.placePiece(updatedPiece))
-
-      // update player object with the updated pieces (to be coherent with the stateFinal object)
-      val (piecesUnaffected, piecesStillAffected) = updatedPieces.partition(_.effectStatus.isEmpty)
-      val playerUpdated =
-        player.copy(pieces = piecesUnaffected ++ player.pieces, piecesAffected = piecesStillAffected)
-
-      (stateFinal, playerUpdated)
+      updatedPieces.foldLeft(stateAfterDeadSideEffects)((state, updatedPiece) => state.placePiece(updatedPiece))
     }
 
     val stateAfterWhiteIsUpdated =
       if (playerWhite.piecesAffected.isEmpty)
         this
-      else {
-        val (updatedState, updatedPlayer) = updatePlayer(this, playerWhite)
-        updatedState.copy(playerWhite = updatedPlayer)
-      }
+      else
+        updatePlayer(this, playerWhite)
     val stateAfterBlackIsUpdated =
       if (playerBlack.piecesAffected.isEmpty)
         stateAfterWhiteIsUpdated
-      else {
-        val (updatedState, updatedPlayer) = updatePlayer(stateAfterWhiteIsUpdated, playerBlack)
-        updatedState.copy(playerBlack = updatedPlayer)
-      }
+      else
+        updatePlayer(stateAfterWhiteIsUpdated, stateAfterWhiteIsUpdated.getPlayer(PlayerColor.Black))
 
     val stateAfterBoardEffectsUpdated =
       stateAfterBlackIsUpdated.boardEffects.foldLeft(stateAfterBlackIsUpdated.copy(boardEffects = Nil)) {

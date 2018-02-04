@@ -221,7 +221,6 @@ AugmentedTeleportBeacon 1 6
 --------------------
 Bomber 1
 ---
- M
  N
  @
 -
@@ -458,7 +457,7 @@ N N
 N N
 ---
 ImmuneTo Freeze
-TriggerFrostMephit 1
+TriggerFrostMephit 1.5
 --------------------
 FrostMephit+ 3
 ---
@@ -469,7 +468,7 @@ M   M
 M   M
 ---
 ImmuneTo Freeze
-TriggerFrostMephit 1
+TriggerFrostMephit 1.5
 --------------------
 FrostMephit++ 4
 ---
@@ -480,7 +479,7 @@ M   M
 M   M
 ---
 ImmuneTo Freeze
-TriggerFrostMephit 1
+TriggerFrostMephit 1.5
 --------------------
 FrostMephit+++ 5
 ---
@@ -491,5 +490,5 @@ T   T
 T   T
 ---
 ImmuneTo Freeze
-TriggerFrostMephit 1
+TriggerFrostMephit 1.5
 --------------------

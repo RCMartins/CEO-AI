@@ -6,7 +6,7 @@ Gemini 15
  T   T
   T T
 ---
-RangedSummonGeminiTwin 1 4
+RangedSummonGeminiTwin 1 4 GeminiTwin
 --------------------
 Gemini+ 16
 ---
@@ -16,7 +16,7 @@ Gemini+ 16
  J   J
   J J
 ---
-RangedSummonGeminiTwin 1 4
+RangedSummonGeminiTwin 1 4 GeminiTwin+
 --------------------
 Gemini++ 17
 ---
@@ -26,7 +26,7 @@ Gemini++ 17
  S   S
   S S
 ---
-RangedSummonGeminiTwin 1 4
+RangedSummonGeminiTwin 1 4 GeminiTwin++
 --------------------
 Gemini+++ 18
 ---
@@ -38,7 +38,7 @@ Gemini+++ 18
   S1S
    1
 ---
-RangedSummonGeminiTwin 1 4
+RangedSummonGeminiTwin 1 4 GeminiTwin+++
 --------------------
 Ghast 8
 ---

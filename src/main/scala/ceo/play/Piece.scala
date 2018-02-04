@@ -26,7 +26,7 @@ case class Piece(
 
   def setMorale(morale: Int): Piece = copy(currentMorale = morale)
 
-  def changeMorale(moraleDiff: Int): Piece = copy(currentMorale = currentMorale + moraleDiff)
+  def changeMorale(moraleDiff: Int): Piece = copy(currentMorale = Math.max(0, currentMorale + moraleDiff)) // TODO: I'm not sure if there is a 100 max ...
 
   private def promoteIfPossible(gameState: GameState): Piece = { // TODO remove this and put it in afterPieceMovesRunners
     if (data.canMinionPromote && gameState.getPlayer(team.enemy).inBaseRow(pos)) {
@@ -88,7 +88,7 @@ case class Piece(
     }
   }
 
-  def afterMagicCast(startingState: GameState, pieceAttacked: Option[Piece]): (GameState, Option[Piece]) = {
+  def afterMagicCast(startingState: GameState, pieceAttacked: Option[Piece]): (GameState, Option[Piece] /* this piece */ ) = {
     DynamicRunner.foldLeft((startingState, Some(this)), (this, pieceAttacked), data.afterMagicCastRunners)
   }
 

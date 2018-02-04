@@ -649,11 +649,11 @@ object Moves {
     }
   }
 
-  case class RangedSummonGeminiTwin(dist: Distance, moraleCost: Int) extends SingleMove {
+  case class RangedSummonGeminiTwin(dist: Distance, moraleCost: Int, pieceName: String) extends SingleMove {
     def getValidMove(piece: Piece, state: GameState, currentPlayer: Player): Option[PlayerMove] = {
       val target = piece.pos + dist
       if (canRangedReachEmptyTarget(piece, target, state)) {
-        Some(PlayerMove.RangedSummonGeminiTwin(piece, target, moraleCost, DataLoader.getPieceData("GeminiTwin", piece.team)))
+        Some(PlayerMove.RangedSummonGeminiTwin(piece, target, moraleCost, DataLoader.getPieceData(pieceName, piece.team)))
       } else {
         None
       }

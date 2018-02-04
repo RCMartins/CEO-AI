@@ -91,7 +91,7 @@ object Powers {
 
   case class TriggerWrathOnAdjacentAllyDeath(turnsToLightUpLocation: Int) extends Powers
 
-  case class TriggerFrostMephit(freezeDuration: Int) extends Powers
+  case class TriggerFrostMephit(freezeDuration: Double) extends Powers
 
   case class OnKillVampireAbility(moraleTakenFromEnemy: Int, moraleToKing: Int) extends Powers
 
@@ -290,11 +290,6 @@ object Powers {
   case class TriggerGuardianPositionalPower(letterOfMove: Char) extends PositionalPower {
     def createPowers(distances: Map[Char, List[Distance]]): List[Powers] =
       List(TriggerGuardian(distances.values.flatten.toSet))
-  }
-
-  case class TriggerFrostMephitPositionalPower(letterOfMove: Char, freezeDuration: Int) extends PositionalPower {
-    def createPowers(distances: Map[Char, List[Distance]]): List[Powers] =
-      List(TriggerFrostMephit(freezeDuration))
   }
 
   case class TriggerInstantKillPositionalPower(letterOfMove: Char) extends PositionalPower {

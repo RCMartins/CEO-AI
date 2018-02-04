@@ -6,13 +6,13 @@ sealed trait PlayerTeam {
 
   self =>
 
-  val letter: Char
+  val enemy: PlayerTeam
 
   val isWhite: Boolean = self == WhiteTop || self == WhiteBottom
 
   val isBlack: Boolean = !isWhite
 
-  val enemy: PlayerTeam
+  val letter: Char = if (isWhite) 'W' else 'B'
 
   val color: PlayerColor = if (isWhite) PlayerColor.White else PlayerColor.Black
 
@@ -26,22 +26,18 @@ sealed trait PlayerTeam {
 object PlayerTeam {
 
   case object WhiteTop extends PlayerTeam {
-    val letter = 'W'
     val enemy: PlayerTeam = BlackBottom
   }
 
   case object WhiteBottom extends PlayerTeam {
-    val letter = 'W'
     val enemy: PlayerTeam = BlackTop
   }
 
   case object BlackTop extends PlayerTeam {
-    val letter = 'B'
     val enemy: PlayerTeam = WhiteBottom
   }
 
   case object BlackBottom extends PlayerTeam {
-    val letter = 'B'
     val enemy: PlayerTeam = WhiteTop
   }
 

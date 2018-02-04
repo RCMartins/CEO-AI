@@ -132,7 +132,7 @@ object ImageLoader {
       val allFiles = file.listFiles().filter(file => file.isFile && file.getName.endsWith(".png"))
       allFiles.foreach(loadKnownPieceInformation)
       val imageCount = allPieceImages.size
-      val SimplePiecesCount = 11
+      val SimplePiecesCount = 14
       val totalCount = allFiles.length * 16 - SimplePiecesCount * 12
       val percentage = imageCount * 100 / totalCount.toDouble
       println(f"Percentage of images known: $imageCount/$totalCount ($percentage%.1f%%)")

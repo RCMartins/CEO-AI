@@ -276,6 +276,8 @@ object DataLoader {
         Powers.OnKillPromoteToKing(str.drop("OnKillPromoteToKing ".length).toInt)
       case str if str.startsWith("OnMagicCastPromoteIfEnemy ") =>
         Powers.OnMagicCastPromoteIfEnemy(str.drop("OnMagicCastPromoteIfEnemy ".length))
+      case str if str.startsWith("TriggerFrostMephit ") =>
+        Powers.TriggerFrostMephit(str.drop("TriggerFrostMephit ".length).toDouble)
       // Multiple-arg Powers:
       case str if str.startsWith("DecayAfterTurn ") =>
         val List(turnStarts, moralePerTurn) = str.drop("DecayAfterTurn ".length).split(" ").toList
@@ -397,8 +399,6 @@ object DataLoader {
         Powers.OnMeleeDeathKillAttackerPositionalPower(getLetter(str.drop("OnMeleeDeathKillAttackerPosition ".length)))
       case str if str.startsWith("TriggerGuardian ") =>
         Powers.TriggerGuardianPositionalPower(getLetter(str.drop("TriggerGuardian ".length)))
-      case str if str.startsWith("TriggerFrostMephit ") =>
-        Powers.TriggerFrostMephitPositionalPower('?', str.drop("TriggerFrostMephit ".length).toInt)
       case str if str.startsWith("TriggerInstantKill ") =>
         Powers.TriggerInstantKillPositionalPower(getLetter(str.drop("TriggerInstantKill ".length)))
       case str if str.startsWith("OnMeleeDeathTriggerRevive ") =>
@@ -480,5 +480,6 @@ object DataLoader {
 
     gameState
       .updatePlayer(PlayerColor.White, _.optimizeRunners(gameState))
+      .updatePlayer(PlayerColor.Black, _.optimizeRunners(gameState))
   }
 }

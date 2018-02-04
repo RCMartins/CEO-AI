@@ -466,6 +466,32 @@ J  1  J
 TeleportKingToLocation 1
 CanOnlyActAfterPieceLost
 --------------------
+Valkyrie++ 10
+---
+  J1J
+ 1   1
+J  1  J
+1 1@1 1
+J  1  J
+ 1   1
+  J1J
+---
+TeleportKingToLocation 1
+CanOnlyActAfterPieceLost
+--------------------
+Valkyrie+++ 12
+---
+  J1J
+ 1 J 1
+J  1  J
+1J1@1J1
+J  1  J
+ 1 J 1
+  J1J
+---
+TeleportKingToLocation 1
+CanOnlyActAfterPieceLost
+--------------------
 Vampire 15
 ---
 A  A  A
