@@ -147,14 +147,11 @@ case class PieceData(
         if (pieces._2.effectStatus.exists(effect => effect.effectType == EffectType.Freeze || effect.effectType == EffectType.Petrify))
           state
         else {
+          val slimeData = DataLoader.getPieceData(pieceName, team)
           val pos = pieces._2.pos
           distances.foldLeft(state) { case ((gameState, updatedPiece), dist) =>
             val spawnPosition = pos + dist
-            if (spawnPosition.isEmpty(gameState.board))
-              (gameState.addEndOfTurnPiece(DataLoader.getPieceData(pieceName, team).createPiece(spawnPosition)),
-                updatedPiece)
-            else
-              (gameState, updatedPiece)
+            (gameState.addEndOfTurnPiece(slimeData.createPiece(spawnPosition)), updatedPiece)
           }
         }
       }
@@ -249,9 +246,7 @@ case class PieceData(
             case None => state
             case Some(_) =>
               modify(state)(_._1).using(
-                modify(_)(_.endOfTurnActions).using(
-                  EndOfTurnAction.PieceSwapWithEnemyKing(pieceToKill.pos) :: _
-                )
+                _.addEndOfTurnAction(EndOfTurnAction.PieceSwapWithEnemyKing(pieceToKill.pos))
               )
           }
         } else {

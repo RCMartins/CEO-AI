@@ -128,7 +128,6 @@ object DataLoader {
     val ix = movesStr(iy).indexWhere(_ == '@')
 
     var completePos = List[(Char, Distance)]()
-    var maybeCompleteMovePower = Option.empty[MovePowerComplete]
     var positionalPowerPos = List[(Char, Distance)]()
     var maybePositionalPower = Option.empty[PositionalPower]
     var positionsToBlockAttacks = List[Distance]()
@@ -167,9 +166,8 @@ object DataLoader {
               positionalPowerPos = (char, dist) :: positionalPowerPos
               maybePositionalPower = Some(positionalPower)
               Moves.Empty
-            case Some(movePowerComplete: MovePowerComplete) =>
+            case Some(_: MovePowerComplete) =>
               completePos = (char, dist) :: completePos
-              maybeCompleteMovePower = Some(movePowerComplete)
               Moves.Empty
             case _ =>
               ???
@@ -178,10 +176,9 @@ object DataLoader {
 
     val moves: List[Moves] =
       simpleMoves.filterNot(_ == Moves.Empty) ++
-        maybeCompleteMovePower.map {
-          completeMovePower =>
-            completeMovePower.createMoves(completePos.groupBy(_._1).mapValues(_.map(_._2)))
-        }.getOrElse(List.empty[Moves])
+        powers.collect { case move: MovePowerComplete => move }.flatMap {
+          _.createMoves(completePos.groupBy(_._1).mapValues(_.map(_._2)))
+        }
 
     val extraPowers: List[Powers] =
       maybePositionalPower.map {

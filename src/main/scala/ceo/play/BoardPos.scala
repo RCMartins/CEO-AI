@@ -14,13 +14,13 @@ class BoardPos private(val row: Int, val column: Int) {
 
   override def toString: String = s"($row, $column)"
 
-  @inline final def isValid: Boolean = row >= 0
+  @inline final val isValid: Boolean = row >= 0
 
-  @inline final def getPiece(board: Board): Option[Piece] = if (isValid) board(row, column) else None
+  @inline final val getPiece: Board => Option[Piece] = if (isValid) (board: Board) => board(row, column) else (_: Board) => None
 
-  @inline final def isEmpty(board: Board): Boolean = isValid && getPiece(board).isEmpty
+  @inline final val isEmpty: Board => Boolean = if (isValid) getPiece(_: Board).isEmpty else (_: Board) => false
 
-  @inline final def nonEmpty(board: Board): Boolean = !isValid || getPiece(board).nonEmpty
+  @inline final val nonEmpty: Board => Boolean = if (isValid) getPiece(_: Board).nonEmpty else (_: Board) => true
 
   @inline final def allPosUntilAreEmpty(target: BoardPos, board: Board): Boolean = {
     val rowDiff = target.row - row
