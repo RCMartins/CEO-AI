@@ -221,22 +221,22 @@ case class GameState(
     }
   }
 
+  private def guardianSwapPiece(attackerPiece: Piece, piece: Piece): (GameState, Piece) = {
+    if (attackerPiece.team != piece.team && piece.data.isChampion && !piece.data.isImmuneTo(EffectType.Displacement)) {
+      getPlayer(piece.team).extraData.guardedPositions.get(piece.pos) match {
+        case Some(guardianPiece) =>
+          val updatedState = playPlayerMove(PlayerMove.Swap(piece, guardianPiece), turnUpdate = false)
+          (updatedState, piece.pos.getPiece(updatedState.board).get)
+        case None =>
+          (this, piece)
+      }
+    } else {
+      (this, piece)
+    }
+  }
+
   def playPlayerMove(move: PlayerMove, turnUpdate: Boolean): GameState = {
     import PlayerMove._
-
-    def guardianSwapPiece(state: GameState, attackerPiece: Piece, piece: Piece): (GameState, Piece) = {
-      if (attackerPiece.team != piece.team && piece.data.isChampion && !piece.data.isImmuneTo(EffectType.Displacement)) {
-        state.getPlayer(piece.team).extraData.guardedPositions.get(piece.pos) match {
-          case Some(guardianPiece) =>
-            val updatedState = playPlayerMove(PlayerMove.Swap(piece, guardianPiece), turnUpdate = false)
-            (updatedState, piece.pos.getPiece(updatedState.board).get)
-          case None =>
-            (state, piece)
-        }
-      } else {
-        (state, piece)
-      }
-    }
 
     val newState: GameState = move match {
       // Standard moves:
@@ -245,13 +245,13 @@ case class GameState(
         updatedState
           .updatePieceIfAlive(piece, pieceNewPos)
       case Attack(piece, _pieceToKill) =>
-        val (updatedState1, pieceToKill) = guardianSwapPiece(this, piece, _pieceToKill)
+        val (updatedState1, pieceToKill) = guardianSwapPiece(piece, _pieceToKill)
         val (updatedState2, pieceNewPosOption) = piece.afterMeleeKill(updatedState1, pieceToKill)
         updatedState2
           .removePiece(pieceToKill)
           .updatePieceIfAlive(piece, pieceNewPosOption)
       case AttackCanBeBlocked(piece, _pieceToAttack) =>
-        val (updatedState, pieceToAttack) = guardianSwapPiece(this, piece, _pieceToAttack)
+        val (updatedState, pieceToAttack) = guardianSwapPiece(piece, _pieceToAttack)
         if (pieceToAttack eq _pieceToAttack) {
           val pieceToKillUpdated = pieceToAttack.removeBlockEffect
           updatedState.updatePiece(pieceToAttack, pieceToKillUpdated)
@@ -269,19 +269,19 @@ case class GameState(
           .placePieceIfAlive(pieceToSwapUpdated)
       // Ranged moves:
       case RangedDestroy(piece, _pieceToDestroy) =>
-        val (updatedState1, pieceToDestroy) = guardianSwapPiece(this, piece, _pieceToDestroy)
+        val (updatedState1, pieceToDestroy) = guardianSwapPiece(piece, _pieceToDestroy)
         val (updatedState2, pieceUpdatedOption) = piece.afterMagicKill(updatedState1, pieceToDestroy)
         updatedState2
           .removePiece(pieceToDestroy)
           .updatePieceIfAlive(piece, pieceUpdatedOption)
       case RangedPetrify(piece, _pieceToPetrify, turnsPetrified) =>
-        val (updatedState, pieceToPetrify) = guardianSwapPiece(this, piece, _pieceToPetrify)
+        val (updatedState, pieceToPetrify) = guardianSwapPiece(piece, _pieceToPetrify)
         val (pieceUpdatedOption, pieceToPetrifyUpdatedOption) = piece.petrifyPiece(updatedState, pieceToPetrify, turnsPetrified)
         updatedState
           .updatePieceIfAlive(pieceToPetrify, pieceToPetrifyUpdatedOption)
           .updatePieceIfAlive(piece, pieceUpdatedOption)
       case RangedPush(piece, _pieceToPush, moraleCost, maxPushDistance) =>
-        val (updatedState1, pieceToPush) = guardianSwapPiece(this, piece, _pieceToPush)
+        val (updatedState1, pieceToPush) = guardianSwapPiece(piece, _pieceToPush)
         val pieceToPushPos = pieceToPush.pos
         val dir = (pieceToPushPos - piece.pos).toUnitVector
         val positions = BoardPos.List1to8.view(0, maxPushDistance)
@@ -300,26 +300,26 @@ case class GameState(
           .addEndOfTurnPiece(pieceData.createPiece(pieceToPush.pos))
       // Magic moves:
       case MagicDestroy(piece, _pieceToDestroy) =>
-        val (updatedState1, pieceToDestroy) = guardianSwapPiece(this, piece, _pieceToDestroy)
+        val (updatedState1, pieceToDestroy) = guardianSwapPiece(piece, _pieceToDestroy)
         val (updatedState2, pieceUpdatedOption) = piece.afterMagicKill(updatedState1, pieceToDestroy)
         updatedState2
           .removePiece(pieceToDestroy)
           .updatePieceIfAlive(piece, pieceUpdatedOption)
       case MagicPoison(piece, _pieceToPoison, turnsToDeath) =>
-        val (updatedState, pieceToPoison) = guardianSwapPiece(this, piece, _pieceToPoison)
+        val (updatedState, pieceToPoison) = guardianSwapPiece(piece, _pieceToPoison)
         val (updatedPieceOption, pieceToPoisonUpdatedOption) = piece.poisonPiece(updatedState, pieceToPoison, turnsToDeath)
         updatedState
           .updatePieceIfAlive(pieceToPoison, pieceToPoisonUpdatedOption)
           .updatePieceIfAlive(piece, updatedPieceOption)
       case MagicCharm(piece, _pieceToCharm) =>
-        val (updatedState1, pieceToCharm) = guardianSwapPiece(this, piece, _pieceToCharm)
+        val (updatedState1, pieceToCharm) = guardianSwapPiece(piece, _pieceToCharm)
         val pieceToCharmUpdated = pieceToCharm.swapTeams
         val (updatedState2, pieceUpdated) = piece.afterMagicCast(updatedState1, Some(pieceToCharmUpdated))
         updatedState2
           .updatePieceIfAlive(piece, pieceUpdated)
           .updatePiece(pieceToCharm, pieceToCharmUpdated)
       case TransformIntoAllyPiece(piece, _pieceToTransform, moraleCost, allyPieceData) =>
-        val (updatedState1, pieceToTransform) = guardianSwapPiece(this, piece, _pieceToTransform)
+        val (updatedState1, pieceToTransform) = guardianSwapPiece(piece, _pieceToTransform)
         val (updatedState2, pieceUpdatedOption) = piece.afterMagicKill(updatedState1, pieceToTransform)
         val newTransformedPiece = allyPieceData.createPiece(pieceToTransform.pos)
         updatedState2
@@ -336,12 +336,12 @@ case class GameState(
           .updatePiece(allyPiece, allyPiece.copy(pos = allyTarget))
           .updatePiece(kingPiece, kingWithoutCastling)
       case TeleportPiece(piece, _pieceToTeleport, target, _, _) =>
-        val (updatedState1, pieceToTeleport) = guardianSwapPiece(this, piece, _pieceToTeleport)
+        val (updatedState1, pieceToTeleport) = guardianSwapPiece(piece, _pieceToTeleport)
         val (updatedState2, pieceToTeleportUpdated) = pieceToTeleport.moveTo(updatedState1, target)
         updatedState2
           .updatePieceIfAlive(pieceToTeleport, pieceToTeleportUpdated)
       case MagicPush(piece, _pieceToPush, moraleCost, maxPushDistance) =>
-        val (updatedState1, pieceToPush) = guardianSwapPiece(this, piece, _pieceToPush)
+        val (updatedState1, pieceToPush) = guardianSwapPiece(piece, _pieceToPush)
         val pieceToPushPos = pieceToPush.pos
         val dirDist = pieceToPushPos - piece.pos
         val targetFinalPosition = {
@@ -365,13 +365,13 @@ case class GameState(
           .changeMorale(piece.team, -moraleCost)
           .updatePieceIfAlive(pieceToPush, pieceToPushUpdated)
       case MagicFreeze(piece, _pieceToFreeze, freezeDuration) =>
-        val (updatedState, pieceToFreeze) = guardianSwapPiece(this, piece, _pieceToFreeze)
+        val (updatedState, pieceToFreeze) = guardianSwapPiece(piece, _pieceToFreeze)
         val (pieceUpdatedOption, pieceToFreezeUpdatedOption) = piece.freezePiece(updatedState, pieceToFreeze, freezeDuration)
         updatedState
           .updatePieceIfAlive(pieceToFreeze, pieceToFreezeUpdatedOption)
           .updatePieceIfAlive(piece, pieceUpdatedOption)
       case MagicPushFreeze(piece, _pieceToPushFreeze, maxPushDistance, freezeDuration) =>
-        val (updatedState, pieceToPushFreeze) = guardianSwapPiece(this, piece, _pieceToPushFreeze)
+        val (updatedState, pieceToPushFreeze) = guardianSwapPiece(piece, _pieceToPushFreeze)
         val (pieceUpdatedOption, pieceToPushFreezeUpdatedOption) = piece.freezePiece(updatedState, pieceToPushFreeze, freezeDuration)
         updatedState
           .updatePieceIfAlive(pieceToPushFreeze, pieceToPushFreezeUpdatedOption)
@@ -384,7 +384,7 @@ case class GameState(
           .changeMorale(piece.team, -moraleCost)
           .copy(boardEffects = lightning :: boardEffects)
       case TaurusRush(piece, _pieceToKill, maxDistance) =>
-        val (updatedState1, pieceToKill) = guardianSwapPiece(this, piece, _pieceToKill)
+        val (updatedState1, pieceToKill) = guardianSwapPiece(piece, _pieceToKill)
         val pieceToKillPos = pieceToKill.pos
         val direction = Distance(pieceToKillPos.row - piece.pos.row, pieceToKillPos.column - piece.pos.column).toUnitVector
         val positions = BoardPos.List1to8.take(maxDistance)
@@ -437,7 +437,7 @@ case class GameState(
           .updatePieceIfAlive(pieceToWeakEnchant, pieceToWeakEnchantUpdatedOption)
           .updatePieceIfAlive(piece, pieceUpdatedOption)
       case MagicEnvyClone(piece, _pieceToClone) =>
-        val (updatedState, pieceToClone) = guardianSwapPiece(this, piece, _pieceToClone)
+        val (updatedState, pieceToClone) = guardianSwapPiece(piece, _pieceToClone)
         val newClone = pieceToClone.swapTeams.data.createPiece(piece.pos)
         updatedState
           .updatePiece(piece, newClone)
@@ -447,20 +447,20 @@ case class GameState(
           .changeMorale(piece.team, -moraleCost)
           .copy(boardEffects = meteor :: boardEffects)
       case MagicPetrify(piece, _pieceToPetrify, moraleCost, turnsPetrified) =>
-        val (updatedState, pieceToPetrify) = guardianSwapPiece(this, piece, _pieceToPetrify)
+        val (updatedState, pieceToPetrify) = guardianSwapPiece(piece, _pieceToPetrify)
         val (pieceUpdatedOption, pieceToPetrifyUpdatedOption) = piece.petrifyPiece(updatedState, pieceToPetrify, turnsPetrified)
         updatedState
           .changeMorale(piece.team, -moraleCost)
           .updatePieceIfAlive(pieceToPetrify, pieceToPetrifyUpdatedOption)
           .updatePieceIfAlive(piece, pieceUpdatedOption)
       case RangedCompel(piece, _pieceToCompel, turnsCompelled) =>
-        val (updatedState, pieceToCompel) = guardianSwapPiece(this, piece, _pieceToCompel)
+        val (updatedState, pieceToCompel) = guardianSwapPiece(piece, _pieceToCompel)
         val (pieceUpdated, pieceToCompelUpdated) = piece.compelPiece(updatedState, pieceToCompel, turnsCompelled)
         updatedState
           .updatePieceIfAlive(piece, pieceUpdated)
           .updatePieceIfAlive(pieceToCompel, pieceToCompelUpdated)
       case MagicPushTowards(piece, _pieceToPush, moraleCost, maxPushDistance) =>
-        val (updatedState1, pieceToPush) = guardianSwapPiece(this, piece, _pieceToPush)
+        val (updatedState1, pieceToPush) = guardianSwapPiece(piece, _pieceToPush)
         val pieceToPushPos = pieceToPush.pos
         val targetFinalPosition = {
           val max = Math.max(Math.abs(maxPushDistance.rowDiff), Math.abs(maxPushDistance.columnDiff))
@@ -477,7 +477,7 @@ case class GameState(
           .updatePieceIfAlive(pieceToPush, pieceToPushUpdated)
       case MagicSuicideFreeze(piece, _pieceToFreeze, freezeDuration) =>
         // TODO Is it possible to trigger guardian here ?
-        val (updatedState1, pieceToFreeze) = guardianSwapPiece(this, piece, _pieceToFreeze)
+        val (updatedState1, pieceToFreeze) = guardianSwapPiece(piece, _pieceToFreeze)
 
         // TODO here is a good use of the "static" freezePiece using None (because the Comet is already death on magic freeze ...)
         val (_, pieceToFreezeUpdatedOption) = piece.freezePiece(updatedState1, pieceToFreeze, freezeDuration)
@@ -530,7 +530,7 @@ case class GameState(
 
   private def startingTurnStatusEffectUpdate: GameState = {
 
-    def updatePiece(gameState: GameState, piece: Piece): (GameState, Option[Piece]) = {
+    def updatePieceStatusEffects(gameState: GameState, piece: Piece): (GameState, Option[Piece]) = {
       val playerTeam = gameState.getCurrentPlayer.team
 
       def updateEffectStatusOfPiece(
@@ -552,34 +552,24 @@ case class GameState(
             case EffectStatus.Enchanted(untilTurn) if untilTurn == currentTurn => removeEffect()
             case EffectStatus.WeakEnchanted(untilTurn) if untilTurn == currentTurn => removeEffect()
             case EffectStatus.Poison(turnOfDeath) if turnOfDeath == currentTurn => (gameState, None)
-            case EffectStatus.InstantKillPositional(distance) if playerTeam == piece.team =>
-              (piece.pos + distance).getPiece(gameState.board) match {
-                case Some(targetPiece) if targetPiece.team != piece.team && !targetPiece.data.isImmuneTo(EffectType.Trigger) =>
-                  val playerMove =
-                    if (targetPiece.canBlockFrom(piece.pos)) {
-                      PlayerMove.AttackCanBeBlocked(piece, targetPiece)
-                    } else {
-                      PlayerMove.Attack(piece, targetPiece)
-                    }
-
-                  val gameStateUpdated1 = gameState.playPlayerMove(playerMove, turnUpdate = false)
-                  val (gameStateUpdated2, pieceUpdated) = updateEffectStatusOfPiece(others, gameStateUpdated1, currentPiece)
-                  (gameStateUpdated2, pieceUpdated.map(modify(_)(_.effectStatus).using(effect :: _)))
-                case _ =>
-                  skipEffect()
-              }
             case EffectStatus.PieceGrow(moraleToPromote, pieceName) if playerTeam != piece.team =>
               val updatedPiece = piece.changeMorale(+1)
               if (updatedPiece.currentMorale >= moraleToPromote) {
                 (gameState, Some(DataLoader.getPieceData(pieceName, updatedPiece.team).createPiece(updatedPiece.pos)))
               } else {
-                updateEffectStatusOfPiece(others, gameState, modify(updatedPiece)(_.effectStatus).using(effect :: _))
+                skipEffect(updatedPiece)
               }
             case EffectStatus.Compel(untilTurn, _) if untilTurn == currentTurn => removeEffect()
             case EffectStatus.Compel(_, distanceToMove) if playerTeam == piece.team =>
               val target = currentPiece.pos + distanceToMove
               if (target.isEmpty(gameState.board)) {
-                modify(currentPiece)(_.effectStatus).using(effect :: _).moveTo(gameState, target)
+                val (gameStateUpdated, pieceUpdatedOption) = currentPiece.moveTo(gameState, target)
+                pieceUpdatedOption match {
+                  case None =>
+                    (gameStateUpdated, None)
+                  case Some(pieceUpdated) =>
+                    updateEffectStatusOfPiece(others, gameStateUpdated, modify(pieceUpdated)(_.effectStatus).using(effect :: _))
+                }
               } else {
                 skipEffect()
               }
@@ -591,15 +581,62 @@ case class GameState(
       updateEffectStatusOfPiece(piece.effectStatus, gameState, piece.copy(effectStatus = Nil))
     }
 
+    def updatePieceTriggers(gameState: GameState, piece: Piece): (GameState, Option[Piece]) = {
+      val player = gameState.getCurrentPlayer
+      val playerTeam = player.team
+
+      if (piece.data.isSamurai && playerTeam == piece.team && piece.canAct(player)) {
+        piece.data.powers.collectFirst { case power: Powers.TriggerInstantKill => power } match {
+          case Some(Powers.TriggerInstantKill(distance)) =>
+            val target = piece.pos + distance
+            target.getPiece(gameState.board) match {
+              case Some(targetPiece) if {
+                targetPiece.team != playerTeam &&
+                  !targetPiece.isEnchanted &&
+                  !targetPiece.data.isImmuneTo(EffectType.Trigger) &&
+                  Moves.generalCanTargetEnemy(piece, targetPiece)
+              } =>
+                if (targetPiece.canBlockFrom(piece.pos)) {
+                  val (updatedState, pieceToAttack) = gameState.guardianSwapPiece(piece, targetPiece)
+                  if (pieceToAttack eq targetPiece) {
+                    val pieceToKillUpdated = pieceToAttack.removeBlockEffect
+                    (updatedState.updatePiece(pieceToAttack, pieceToKillUpdated), Some(piece))
+                  } else {
+                    val (updatedState1, pieceToKill) = gameState.guardianSwapPiece(piece, targetPiece)
+                    val (updatedState2, pieceNewPosOption) = piece.afterMeleeKill(updatedState1, pieceToKill)
+                    (updatedState2.removePiece(pieceToKill), pieceNewPosOption)
+                  }
+                } else {
+                  val (updatedState1, pieceToKill) = gameState.guardianSwapPiece(piece, targetPiece)
+                  val (updatedState2, pieceNewPosOption) = piece.afterMeleeKill(updatedState1, pieceToKill)
+                  (updatedState2.removePiece(pieceToKill), pieceNewPosOption)
+                }
+              case _ =>
+                (gameState, Some(piece))
+            }
+          case _ =>
+            (gameState, Some(piece))
+        }
+      } else {
+        (gameState, Some(piece))
+      }
+    }
+
     def updatePieces(startingState: GameState, pieces: List[Piece]): (GameState, List[Piece], List[Piece]) =
       pieces.foldLeft((startingState, List.empty[Piece], List.empty[Piece])) {
         case ((state, deadPieces, updatedPieces), piece) =>
-          val (updatedGameState, maybeUpdatedPiece) = updatePiece(state, piece)
-          maybeUpdatedPiece match {
+          val (updatedGameState1, maybeUpdatedPiece1) = updatePieceStatusEffects(state, piece)
+          maybeUpdatedPiece1 match {
             case None =>
-              (updatedGameState, piece :: deadPieces, updatedPieces)
+              (updatedGameState1, piece :: deadPieces, updatedPieces)
             case Some(updatedPiece) =>
-              (updatedGameState, deadPieces, updatedPiece :: updatedPieces)
+              val (updatedGameState2, maybeUpdatedPiece2) = updatePieceTriggers(updatedGameState1, updatedPiece)
+              maybeUpdatedPiece2 match {
+                case None =>
+                  (updatedGameState2, piece :: deadPieces, updatedPieces)
+                case Some(updatedPiece2) =>
+                  (updatedGameState2, deadPieces, updatedPiece2 :: updatedPieces)
+              }
           }
       }
 

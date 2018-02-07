@@ -467,7 +467,7 @@ case class PieceData(
       case BlockAttacksFrom(distances) =>
         EffectStatus.BlocksAttacksFrom(distances)
       case TriggerInstantKill(distance) =>
-        EffectStatus.InstantKillPositional(distance)
+        EffectStatus.InstantKillPositional
       case GrowMoraleUntilTransform(moraleToPromote, pieceName) =>
         EffectStatus.PieceGrow(moraleToPromote, pieceName)
     }
@@ -505,6 +505,11 @@ case class PieceData(
 
   val isDove: Boolean = powers.exists {
     case OnEnemyDeathMovesForward => true
+    case _ => false
+  }
+
+  val isSamurai: Boolean = powers.exists {
+    case TriggerInstantKill(_) => true
     case _ => false
   }
 }

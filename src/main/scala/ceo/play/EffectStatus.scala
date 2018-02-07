@@ -100,7 +100,7 @@ object EffectStatus {
     override val effectType: EffectType = EffectType.BlockAttacks
   }
 
-  case class InstantKillPositional(distance: Distance) extends EffectStatus {
+  case object InstantKillPositional extends EffectStatus {
     override val effectType: EffectType = EffectType.InstantKillPositional
   }
 
