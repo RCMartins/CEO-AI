@@ -68,7 +68,7 @@ case class Piece(
         (updatedState4, None)
       case Some(finalPiece) =>
         val (updatedState5, piece) = finalPiece.moveTo(updatedState4, pieceToKill.pos)
-        (updatedState5, piece)
+        (updatedState5.updatePlayer(pieceToKill.team.color, _.pieceDied(pieceToKill)), piece) // TODO VERY Hard coded .......
     }
   }
 

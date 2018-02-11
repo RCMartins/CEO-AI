@@ -351,8 +351,9 @@ object DataLoader {
         val List(letterStr, augmentedRange) = str.drop("AugmentedTeleportBeacon ".length).split(" ").toList
         Powers.TeleportBeaconMovePower(getLetter(letterStr), augmentedRange.toInt)
       case str if str.startsWith("RangedSummonGeminiTwin ") =>
-        val List(letterStr, moraleCost) = str.drop("RangedSummonGeminiTwin ".length).split(" ").toList
-        Powers.RangedSummonGeminiTwinMovePower(getLetter(letterStr), moraleCost.toInt)
+        val List(letterStr, moraleCost, pieceName) = str.drop("RangedSummonGeminiTwin ".length).split(" ").toList
+        piecesToCheck = pieceName :: piecesToCheck
+        Powers.RangedSummonGeminiTwinMovePower(getLetter(letterStr), moraleCost.toInt, pieceName)
       case str if str.startsWith("MagicWeakEnchant ") =>
         val List(letterStr, durationTurns) = str.drop("MagicWeakEnchant ".length).split(" ").toList
         Powers.MagicWeakEnchantMovePower(getLetter(letterStr), durationTurns.toInt)

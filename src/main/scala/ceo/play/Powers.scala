@@ -183,8 +183,8 @@ object Powers {
     override def createMove(dist: Distance): Moves = MagicTeleportBeacon(dist, augmentedRange)
   }
 
-  case class RangedSummonGeminiTwinMovePower(letterOfMove: Char, moraleCost: Int) extends MovePower {
-    override def createMove(dist: Distance): Moves = RangedSummonGeminiTwin(dist, moraleCost)
+  case class RangedSummonGeminiTwinMovePower(letterOfMove: Char, moraleCost: Int, pieceName: String) extends MovePower {
+    override def createMove(dist: Distance): Moves = RangedSummonGeminiTwin(dist, moraleCost, pieceName)
   }
 
   case class MagicWeakEnchantMovePower(letterOfMove: Char, durationTurns: Int) extends MovePower {
