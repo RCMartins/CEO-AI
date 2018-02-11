@@ -470,18 +470,12 @@ MagicPushFreeze 1 1 2
 --------------------
 King 0
 ---
-    1
-    1
-
-   NNN
-11 N@N 11
-   NNN
-
-    1
-    1
+NNN
+N@N
+NNN
 ---
 OnAnyDeathPlayerChangeMorale -25
-KingCastling 1
+KingCastling
 --------------------
 Knight 6
 ---
