@@ -816,4 +816,36 @@ case class GameState(
     }
   }
 
+  def getReplayInfo: String = {
+    val sb = new StringBuilder()
+
+    def appendLine(line: String) = sb.append(line + "\n")
+
+    def appendSmallSeparator(): Unit = appendLine("-" * 3)
+
+    def appendTurnSeparator(): Unit = appendLine("-" * 20)
+
+    movesHistory.headOption.foreach { lastMove =>
+      appendLine(lastMove.toString)
+      appendSmallSeparator()
+    }
+
+    appendLine("Turn " + currentTurn + " " + getCurrentPlayer.team)
+    appendSmallSeparator()
+
+    appendLine(board.getReplayInfo)
+    appendSmallSeparator()
+
+    sb.append(playerWhite.getReplayInfo)
+    appendSmallSeparator()
+
+    sb.append(playerBlack.getReplayInfo)
+    appendSmallSeparator()
+
+    appendLine(boardEffects.map(_.getReplayInfo).sorted.mkString(","))
+    appendTurnSeparator()
+
+    sb.toString()
+  }
+
 }

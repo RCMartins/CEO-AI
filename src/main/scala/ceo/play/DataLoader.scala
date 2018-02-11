@@ -14,6 +14,8 @@ object DataLoader {
     mutable.Map[String, PieceData]()
   private var piecesToCheck: List[String] = List[String]()
 
+  def getAllPieceData: Iterable[PieceData] = pieces.values
+
   def clearPiecesToCheck(): Unit = {
     piecesToCheck = Nil
   }
@@ -112,11 +114,12 @@ object DataLoader {
       val nameBlack = pieceName + "_" + PlayerColor.Black
       val isMinion = fileName.startsWith("minions")
       val isChampion = fileName.startsWith("champions") && !pieceName.startsWith("King")
+      val isExtra = fileName.endsWith("extra")
       Seq(
-        PieceData(nameWhite, isMinion, isChampion, morale.toInt, movesBottomTop2, powersBottomTop, WhiteBottom),
-        PieceData(nameWhite, isMinion, isChampion, morale.toInt, movesTopBottom2, powersTopBottom, WhiteTop),
-        PieceData(nameBlack, isMinion, isChampion, morale.toInt, movesBottomTop2, powersBottomTop, BlackBottom),
-        PieceData(nameBlack, isMinion, isChampion, morale.toInt, movesTopBottom2, powersTopBottom, BlackTop)
+        PieceData(nameWhite, isMinion, isChampion, isExtra, morale.toInt, movesBottomTop2, powersBottomTop, WhiteBottom),
+        PieceData(nameWhite, isMinion, isChampion, isExtra, morale.toInt, movesTopBottom2, powersTopBottom, WhiteTop),
+        PieceData(nameBlack, isMinion, isChampion, isExtra, morale.toInt, movesBottomTop2, powersBottomTop, BlackBottom),
+        PieceData(nameBlack, isMinion, isChampion, isExtra, morale.toInt, movesTopBottom2, powersTopBottom, BlackTop)
       )
     }
   }

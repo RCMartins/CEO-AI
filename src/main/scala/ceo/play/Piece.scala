@@ -227,4 +227,12 @@ case class Piece(
 
   def removeBlockEffect: Piece = copy(effectStatus = effectStatus.filterNot(_.effectType == EffectType.BlockAttacks))
 
+  def getReplayInfo(withPos: Boolean, withTeam: Boolean): String = {
+    s"${if (withPos) pos.toReplayInfo else ""}${if (withTeam) data.nameWithPlayerBase else data.officialName}[$currentMorale]" + {
+      if (effectStatus.isEmpty)
+        ""
+      else
+        s"(${effectStatus.map(_.getReplayInfo).sorted.mkString(",")})"
+    }
+  }
 }

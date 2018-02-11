@@ -1,13 +1,15 @@
 package ceo.play
 
-import ceo.play.Powers._
+import java.util.concurrent.atomic.AtomicInteger
 
+import ceo.play.Powers._
 import com.softwaremill.quicklens._
 
 case class PieceData(
   name: String,
   isMinion: Boolean,
   isChampion: Boolean,
+  isExtra: Boolean,
   initialMorale: Int,
   moves: List[Moves],
   powers: List[Powers] = List.empty,
@@ -27,6 +29,8 @@ case class PieceData(
   def officialName: String = s"$simpleName${"+" * tier}"
 
   def nameWithPlayerBase: String = s"${officialName}_$team"
+
+  def officialNameForReplay: String = s"${officialName}_${team.letter}"
 
   val isUnknown: Boolean = name.startsWith("?")
 
@@ -389,7 +393,7 @@ case class PieceData(
           state.copy(_1 = {
             val adjacentDistances = if (team.isTop) Distance.adjacentDistancesReversed else Distance.adjacentDistances
             adjacentDistances.map(dist => (dist + center).getPiece(state._1.board)).foldLeft(state._1) {
-              case (gameState, Some(piece)) if piece.team == team && piece.pos != piecePosAfterMove && piece.data.isHoplite => piece
+              case (gameState, Some(piece)) if piece.team == team && piece.pos != piecePosAfterMove && piece.data.isHoplite =>
                 val (updatedGameState, updatePiece) = piece.moveTo(gameState, piece.pos + distance)
                 updatedGameState
                   .removePiece(piece)
@@ -469,7 +473,7 @@ case class PieceData(
         EffectStatus.Enchanted(1 + enchantedDuration) //TODO check if the un-enchanted turn is correct!
       case BlockAttacksFrom(distances) =>
         EffectStatus.BlocksAttacksFrom(distances)
-      case TriggerInstantKill(distance) =>
+      case TriggerInstantKill(_) =>
         EffectStatus.InstantKillPositional
       case GrowMoraleUntilTransform(moraleToPromote, pieceName) =>
         EffectStatus.PieceGrow(moraleToPromote, pieceName)
@@ -515,10 +519,16 @@ case class PieceData(
     case TriggerInstantKill(_) => true
     case _ => false
   }
+
+  val hash: Long = {
+    PieceData.atomicInt.getAndIncrement()
+  }
 }
 
 object PieceData {
 
-  val empty = PieceData("", isMinion = false, isChampion = false, 0, Nil, Nil, PlayerTeam.WhiteBottom)
+  private val atomicInt = new AtomicInteger(0)
+
+  val empty = PieceData("", isMinion = false, isChampion = false, isExtra = false, 0, Nil, Nil, PlayerTeam.WhiteBottom)
 
 }

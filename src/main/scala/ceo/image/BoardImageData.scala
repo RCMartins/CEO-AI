@@ -123,8 +123,4 @@ class BoardImageData(pieceName: String) {
     g2.dispose()
     imageOut
   }
-
-  private def toCEOString: String = {
-    positions.map(_.map(_.map(_ => "i").getOrElse("u")).mkString(" ")).mkString("\n")
-  }
 }

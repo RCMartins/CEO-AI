@@ -50,9 +50,11 @@ case class Player(
     }
   }
 
-  // TODO: not used yet
-  def killAt(boardPos: BoardPos): Player =
-    copy(extraData = extraData.copy(fallenPiecesPositions = extraData.fallenPiecesPositions + boardPos))
+  def pieceDied(piece: Piece): Player =
+    copy(extraData = extraData.copy(
+      fallenPieces = piece.data :: extraData.fallenPieces,
+      fallenPiecesPositions = extraData.fallenPiecesPositions + piece.pos
+    ))
 
   def updateGuardedPositions(toRemove: Option[Piece], toAdd: Option[Piece]): Player = {
     val updatedGuardedPositions =
@@ -70,16 +72,37 @@ case class Player(
     copy(extraData = extraData.copy(guardedPositions = updatedGuardedPositions))
   }
 
+  def baseRow: Int = if (team.isBottom) 7 else 0
+
   def inBaseRow(pos: BoardPos): Boolean = pos.row == (if (team.isBottom) 7 else 0)
 
   def directionForward: Distance = if (team.isBottom) Distance(-1, 0) else Distance(1, 0)
 
+  def inPlayerSide(piecePos: BoardPos): Boolean = if (team.isBottom) piecePos.row >= 4 else piecePos.row < 4
+
   def optimizeRunners(gameState: GameState): Player = modify(this)(_.extraData).using(_.copy(
-    globalDeathPieceRunners = createGlobalDeathPieceRunners(gameState),
+    globalDeathPieceRunners = Player.createGlobalDeathPieceRunners(gameState, this),
     hasEndOfTurnTriggers = allPieces.exists(_.data.powers.exists { case _: MagicTriggerLust => true; case _ => false })
   ))
 
-  def createGlobalDeathPieceRunners(gameState: GameState): List[DynamicRunner[GameState, Piece /* piece that died */ ]] = {
+  def getReplayInfo: String = {
+    val sb = new StringBuilder()
+
+    def appendLine(line: String) = sb.append(line + "\n")
+
+    appendLine(team + " " + morale)
+    appendLine(pieces.map(_.getReplayInfo(withPos = true, withTeam = false)).sorted.mkString(","))
+    appendLine(piecesAffected.map(_.getReplayInfo(withPos = true, withTeam = false)).sorted.mkString(","))
+    appendLine(kingMode.toString)
+    appendLine(extraData.fallenPieces.map(_.officialName).mkString(","))
+    appendLine(extraData.fallenPiecesPositions.map(_.toReplayInfo).toList.sorted.mkString(","))
+
+    sb.toString
+  }
+}
+
+object Player {
+  def createGlobalDeathPieceRunners(_unused: GameState, player: Player): List[DynamicRunner[GameState, Piece /* piece that died */ ]] = {
     /**
       * TODO: there is a problem here if we don't consider that enemy units can be charmed while checking several turns ahead ...
       * So, if any of that units are in the game, we should check if we have some of them
@@ -89,19 +112,16 @@ case class Player(
       * val all = gameState.allPieces ...
       */
 
+    val allPieces = player.allPieces
+    val team = player.team
+
+    val playerRunners = new PlayerRunners(team)
+
     (allPieces.find(_.data.powers.contains(OnEnemyDeathMovesForward)) match {
       case None =>
         List.empty
       case Some(_) =>
-        List(new DynamicRunner[GameState, Piece] {
-          override def update(startingState: GameState, deadPiece: Piece): GameState = {
-            if (deadPiece.team == team || !allPieces.exists(_.data.powers.contains(OnEnemyDeathMovesForward)))
-              startingState
-            else {
-              startingState.addEndOfTurnAction(EndOfTurnAction.MoveDoves(team))
-            }
-          }
-        })
+        List(playerRunners.onEnemyDeathMovesForwardRunner)
     }) ++ (allPieces.find(_.data.powers.exists { case _: TriggerWrathOnAdjacentAllyDeath => true; case _ => false }) match {
       case None =>
         List.empty
@@ -137,7 +157,24 @@ case class Player(
             }
           }
         })
+    }) ++ (allPieces.find(_.data.powers.exists {
+      case _: OnGlobalDeathGainValueUntil => true;
+      case _ => false
     })
+  }
+
+  class PlayerRunners(team: PlayerTeam) {
+    val onEnemyDeathMovesForwardRunner: DynamicRunner[GameState, Piece] =
+      (startingState: GameState, deadPiece: Piece) => {
+        val allPieces = startingState.getPlayer(team.enemy).allPieces
+        if (deadPiece.team == team && allPieces.exists(_.data.isDove))
+          startingState.addEndOfTurnAction(EndOfTurnAction.MoveDoves(team))
+        else {
+          startingState
+        }
+      }
+  }
+
 }
 
 case class PlayerExtraData(

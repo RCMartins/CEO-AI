@@ -13,11 +13,11 @@ object Util {
   def Beep(): Unit = Toolkit.getDefaultToolkit.beep()
 
   def Beep5(): Unit = {
-    def b = {
+    def doBeep(): Unit = {
       Toolkit.getDefaultToolkit.beep()
       Thread.sleep(300)
     }
 
-    (1 to 5).foreach(_ => b)
+    (1 to 5).foreach(_ => doBeep())
   }
 }

@@ -68,36 +68,52 @@ object EffectType {
 
 sealed trait EffectStatus {
   def effectType: EffectType
+
+  def getReplayInfo: String = ""
 }
 
 object EffectStatus {
 
   case class Petrified(untilTurn: Double) extends EffectStatus {
     override val effectType: EffectType = EffectType.Petrify
+
+    override def getReplayInfo = s"Petrified($untilTurn)"
   }
 
   case class Poison(turnOfDeath: Double) extends EffectStatus {
     override val effectType: EffectType = EffectType.Poison
+
+    override def getReplayInfo = s"Poison($turnOfDeath)"
   }
 
   case class Frozen(untilTurn: Double) extends EffectStatus {
     override val effectType: EffectType = EffectType.Freeze
+
+    override def getReplayInfo = s"Frozen($untilTurn)"
   }
 
   case class Enchanted(untilTurn: Double) extends EffectStatus {
     override val effectType: EffectType = EffectType.Enchanted
+
+    override def getReplayInfo = s"Enchanted($untilTurn)"
   }
 
   case class WeakEnchanted(untilTurn: Double) extends EffectStatus {
     override val effectType: EffectType = EffectType.WeakEnchanted
+
+    override def getReplayInfo = s"WeakEnchanted($untilTurn)"
   }
 
   case class Compel(untilTurn: Double, distanceToMove: Distance) extends EffectStatus {
     override val effectType: EffectType = EffectType.Compel
+
+    override def getReplayInfo = s"Compel($untilTurn)"
   }
 
   case class BlocksAttacksFrom(distances: Set[Distance]) extends EffectStatus {
     override val effectType: EffectType = EffectType.BlockAttacks
+
+    override def getReplayInfo = s"BlocksAttacksFrom"
   }
 
   case object InstantKillPositional extends EffectStatus {

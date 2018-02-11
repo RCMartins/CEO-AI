@@ -58,4 +58,8 @@ object Distance {
     x <- -1 to 1
     if x != 0 || y != 0
   } yield Distance(y, x)).toList
+
+  val adjacentDistancesReversed: List[Distance] = adjacentDistances.reverse
+
+  val cardinalDistances: List[Distance] = adjacentDistances.filter(dist => dist.rowDiff == 0 ^ dist.columnDiff == 0)
 }

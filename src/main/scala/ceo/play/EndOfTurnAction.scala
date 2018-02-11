@@ -8,4 +8,6 @@ object EndOfTurnAction {
 
   case class PieceSwapWithEnemyKing(killerPiecePos: BoardPos) extends EndOfTurnAction
 
+  case class MoveDoves(playerTeam: PlayerTeam) extends EndOfTurnAction
+
 }
