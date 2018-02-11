@@ -94,7 +94,7 @@ object DataLoader {
       val (movesTopBottom1, extraPowersTopBottom) = loadMoves(pieceName, movesStr.reverse, powers1)
 
       val augmentedMoves = powers1.collect {
-        case power: AugmentedMovePower => power.createMove
+        case power: AugmentedMovePower => power.createMoves
       }.flatten
 
       val powers2 = powers1.filter {
@@ -202,6 +202,8 @@ object DataLoader {
 
     powersStr.map {
       // 0-arg Powers:
+      case "KingCastling" =>
+        Powers.KingCastlingPower
       case "OnAnyKillSuicide" =>
         Powers.OnAnyKillSuicides
       case "GhostMovement" =>
@@ -367,8 +369,6 @@ object DataLoader {
         val List(letterStr, turnsCompelled) = str.drop("RangedCompel ".length).split(" ").toList
         Powers.RangedCompelMovePower(getLetter(letterStr), turnsCompelled.toInt)
       // Move Power Complete:
-      case str if str.startsWith("KingCastling ") =>
-        Powers.KingCastlingMovePowerComplete(str.drop("KingCastling ".length).split(" ").toList.map(getLetter))
       case str if str.startsWith("TeleportManyToOne ") =>
         Powers.TeleportManyToOneMovePowerComplete(str.drop("TeleportManyToOne ".length).split(" ").toList.map(getLetter))
       case str if str.startsWith("MagicMoveTargetTowards ") =>

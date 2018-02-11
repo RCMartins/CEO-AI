@@ -81,24 +81,6 @@ object Moves {
     }
   }
 
-  private def canAttackUnblockableConditional( // TODO This is just used for Tiger Jump, maybe just renamed it ?
-    piece: Piece,
-    target: BoardPos,
-    state: GameState,
-    condition: Piece => Boolean
-  ): Option[PlayerMove] = {
-    canRangedReachEnemy(piece, target, state) match {
-      case Some(targetPiece) if {
-        !targetPiece.isEnchanted &&
-          generalCanTargetEnemy(piece, targetPiece) &&
-          condition(targetPiece)
-      } =>
-        Some(PlayerMove.Attack(piece, targetPiece))
-      case _ =>
-        None
-    }
-  }
-
   private def canSwapUnblockable(piece: Piece, target: BoardPos, state: GameState): Option[PlayerMove] = {
     target.getPiece(state.board) match {
       case Some(targetPiece) if targetPiece.team == piece.team && !targetPiece.data.isImmuneTo(EffectType.Displacement) =>
@@ -466,14 +448,40 @@ object Moves {
     }
   }
 
-  case class KingCastling(posAllyPiece: Distance, posAfterKing: Distance, posAfterAllyPiece: Distance) extends SingleMove {
-    def getValidMove(piece: Piece, state: GameState, currentPlayer: Player): Option[PlayerMove] = {
-      // TODO check for ghost pieces in 'LONG' castling
-      (canMove(piece, piece.pos + posAfterKing, state), isAllyAt(piece.pos + posAllyPiece, state, currentPlayer)) match {
-        case (Some(kingMove), Some(allyPiece)) if allyPiece.data.isChampion && !allyPiece.data.isImmuneTo(EffectType.Displacement) =>
-          Some(PlayerMove.KingCastling(piece, allyPiece, kingMove.to, piece.pos + posAfterAllyPiece))
-        case _ =>
-          None
+  case object KingCastling extends MultipleMoves {
+    def getValidMoves(kingPiece: Piece, state: GameState, currentPlayer: Player): List[PlayerMove] = {
+      val pos = kingPiece.pos
+      val board = state.board
+      Distance.cardinalDistances.flatMap { direction =>
+        val pos2 = pos + direction * 2
+        if (pos2.isEmpty(board)) {
+          val pos1 = pos + direction
+          val piece1 = pos1.getPiece(board)
+          val pos3 = pos + direction * 3
+          val piece3 = pos3.getPiece(board)
+          (piece1, piece3) match {
+            case (None, None) =>
+              (pos + direction * 4).getPiece(board) match {
+                case Some(allyPiece) if allyPiece.data.isChampion && !allyPiece.data.isImmuneTo(EffectType.Displacement) =>
+                  List(PlayerMove.KingCastling(kingPiece, allyPiece, pos3, pos2))
+                case _ =>
+                  List.empty
+              }
+            case (Some(pieceInPath), None) if pieceInPath.data.isGhost =>
+              (pos + direction * 4).getPiece(board) match {
+                case Some(allyPiece) if allyPiece.data.isChampion && !allyPiece.data.isImmuneTo(EffectType.Displacement) =>
+                  List(PlayerMove.KingCastling(kingPiece, allyPiece, pos3, pos2))
+                case _ =>
+                  List.empty
+              }
+            case (None, Some(allyPiece)) if allyPiece.data.isChampion && !allyPiece.data.isImmuneTo(EffectType.Displacement) =>
+              List(PlayerMove.KingCastling(kingPiece, allyPiece, pos2, pos1))
+            case _ =>
+              List.empty
+          }
+        } else {
+          List.empty
+        }
       }
     }
   }
@@ -515,7 +523,17 @@ object Moves {
 
   case class JumpMinion(dist: Distance) extends SingleMove {
     def getValidMove(piece: Piece, state: GameState, currentPlayer: Player): Option[PlayerMove] = {
-      canAttackUnblockableConditional(piece, piece.pos + dist, state, _.data.isMinion)
+      (piece.pos + dist).getPiece(state.board) match {
+        case Some(targetPiece) if {
+          targetPiece.team != piece.team &&
+            targetPiece.data.isMinion &&
+            !targetPiece.isEnchanted &&
+            generalCanTargetEnemy(piece, targetPiece)
+        } =>
+          Some(PlayerMove.Attack(piece, targetPiece))
+        case _ =>
+          None
+      }
     }
   }
 

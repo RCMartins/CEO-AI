@@ -23,7 +23,7 @@ sealed trait MovePowerComplete extends Powers {
 }
 
 sealed trait AugmentedMovePower extends Powers {
-  def createMove: List[Moves]
+  def createMoves: List[Moves]
 }
 
 object Powers {
@@ -215,14 +215,6 @@ object Powers {
     override def createMove(dist: Distance): Moves = RangedCompel(dist, turnsCompeled)
   }
 
-  case class KingCastlingMovePowerComplete(lettersOfMoves: List[Char]) extends MovePowerComplete {
-    override def createMoves(distances: Map[Char, List[Distance]]): List[Moves] = {
-      distances.values.flatten.toList.map {
-        dist =>
-          val dir = dist.toUnitVector
-          KingCastling(dist, dist - dir, dist - (dir * 2))
-      }
-    }
   }
 
   case class TeleportManyToOneMovePowerComplete(lettersOfMoves: List[Char]) extends MovePowerComplete {
@@ -313,15 +305,21 @@ object Powers {
   }
 
   case object AugmentedTeleportGhastMovePower extends AugmentedMovePower {
-    override def createMove: List[Moves] = List(
+    override def createMoves: List[Moves] = List(
       TeleportToFallenAllyPosition
     )
   }
 
   case class MagicFreezeStrikeGlobalEnemyChampion(freezeDuration: Int) extends AugmentedMovePower {
-    override def createMove: List[Moves] = List(
+    override def createMoves: List[Moves] = List(
       MagicFreezeStrikeOnEnemyChampions(freezeDuration)
     )
+  }
+
+  case object KingCastlingPower extends AugmentedMovePower {
+    override def createMoves: List[Moves] = {
+      List(KingCastling)
+    }
   }
 
 }
