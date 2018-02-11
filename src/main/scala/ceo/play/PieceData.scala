@@ -379,23 +379,26 @@ case class PieceData(
     (Piece /* original piece that moved */ , Distance /* distance of the move */ , Boolean /* from a player move */ )]] = powers.collect {
     case OnMoveAdjacentHoplitesMove => new DynamicRunner[(GameState, Option[Piece]), (Piece, Distance, Boolean)] {
       override def update(state: (GameState, Option[Piece]), data: (Piece, Distance, Boolean)): (GameState, Option[Piece]) = {
-        val piecePosAfterMove = data._1.pos
-        val distance = data._2
-        val center = piecePosAfterMove - distance
-        state.copy(_1 =
-          Distance.adjacentDistances.map(_ + center).foldLeft(state._1) {
-            case (gameState, boardPos) if boardPos != piecePosAfterMove =>
-              boardPos.getPiece(gameState.board) match {
-                case Some(piece) if piece.team == team && piece.data.isHoplite =>
-                  val (updatedGameState, updatePiece) = piece.moveTo(gameState, piece.pos + distance)
-                  updatedGameState
-                    .removePiece(piece)
-                    .doActionIfCondition(updatePiece.isDefined, _.addEndOfTurnPiece(updatePiece.get))
-                case _ => gameState
-              }
-            case (gameState, _) => gameState
-          }
-        )
+        val isFromPlayerMove = data._3
+        if (!isFromPlayerMove) {
+          state
+        } else {
+          val piecePosAfterMove = data._1.pos
+          val distance = data._2
+          val center = piecePosAfterMove - distance
+          state.copy(_1 = {
+            val adjacentDistances = if (team.isTop) Distance.adjacentDistancesReversed else Distance.adjacentDistances
+            adjacentDistances.map(dist => (dist + center).getPiece(state._1.board)).foldLeft(state._1) {
+              case (gameState, Some(piece)) if piece.team == team && piece.pos != piecePosAfterMove && piece.data.isHoplite => piece
+                val (updatedGameState, updatePiece) = piece.moveTo(gameState, piece.pos + distance)
+                updatedGameState
+                  .removePiece(piece)
+                  .doActionIfCondition(updatePiece.isDefined, _.addEndOfTurnPiece(updatePiece.get))
+              case (gameState, _) =>
+                gameState
+            }
+          })
+        }
       }
     }
     case HostageCaught(moraleAmount) => new DynamicRunner[(GameState, Option[Piece]), (Piece, Distance, Boolean)] {
