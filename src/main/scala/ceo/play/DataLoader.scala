@@ -278,6 +278,8 @@ object DataLoader {
         Powers.OnKillPromoteToKing(str.drop("OnKillPromoteToKing ".length).toInt)
       case str if str.startsWith("OnMagicCastPromoteIfEnemy ") =>
         Powers.OnMagicCastPromoteIfEnemy(str.drop("OnMagicCastPromoteIfEnemy ".length))
+      case str if str.startsWith("OnAllyDeathPieceChangeMorale ") =>
+        Powers.OnAllyDeathPieceChangeMorale(str.drop("OnAllyDeathPieceChangeMorale ".length).toInt)
       case str if str.startsWith("TriggerFrostMephit ") =>
         Powers.TriggerFrostMephit(str.drop("TriggerFrostMephit ".length).toDouble)
       // Multiple-arg Powers:
@@ -369,6 +371,10 @@ object DataLoader {
         val List(letterStr, moraleCost, pieceName) = str.drop("MagicSummonPiece ".length).split(" ").toList
         piecesToCheck = pieceName :: piecesToCheck
         Powers.MagicSummonPieceMovePower(getLetter(letterStr), moraleCost.toInt, pieceName)
+      case str if str.startsWith("TemperanceAttack ") =>
+        Powers.TemperanceAttackUnblockableMovePower(getLetter(str.drop("TemperanceAttack ".length)))
+      case str if str.startsWith("TemperanceAttackOrMove ") =>
+        Powers.TemperanceAttackOrMoveMovePower(getLetter(str.drop("TemperanceAttackOrMove ".length)))
       case str if str.startsWith("RangedCompel ") =>
         val List(letterStr, turnsCompelled) = str.drop("RangedCompel ".length).split(" ").toList
         Powers.RangedCompelMovePower(getLetter(letterStr), turnsCompelled.toInt)

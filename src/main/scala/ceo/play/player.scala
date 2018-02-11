@@ -160,6 +160,27 @@ object Player {
     }) ++ (allPieces.find(_.data.powers.exists {
       case _: OnGlobalDeathGainValueUntil => true;
       case _ => false
+    }) ++ (allPieces.find(_.data.powers.exists { case _: OnAllyDeathPieceChangeMorale => true; case _ => false }) match {
+      case None =>
+        List.empty
+      case Some(_) =>
+        List(new DynamicRunner[GameState, Piece] {
+          override def update(startingState: GameState, deadPiece: Piece): GameState = {
+            if (deadPiece.team != team)
+              startingState
+            else {
+              val player = startingState.getPlayer(deadPiece.team)
+              player.allPieces.foldLeft(startingState) { (state, piece) =>
+                piece.data.powers.find { case _: OnAllyDeathPieceChangeMorale => true; case _ => false } match {
+                  case Some(OnAllyDeathPieceChangeMorale(moraleAmount)) if piece.currentMorale > 0 =>
+                    state.updatePiece(piece, piece.changeMorale(moraleAmount))
+                  case _ =>
+                    state
+                }
+              }
+            }
+          }
+        })
     })
   }
 

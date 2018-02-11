@@ -60,6 +60,8 @@ object Powers {
 
   case class OnMagicCastPromoteIfEnemy(pieceName: String) extends Powers
 
+  case class OnAllyDeathPieceChangeMorale(moraleAmount: Int) extends Powers
+
   case class PromoteTo(pieceName: String) extends Powers
 
   case class OnAnyDeathPlayerChangeMorale(moraleAmount: Int) extends Powers
@@ -209,6 +211,14 @@ object Powers {
 
   case class MagicSummonPieceMovePower(letterOfMove: Char, moraleCost: Int, pieceName: String) extends MovePower {
     override def createMove(dist: Distance): Moves = MagicSummonPiece(dist, moraleCost, pieceName)
+  }
+
+  case class TemperanceAttackUnblockableMovePower(letterOfMove: Char) extends MovePower {
+    override def createMove(dist: Distance): Moves = TemperanceAttackUnblockable(dist)
+  }
+
+  case class TemperanceAttackOrMoveMovePower(letterOfMove: Char) extends MovePower {
+    override def createMove(dist: Distance): Moves = TemperanceAttackOrMove(dist)
   }
 
   case class RangedCompelMovePower(letterOfMove: Char, turnsCompeled: Int) extends MovePower {
