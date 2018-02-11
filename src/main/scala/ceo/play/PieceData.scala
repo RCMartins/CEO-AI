@@ -128,6 +128,13 @@ case class PieceData(
         }
       }
     }
+    case OnDeathAdjacentEnemiesFreezePush(pushDistance, freezeDuration) => new DynamicRunner[(GameState, Option[Piece]), Piece] {
+      override def update(state: (GameState, Option[Piece]), deathPiece: Piece): (GameState, Option[Piece]) = {
+        modify(state)(_._1).using(
+          _.addEndOfTurnAction(EndOfTurnAction.AquariusExploded(deathPiece, pushDistance, freezeDuration))
+        )
+      }
+    }
   }
 
   val afterMeleeDeathRunners: List[DynamicRunner[

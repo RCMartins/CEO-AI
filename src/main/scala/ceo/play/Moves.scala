@@ -230,9 +230,8 @@ object Moves {
   ): Option[PlayerMove] = {
     canRangedReachEnemy(piece, target, state) match {
       case Some(targetPiece) if {
-        targetPiece.team != piece.team &&
-          !targetPiece.data.isImmuneTo(EffectType.Displacement) &&
-          generalCanTargetEnemy(piece, targetPiece)
+        !targetPiece.data.isImmuneTo(EffectType.Displacement) &&
+          generalCanTargetEnemy(piece, targetPiece) // TODO check if this should be checked when pushing an ally piece
       } =>
         val dir = (targetPiece.pos - piece.pos).toUnitVector
         if ((targetPiece.pos + dir).isEmpty(state.board)) {
@@ -250,7 +249,7 @@ object Moves {
     }
   }
 
-  private def canMagicPushFreeze(
+  def canMagicPushFreeze(
     piece: Piece,
     target: BoardPos,
     maxPushDistance: Int,
@@ -680,14 +679,18 @@ object Moves {
 
   case class PatienceCannotAttackBeforeTurn(moveOrAttack: List[Distance], attack: List[Distance], untilTurn: Int) extends MultipleMoves {
     def getValidMoves(piece: Piece, state: GameState, currentPlayer: Player): List[PlayerMove] = {
+      val piecePos = piece.pos
       if (state.currentTurn < untilTurn)
-        moveOrAttack.flatMap(dist => canMove(piece, piece.pos + dist, state))
+        moveOrAttack.flatMap(dist => canMove(piece, piecePos + dist, state))
       else {
-        moveOrAttack.flatMap(dist => Or(
-          canMove(piece, piece.pos + dist, state),
-          canAttack(piece, piece.pos + dist, state)
-        )) ++
-          attack.flatMap(dist => canAttack(piece, piece.pos + dist, state))
+        moveOrAttack.flatMap { dist =>
+          val target = piecePos + dist
+          Or(
+            canMove(piece, target, state),
+            canAttack(piece, target, state)
+          )
+        } ++
+          attack.flatMap(dist => canAttack(piece, piecePos + dist, state))
       }
     }
   }
@@ -749,6 +752,28 @@ object Moves {
     }
   }
 
+  case class TemperanceAttackUnblockable(dist: Distance) extends SingleMove {
+    def getValidMove(piece: Piece, state: GameState, currentPlayer: Player): Option[PlayerMove] = {
+      canAttackUnblockable(piece, piece.pos + dist, state).flatMap {
+        case move @ PlayerMove.Attack(_, targetPiece) if targetPiece.currentMorale >= piece.currentMorale => Some(move)
+        case _ => None
+      }
+    }
+  }
+
+  case class TemperanceAttackOrMove(dist: Distance) extends SingleMove {
+    def getValidMove(piece: Piece, state: GameState, currentPlayer: Player): Option[PlayerMove] = {
+      Or(
+        canMove(piece, piece.pos + dist, state),
+        canAttack(piece, piece.pos + dist, state).flatMap {
+          case move @ PlayerMove.AttackCanBeBlocked(_, targetPiece) if targetPiece.currentMorale >= piece.currentMorale => Some(move)
+          case move @ PlayerMove.Attack(_, targetPiece) if targetPiece.currentMorale >= piece.currentMorale => Some(move)
+          case _ => None
+        }
+      )
+    }
+  }
+
   case class RangedCompel(dist: Distance, turnsCompelled: Int) extends SingleMove {
     def getValidMove(piece: Piece, state: GameState, currentPlayer: Player): Option[PlayerMove] = {
       val target = piece.pos + dist
@@ -781,6 +806,22 @@ object Moves {
             Some(PlayerMove.MagicPushTowards(piece, targetPiece, moraleCost, maxPushDistance))
           else
             None
+        case _ =>
+          None
+      }
+    }
+  }
+
+  case class MagicDestroySelfAquarius(dist: Distance, freezeDuration: Int) extends SingleMove {
+    def getValidMove(piece: Piece, state: GameState, currentPlayer: Player): Option[PlayerMove] = {
+      val target = piece.pos + dist
+      target.getPiece(state.board) match {
+        case Some(targetPiece) if {
+          !targetPiece.data.isImmuneTo(EffectType.Freeze) &&
+            !targetPiece.data.isImmuneTo(EffectType.Magic) &&
+            generalCanTargetEnemy(piece, targetPiece)
+        } =>
+          Some(PlayerMove.MagicSuicideFreeze(piece, targetPiece, freezeDuration))
         case _ =>
           None
       }

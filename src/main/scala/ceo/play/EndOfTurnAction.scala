@@ -10,4 +10,6 @@ object EndOfTurnAction {
 
   case class MoveDoves(playerTeam: PlayerTeam) extends EndOfTurnAction
 
+  case class AquariusExploded(deadAquariusPiece: Piece, pushDistance: Int, freezeDuration: Int) extends EndOfTurnAction
+
 }

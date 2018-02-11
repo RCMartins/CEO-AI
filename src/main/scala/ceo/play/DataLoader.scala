@@ -310,6 +310,9 @@ object DataLoader {
         val List(moraleLostOnKill, moraleLimit, pieceName) = str.drop("OnKillDecayTo ".length).split(" ").toList
         piecesToCheck = pieceName :: piecesToCheck
         Powers.OnKillDecayTo(moraleLostOnKill.toInt, moraleLimit.toInt, pieceName)
+      case str if str.startsWith("OnDeathAdjacentEnemiesFreezePush ") =>
+        val List(pushDistance, freezeDuration) = str.drop("OnDeathAdjacentEnemiesFreezePush ".length).split(" ").toList
+        Powers.OnDeathAdjacentEnemiesFreezePush(pushDistance.toInt, freezeDuration.toInt)
       // Move Powers:
       case str if str.startsWith("MagicDestroy ") =>
         Powers.MagicDestroyMovePower(getLetter(str.drop("MagicDestroy ".length)))
@@ -378,6 +381,12 @@ object DataLoader {
       case str if str.startsWith("RangedCompel ") =>
         val List(letterStr, turnsCompelled) = str.drop("RangedCompel ".length).split(" ").toList
         Powers.RangedCompelMovePower(getLetter(letterStr), turnsCompelled.toInt)
+      case str if str.startsWith("MagicDestroySelfAquariusAt ") =>
+        val List(letterStr, freezeDuration) = str.drop("MagicDestroySelfAquariusAt ".length).split(" ").toList
+        Powers.MagicDestroySelfAquariusAtMovePower(getLetter(letterStr), freezeDuration.toInt)
+      case str if str.startsWith("MagicDestroySelfButterfly ") =>
+        val List(letterStr, turnsDelay, turnsEnchanted) = str.drop("MagicDestroySelfButterfly ".length).split(" ").toList
+        Powers.MagicDestroySelfButterflyMovePower(getLetter(letterStr), turnsDelay.toInt, turnsEnchanted.toInt)
       // Move Power Complete:
       case str if str.startsWith("TeleportManyToOne ") =>
         Powers.TeleportManyToOneMovePowerComplete(str.drop("TeleportManyToOne ".length).split(" ").toList.map(getLetter))

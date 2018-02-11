@@ -766,81 +766,91 @@ case class GameState(
       stateAfterEndOfTurnActions
     } else {
       val team = nextPlayer.team
-      nextPlayer.allPieces.foldLeft(stateAfterEndOfTurnActions) { case (state, piece) =>
-        piece.data.powers.collectFirst {
-          case Powers.MagicTriggerLust(distances) => distances
-        } match {
-          case None => state
-          case Some(distances) =>
-            val pos = piece.pos
-            distances.foldLeft(state) { (state, dist) =>
-              (pos + dist).getPiece(state.board) match {
-                case Some(targetPiece) if {
-                  targetPiece.team != team &&
-                    !targetPiece.data.isImmuneTo(EffectType.Magic) &&
-                    !targetPiece.data.isImmuneTo(EffectType.Trigger) &&
-                    !targetPiece.data.isImmuneTo(EffectType.Displacement) // TODO check if there are more conditions ...
-                } =>
-                  val targetPos = targetPiece.pos + (pos - targetPiece.pos).toUnitVector
-                  if (targetPos.isEmpty(state.board))
-                    state.removePiece(targetPiece).addEndOfTurnPiece(targetPiece.copy(pos = targetPos))
-                  else
-                    state
-                case _ => state
+      nextPlayer.allPieces.foldLeft(stateAfterEndOfTurnActions) {
+        case (state, piece) =>
+          piece.data.powers.collectFirst {
+            case Powers.MagicTriggerLust(distances) => distances
+          } match {
+            case None => state
+            case Some(distances) =>
+              val pos = piece.pos
+              distances.foldLeft(state) {
+                (state, dist) =>
+                  (pos + dist).getPiece(state.board) match {
+                    case Some(targetPiece) if {
+                      targetPiece.team != team &&
+                        !targetPiece.data.isImmuneTo(EffectType.Magic) &&
+                        !targetPiece.data.isImmuneTo(EffectType.Trigger) &&
+                        !targetPiece.data.isImmuneTo(EffectType.Displacement)
+                    } =>
+                      val targetPos = targetPiece.pos + (pos - targetPiece.pos).toUnitVector
+                      if (targetPos.isEmpty(state.board))
+                        state.removePiece(targetPiece).addEndOfTurnPiece(targetPiece.copy(pos = targetPos))
+                      else
+                        state
+                    case _ => state
+                  }
               }
-            }
-        }
+          }
       }.applyEndOfTurnActions
     }
   }
 
   def applyEndOfTurnActions: GameState = {
     endOfTurnActions.foldLeft(copy(endOfTurnActions = Nil)) {
-      case (initialState, action) => action match {
-        case EndOfTurnAction.CreatePiece(newPiece) =>
-          if (newPiece.pos.isEmpty(initialState.board))
-            initialState.placePiece(newPiece)
-          else
-            initialState
-        case EndOfTurnAction.PieceSwapWithEnemyKing(killerPiecePos) =>
-          killerPiecePos.getPiece(initialState.board) match {
-            case None => initialState
-            case Some(killerPiece) =>
-              val enemyPlayer = initialState.getPlayer(killerPiece.team.enemy)
-              enemyPlayer.allPieces.find(_.data.isKing) match {
-                case None => initialState
-                case Some(enemyKing) =>
-                  val stateUpdated1 = initialState.removePiece(killerPiece).removePiece(enemyKing)
-                  val (stateUpdated2, killerPieceUpdated) = killerPiece.moveTo(stateUpdated1, enemyKing.pos)
-                  val (stateUpdated3, enemyKingPieceUpdated) = enemyKing.moveTo(stateUpdated2, killerPiece.pos)
-                  stateUpdated3
-                    .placePieceIfAlive(killerPieceUpdated)
-                    .placePieceIfAlive(enemyKingPieceUpdated)
-              }
-          }
-        case EndOfTurnAction.MoveDoves(playerTeam) =>
-          /*
-          Here we have to simulate a v0.52 bug:
-          Dove get updated from square (0,0) to (7,7), left to right, top to bottom, if they are blocked by other doves
-          They will not be updated (this code has to simulate that bug to be "correct"):
-           */
-
-          println(BoardPos.allBoardPositions)
-
-          val player = initialState.getPlayer(playerTeam)
-
-          val directionForward = player.directionForward
-          player.allPieces
-            .filter(_.data.isDove)
-            .sortBy(_.pos)(BoardPos.byScanOrder)
-            .foldLeft(initialState) { (state, dovePiece) =>
-              val positionForward = dovePiece.pos + directionForward
-              if (positionForward.isEmpty(state.board))
-                state.updatePiece(dovePiece, dovePiece.copy(pos = positionForward))
-              else
-                state
+      case (initialState, action) =>
+        action match {
+          case EndOfTurnAction.CreatePiece(newPiece) =>
+            if (newPiece.pos.isEmpty(initialState.board))
+              initialState.placePiece(newPiece)
+            else
+              initialState
+          case EndOfTurnAction.PieceSwapWithEnemyKing(killerPiecePos) =>
+            killerPiecePos.getPiece(initialState.board) match {
+              case None => initialState
+              case Some(killerPiece) =>
+                val enemyPlayer = initialState.getPlayer(killerPiece.team.enemy)
+                enemyPlayer.allPieces.find(_.data.isKing) match {
+                  case None => initialState
+                  case Some(enemyKing) =>
+                    val stateUpdated1 = initialState.removePiece(killerPiece).removePiece(enemyKing)
+                    val (stateUpdated2, killerPieceUpdated) = killerPiece.moveTo(stateUpdated1, enemyKing.pos)
+                    val (stateUpdated3, enemyKingPieceUpdated) = enemyKing.moveTo(stateUpdated2, killerPiece.pos)
+                    stateUpdated3
+                      .placePieceIfAlive(killerPieceUpdated)
+                      .placePieceIfAlive(enemyKingPieceUpdated)
+                }
             }
-      }
+          case EndOfTurnAction.MoveDoves(playerTeam) =>
+            /*
+            Here we have to simulate a v0.52 bug:
+            Dove get updated from square (0,0) to (7,7), left to right, top to bottom, if they are blocked by other doves
+            They will not be updated (this code has to simulate that bug to be "correct"):
+             */
+
+            val player = initialState.getPlayer(playerTeam)
+
+            val directionForward = player.directionForward
+            player.allPieces
+              .filter(_.data.isDove)
+              .sortBy(_.pos)(BoardPos.byScanOrder)
+              .foldLeft(initialState) {
+                (state, dovePiece) =>
+                  val positionForward = dovePiece.pos + directionForward
+                  if (positionForward.isEmpty(state.board))
+                    state.updatePiece(dovePiece, dovePiece.copy(pos = positionForward))
+                  else
+                    state
+              }
+          case EndOfTurnAction.AquariusExploded(deadAquariusPiece, pushDistance, freezeDuration) =>
+            Distance.adjacentDistances.map(_ + deadAquariusPiece.pos).foldLeft(initialState) { (gameState, boardPos) =>
+              Moves.canMagicPushFreeze(deadAquariusPiece, boardPos, pushDistance, freezeDuration, gameState) match {
+                case None => gameState
+                case Some(playerMove) =>
+                  gameState.playPlayerMove(playerMove, turnUpdate = false)
+              }
+            }
+        }
     }
   }
 
