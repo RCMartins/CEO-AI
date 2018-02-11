@@ -385,6 +385,8 @@ object DataLoader {
         val List(letterStr, moraleCost, pushDistance, pieceName) = str.drop("RangedPushSpawn ".length).split(" ").toList
         piecesToCheck = pieceName :: piecesToCheck
         Powers.RangedPushSpawnMovePower(getLetter(letterStr), moraleCost.toInt, pushDistance.toInt, pieceName)
+      case str if str.startsWith("Chastity ") =>
+        Powers.ChastityMovePowerComplete(str.drop("Chastity ".length).split(" ").toList.map(getLetter))
       case str if str.startsWith("AugmentedTeleportRoyalGuard ") =>
         Powers.AugmentedTeleportRoyalGuardPowerComplete(str.drop("AugmentedTeleportRoyalGuard ".length).split(" ").toList.map(getLetter))
       // Positional Powers:

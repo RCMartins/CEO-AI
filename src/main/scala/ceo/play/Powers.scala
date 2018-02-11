@@ -269,6 +269,16 @@ object Powers {
     }
   }
 
+  case class ChastityMovePowerComplete(lettersOfMoves: List[Char]) extends MovePowerComplete {
+    override def createMoves(distances: Map[Char, List[Distance]]): List[Moves] = {
+      val moveOrAttackList = distances.getOrElse('1', List.empty)
+      val attackList = distances.getOrElse('2', List.empty)
+      val attackUnblockableList = distances.getOrElse('3', List.empty)
+      val swapList = distances.getOrElse('4', List.empty)
+      List(ChastityMoves(moveOrAttackList, attackList, attackUnblockableList, swapList))
+    }
+  }
+
   case class OnMeleeDeathSpawnSlimesPositionalPower(letterOfMove: Char, allyPieceName: String) extends PositionalPower {
     def createPowers(distances: Map[Char, List[Distance]]): List[Powers] =
       List(OnMeleeDeathSpawnSlimes(distances.values.flatten.toList, allyPieceName))

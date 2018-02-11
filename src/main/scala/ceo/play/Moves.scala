@@ -787,6 +787,57 @@ object Moves {
     }
   }
 
+  case class ChastityMoves(
+    moveOrAttackList: List[Distance],
+    attackList: List[Distance],
+    attackUnblockableList: List[Distance],
+    swapList: List[Distance]
+  ) extends MultipleMoves {
+    override def getValidMoves(piece: Piece, state: GameState, currentPlayer: Player): List[PlayerMove] = {
+      val piecePos = piece.pos
+      moveOrAttackList.flatMap { dist =>
+        val target = piecePos + dist
+        if (currentPlayer.inPlayerSide(target))
+          Or(
+            canMove(piece, target, state),
+            canAttack(piece, target, state)
+          )
+        else
+          canMove(piece, target, state)
+      } ++ {
+        if (currentPlayer.inPlayerSide(piecePos))
+          attackList.flatMap(dist => canAttack(piece, piecePos + dist, state))
+        else
+          List.empty
+      } ++ {
+        attackUnblockableList.flatMap { dist =>
+          val target = piecePos + dist
+          if (currentPlayer.inPlayerSide(target))
+            canAttackUnblockable(piece, target, state)
+          else
+            None
+        }
+      } ++ {
+        swapList.flatMap { dist =>
+          val target = piecePos + dist
+          if (currentPlayer.inPlayerSide(target))
+            Or(
+              canMoveUnblockable(piece, target, state),
+              Or(
+                canAttackUnblockable(piece, target, state),
+                canSwapUnblockable(piece, target, state)
+              )
+            )
+          else
+            Or(
+              canMoveUnblockable(piece, target, state),
+              canSwapUnblockable(piece, target, state)
+            )
+        }
+      }
+    }
+  }
+
   case object Empty extends Moves {
     val dx = 0
     val dy = 0
