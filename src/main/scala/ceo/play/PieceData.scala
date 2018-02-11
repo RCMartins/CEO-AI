@@ -477,6 +477,8 @@ case class PieceData(
         EffectStatus.InstantKillPositional
       case GrowMoraleUntilTransform(moraleToPromote, pieceName) =>
         EffectStatus.PieceGrow(moraleToPromote, pieceName)
+      case DecayAfterTurn(turnStarts, moralePerTurn) =>
+        EffectStatus.DecayAfterTurn(turnStarts, moralePerTurn)
     }
   }
 

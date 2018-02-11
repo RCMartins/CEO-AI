@@ -76,7 +76,6 @@ object Powers {
 
   case class OnSpellCastPromoteTo(pieceName: String) extends Powers
 
-  // TODO implement this
   case class DecayAfterTurn(turnStarts: Int, moralePerTurn: Int) extends Powers
 
   case class ImmuneTo(immuneList: List[EffectType]) extends Powers

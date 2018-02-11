@@ -58,6 +58,10 @@ object EffectType {
     val name = "PieceGrow"
   }
 
+  case object DecayAfterTurn extends EffectType {
+    val name = "DecayAfterTurn"
+  }
+
   val allNormalEffects: List[EffectType] = List(Petrify, Poison, Freeze, Displacement, Magic, Ranged, Trigger, Compel)
 
   def apply(name: String): EffectType = allNormalEffects.find(_.name == name) match {
@@ -122,6 +126,10 @@ object EffectStatus {
 
   case class PieceGrow(moraleToPromote: Int, pieceName: String) extends EffectStatus {
     override val effectType: EffectType = EffectType.PieceGrow
+  }
+
+  case class DecayAfterTurn(turnStarts: Int, moralePerTurn: Int) extends EffectStatus {
+    override val effectType: EffectType = EffectType.DecayAfterTurn
   }
 
 }

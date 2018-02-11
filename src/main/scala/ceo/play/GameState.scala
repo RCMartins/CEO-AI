@@ -578,6 +578,12 @@ case class GameState(
               } else {
                 skipEffect()
               }
+            case EffectStatus.DecayAfterTurn(turnStarts, moralePerTurn) if currentTurn >= turnStarts && playerTeam == piece.team =>
+              val newMorale = currentPiece.currentMorale - moralePerTurn
+              if (newMorale > 0)
+                skipEffect(currentPiece.setMorale(newMorale))
+              else
+                (gameState, None)
             case _ =>
               skipEffect()
           }
