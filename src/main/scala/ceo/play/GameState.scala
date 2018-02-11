@@ -488,6 +488,11 @@ case class GameState(
 
         // Simulate Comet dying on the selected target
         piece.copy(pos = pieceToFreeze.pos).onTransform(updatedState2)
+      case MagicDestroySelfButterfly(piece, target, turnsDelay, turnsEnchanted) =>
+        val butterflyEffect = BoardEffect.Butterfly(target, currentTurn + turnsDelay, turnsEnchanted, piece.data)
+        this
+          .removePiece(piece)
+          .copy(boardEffects = butterflyEffect :: boardEffects)
       case DummyMove(_) => this
     }
 
@@ -701,6 +706,23 @@ case class GameState(
                         state
                     }
                   }
+              } else
+                initialState.copy(boardEffects = effect :: initialState.boardEffects)
+            case effect @ BoardEffect.Butterfly(boardPos, turnOfEffect, enchantDuration, pieceDataOnRevive) =>
+              if (turnOfEffect == initialState.currentTurn) {
+                boardPos.getPiece(initialState.board) match {
+                  case Some(piece) if !piece.data.isImmuneTo(EffectType.Magic) =>
+                    if (piece.team == pieceDataOnRevive.team) {
+                      val (_, pieceUpdated) = piece.enchantPiece(initialState, piece, enchantDuration)
+                      initialState.updatePieceIfAlive(piece, pieceUpdated)
+                    } else {
+                      initialState.removePiece(piece)
+                    }
+                  case None =>
+                    initialState.placePiece(pieceDataOnRevive.createPiece(boardPos))
+                  case _ =>
+                    initialState
+                }
               } else
                 initialState.copy(boardEffects = effect :: initialState.boardEffects)
           }

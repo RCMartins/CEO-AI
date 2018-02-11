@@ -316,6 +316,15 @@ object PlayerMove {
       s"for $freezeDuration turns   ${pieceToFreeze.pos - piece.pos}"
   }
 
+  case class MagicDestroySelfButterfly(piece: Piece, target: BoardPos, turnsDelay: Int, turnsEnchanted: Int) extends PlayerMove {
+    def getControllerMove: (BoardPos, BoardPos) = (piece.pos, target)
+
+    def priorityHeuristic: Int = -50
+
+    def betterHumanString: String = s"$piece marks-location $target " +
+      s"in $turnsDelay turns   ${target - piece.pos}"
+  }
+
   case class DummyMove(piece: Piece) extends PlayerMove {
     def getControllerMove: (BoardPos, BoardPos) = (???, ???)
 

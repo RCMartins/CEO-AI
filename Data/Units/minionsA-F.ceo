@@ -283,6 +283,60 @@ TTTT TTTT
 OnAnyKillSuicide
 OnMeleeDeathKillAttacker
 --------------------
+Butterfly 0
+---
+1     1
+
+   M
+  M@M
+   M
+
+1     1
+---
+MagicDestroySelfButterfly 1 20 2
+--------------------
+Butterfly+ 1
+---
+   1 1
+ 1     1
+
+1   M   1
+   M@M
+1   M   1
+
+ 1     1
+   1 1
+---
+MagicDestroySelfButterfly 1 20 2
+--------------------
+Butterfly++ 3
+---
+   1 1
+ 1     1
+
+1   N   1
+   N@N
+1   N   1
+
+ 1     1
+   1 1
+---
+MagicDestroySelfButterfly 1 20 2
+--------------------
+Butterfly+++ 5
+---
+   1 1
+ 1     1
+
+1  NNN  1
+   N@N
+1  NNN  1
+
+ 1     1
+   1 1
+---
+MagicDestroySelfButterfly 1 20 2
+--------------------
 Dove 0
 ---
 M M

@@ -787,6 +787,17 @@ object Moves {
     }
   }
 
+  case class MagicDestroySelfButterfly(dist: Distance, turnsDelay: Int, turnsEnchanted: Int) extends SingleMove {
+    def getValidMove(piece: Piece, state: GameState, currentPlayer: Player): Option[PlayerMove] = {
+      val target = piece.pos + dist
+      if (state.boardEffects.collectFirst { case BoardEffect.Butterfly(pos, _, _, _) if pos == target => () }.isEmpty) {
+        Some(PlayerMove.MagicDestroySelfButterfly(piece, target, turnsDelay, turnsEnchanted))
+      } else {
+        None
+      }
+    }
+  }
+
   case class ChastityMoves(
     moveOrAttackList: List[Distance],
     attackList: List[Distance],

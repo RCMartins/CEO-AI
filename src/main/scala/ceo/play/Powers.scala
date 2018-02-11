@@ -215,6 +215,8 @@ object Powers {
     override def createMove(dist: Distance): Moves = RangedCompel(dist, turnsCompeled)
   }
 
+  case class MagicDestroySelfButterflyMovePower(letterOfMove: Char, turnsDelay: Int, turnsEnchanted: Int) extends MovePower {
+    override def createMove(dist: Distance): Moves = MagicDestroySelfButterfly(dist, turnsDelay, turnsEnchanted)
   }
 
   case class TeleportManyToOneMovePowerComplete(lettersOfMoves: List[Char]) extends MovePowerComplete {
