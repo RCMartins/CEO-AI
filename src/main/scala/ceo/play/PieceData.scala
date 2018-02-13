@@ -333,7 +333,7 @@ case class PieceData(
         }
       }
     }
-    case OnSpellCastPromoteTo(pieceName) => new DynamicRunner[(GameState, Option[Piece]), (Piece, Option[Piece])] {
+    case OnMagicCastPromoteTo(pieceName) => new DynamicRunner[(GameState, Option[Piece]), (Piece, Option[Piece])] {
       override def update(state: (GameState, Option[Piece]), data: (Piece, Option[Piece])): (GameState, Option[Piece]) = {
         modify(state)(_._2).using {
           _.map(piece =>

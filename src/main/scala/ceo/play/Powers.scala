@@ -74,7 +74,7 @@ object Powers {
 
   case class OnKillTransformInto(pieceName: String) extends Powers
 
-  case class OnSpellCastPromoteTo(pieceName: String) extends Powers
+  case class OnMagicCastPromoteTo(pieceName: String) extends Powers
 
   case class DecayAfterTurn(turnStarts: Int, moralePerTurn: Int) extends Powers
 
@@ -134,6 +134,10 @@ object Powers {
 
   case class RangedPetrifyMovePower(letterOfMove: Char, durationTurns: Int) extends MovePower {
     override def createMove(dist: Distance): Moves = RangedPetrify(dist, durationTurns)
+  }
+
+  case class WeakRangedPetrifyMovePower(letterOfMove: Char, durationTurns: Int) extends MovePower {
+    override def createMove(dist: Distance): Moves = WeakRangedPetrify(dist, durationTurns)
   }
 
   case class MagicPoisonMovePower(letterOfMove: Char, durationTurns: Int) extends MovePower {

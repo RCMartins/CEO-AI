@@ -36,9 +36,8 @@ M1M
 1@1
 M1M
 ---
-//TODO change to like RangedWeakPetrify? -> because it can't target petrified units?
-RangedPetrify 1 5
-OnSpellCastPromoteTo EarthElemental
+WeakRangedPetrify 1 5
+OnMagicCastPromoteTo EarthElemental
 --------------------
 Gnome+ 4
 ---
@@ -49,7 +48,7 @@ M   M
 M   M
 ---
 RangedPetrify 1 5
-OnSpellCastPromoteTo EarthElemental+
+OnMagicCastPromoteTo EarthElemental+
 --------------------
 Gnome++ 5
 ---
@@ -60,7 +59,7 @@ T   T
 T   T
 ---
 RangedPetrify 1 5
-OnSpellCastPromoteTo EarthElemental++
+OnMagicCastPromoteTo EarthElemental++
 --------------------
 Gnome+++ 7
 ---
@@ -71,7 +70,7 @@ T   T
 T   T
 ---
 RangedPetrify 1 5
-OnSpellCastPromoteTo EarthElemental+++
+OnMagicCastPromoteTo EarthElemental+++
 --------------------
 Hoplite 1
 ---

@@ -19,6 +19,13 @@ object Moves {
       None
   }
 
+  @inline private final def canRangedReachPiece(piece: Piece, target: BoardPos, state: GameState): Option[Piece] = {
+    if (piece.pos.allPosUntilAreEmptyOrGhost(target, state.board))
+      target.getPiece(state.board)
+    else
+      None
+  }
+
   @inline private final def canRangedReachEmptyTarget(piece: Piece, target: BoardPos, state: GameState): Boolean = {
     piece.pos.allPosUntilAreEmptyOrGhost(target, state.board) && target.isValid && target.getPiece(state.board).isEmpty
   }
@@ -94,24 +101,6 @@ object Moves {
     canRangedReachEnemy(piece, target, state) match {
       case Some(targetPiece) if !targetPiece.data.isImmuneTo(EffectType.Ranged) && generalCanTargetEnemy(piece, targetPiece) =>
         Some(PlayerMove.RangedDestroy(piece, targetPiece))
-      case _ =>
-        None
-    }
-  }
-
-  private def canRangedPetrify(
-    piece: Piece,
-    target: BoardPos,
-    durationTurns: Int,
-    state: GameState
-  ): Option[PlayerMove] = {
-    canRangedReachEnemy(piece, target, state) match {
-      case Some(targetPiece) if {
-        !targetPiece.data.isImmuneTo(EffectType.Petrify) &&
-          !targetPiece.data.isImmuneTo(EffectType.Ranged) &&
-          generalCanTargetEnemy(piece, targetPiece)
-      } =>
-        Some(PlayerMove.RangedPetrify(piece, targetPiece, durationTurns))
       case _ =>
         None
     }
@@ -228,7 +217,7 @@ object Moves {
     pieceNameToSpawn: Option[String],
     state: GameState
   ): Option[PlayerMove] = {
-    canRangedReachEnemy(piece, target, state) match {
+    canRangedReachPiece(piece, target, state) match {
       case Some(targetPiece) if {
         !targetPiece.data.isImmuneTo(EffectType.Displacement) &&
           generalCanTargetEnemy(piece, targetPiece) // TODO check if this should be checked when pushing an ally piece
@@ -425,7 +414,32 @@ object Moves {
 
   case class RangedPetrify(dist: Distance, durationTurns: Int) extends SingleMove {
     def getValidMove(piece: Piece, state: GameState, currentPlayer: Player): Option[PlayerMove] = {
-      canRangedPetrify(piece, piece.pos + dist, durationTurns, state)
+      canRangedReachEnemy(piece, piece.pos + dist, state) match {
+        case Some(targetPiece) if {
+          !targetPiece.data.isImmuneTo(EffectType.Petrify) &&
+            !targetPiece.data.isImmuneTo(EffectType.Ranged) &&
+            generalCanTargetEnemy(piece, targetPiece)
+        } =>
+          Some(PlayerMove.RangedPetrify(piece, targetPiece, durationTurns))
+        case _ =>
+          None
+      }
+    }
+  }
+
+  case class WeakRangedPetrify(dist: Distance, durationTurns: Int) extends SingleMove {
+    def getValidMove(piece: Piece, state: GameState, currentPlayer: Player): Option[PlayerMove] = {
+      canRangedReachEnemy(piece, piece.pos + dist, state) match {
+        case Some(targetPiece) if {
+          !targetPiece.data.isImmuneTo(EffectType.Petrify) &&
+            !targetPiece.data.isImmuneTo(EffectType.Ranged) &&
+            generalCanTargetEnemy(piece, targetPiece) &&
+            !targetPiece.isPetrified
+        } =>
+          Some(PlayerMove.RangedPetrify(piece, targetPiece, durationTurns))
+        case _ =>
+          None
+      }
     }
   }
 

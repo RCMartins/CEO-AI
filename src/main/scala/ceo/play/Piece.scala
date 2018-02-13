@@ -164,7 +164,7 @@ case class Piece(
     effectStatus: EffectStatus
   ): (Option[Piece] /* attacker piece updated */ , Option[Piece] /* affected piece updated */ ) = {
     val updatedPieceToPoison: Option[Piece] =
-      if (pieceToAffect.data.isDestroyedBy(EffectType.Poison)) {
+      if (pieceToAffect.data.isDestroyedBy(effectStatus.effectType)) {
         None
       } else {
         Some(pieceToAffect.addEffect(effectStatus))
@@ -202,6 +202,11 @@ case class Piece(
 
   def isWeakEnchanted: Boolean = effectStatus.exists {
     case _: EffectStatus.WeakEnchanted => true
+    case _ => false
+  }
+
+  def isPetrified: Boolean = effectStatus.exists {
+    case _: EffectStatus.Petrified => true
     case _ => false
   }
 

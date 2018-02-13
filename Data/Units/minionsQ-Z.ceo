@@ -544,7 +544,7 @@ M@M
 1M1
 ---
 RangedPush 1 1 3
-OnSpellCastPromoteTo Sylph+
+OnMagicCastPromoteIfEnemy Sylph+
 --------------------
 Sylph+ 1
 ---
@@ -555,7 +555,7 @@ MM@MM
   M
 ---
 RangedPush 1 1 3
-OnSpellCastPromoteTo Sylph++
+OnMagicCastPromoteIfEnemy Sylph++
 --------------------
 Sylph++ 3
 ---
@@ -566,7 +566,7 @@ MM@MM
 1 M 1
 ---
 RangedPush 1 1 3
-OnSpellCastPromoteTo Sylph+++
+OnMagicCastPromoteIfEnemy Sylph+++
 --------------------
 Sylph+++ 5
 ---
@@ -577,7 +577,7 @@ MN@NM
 1 M 1
 ---
 RangedPush 1 1 3
-OnSpellCastPromoteTo AirElemental
+OnMagicCastPromoteIfEnemy AirElemental
 --------------------
 Tiger 1
 ---

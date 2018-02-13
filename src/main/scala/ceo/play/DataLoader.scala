@@ -252,10 +252,10 @@ object DataLoader {
         val pieceToCheck = str.drop("OnKillTransformInto ".length)
         piecesToCheck = pieceToCheck :: piecesToCheck
         Powers.OnKillTransformInto(pieceToCheck)
-      case str if str.startsWith("OnSpellCastPromoteTo ") =>
-        val pieceToCheck = str.drop("OnSpellCastPromoteTo ".length)
+      case str if str.startsWith("OnMagicCastPromoteTo ") =>
+        val pieceToCheck = str.drop("OnMagicCastPromoteTo ".length)
         piecesToCheck = pieceToCheck :: piecesToCheck
-        Powers.OnSpellCastPromoteTo(pieceToCheck)
+        Powers.OnMagicCastPromoteTo(pieceToCheck)
       case str if str.startsWith("TriggerWrathOnAdjacentAllyDeath ") =>
         Powers.TriggerWrathOnAdjacentAllyDeath(str.drop("TriggerWrathOnAdjacentAllyDeath ".length).toInt)
       case str if str.startsWith("BeginsGameEnchanted ") =>
@@ -319,6 +319,9 @@ object DataLoader {
       case str if str.startsWith("RangedPetrify ") =>
         val List(letterStr, duration) = str.drop("RangedPetrify ".length).split(" ").toList
         Powers.RangedPetrifyMovePower(getLetter(letterStr), duration.toInt)
+      case str if str.startsWith("WeakRangedPetrify ") =>
+        val List(letterStr, duration) = str.drop("WeakRangedPetrify ".length).split(" ").toList
+        Powers.WeakRangedPetrifyMovePower(getLetter(letterStr), duration.toInt)
       case str if str.startsWith("MagicPoison ") =>
         val List(letterStr, duration) = str.drop("MagicPoison ".length).split(" ").toList
         Powers.MagicPoisonMovePower(getLetter(letterStr), duration.toInt)
