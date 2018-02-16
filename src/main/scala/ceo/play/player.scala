@@ -187,8 +187,8 @@ object Player {
   class PlayerRunners(team: PlayerTeam) {
     val onEnemyDeathMovesForwardRunner: DynamicRunner[GameState, Piece] =
       (startingState: GameState, deadPiece: Piece) => {
-        val allPieces = startingState.getPlayer(team.enemy).allPieces
-        if (deadPiece.team == team && allPieces.exists(_.data.isDove))
+        val myPieces = startingState.getPlayer(team).allPieces
+        if (deadPiece.team != team && myPieces.exists(_.data.isDove))
           startingState.addEndOfTurnAction(EndOfTurnAction.MoveDoves(team))
         else {
           startingState
