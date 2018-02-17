@@ -193,7 +193,7 @@ object PlayerMove {
       s"in $durationTurns turns   ${lightningPosition - piece.pos}"
   }
 
-  case class TeleportTransformInto(piece: Piece, target: BoardPos, pieceData: PieceData) extends PlayerMove {
+  case class TeleportTransformIntoBat(piece: Piece, target: BoardPos, pieceData: PieceData) extends PlayerMove {
     def getControllerMove: (BoardPos, BoardPos) = (piece.pos, target)
 
     def priorityHeuristic: Int = 50

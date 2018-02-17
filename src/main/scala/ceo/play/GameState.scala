@@ -426,11 +426,11 @@ case class GameState(
             .removePiece(pieceToKill)
             .updatePieceIfAlive(piece, pieceUpdatedOption.map(_.copy(pos = taurusPos)))
         }
-      case TeleportTransformInto(piece, target, pieceData) =>
-        val updatedState = piece.onTransform(this)
-        val newTransformedPiece = pieceData.createPiece(target)
-        updatedState
-          .updatePiece(piece, newTransformedPiece)
+      case TeleportTransformIntoBat(piece, target, pieceData) =>
+        val updatedState1 = piece.onTransform(this)
+        val (updatedState2, newTransformedPiece) = pieceData.createPiece(target).moveTo(updatedState1, target)
+        updatedState2
+          .updatePieceIfAlive(piece, newTransformedPiece)
       case MagicSummonPiece(piece, target, moraleCost, pieceData) =>
         val (updatedState, updatedPieceOption) = piece.afterMagicCast(this, None)
         updatedState

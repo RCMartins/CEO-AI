@@ -515,7 +515,7 @@ object Moves {
       val pieceData = DataLoader.getPieceData(pieceName, piece.team)
       val target = piece.pos + dist
       if (target.isEmpty(state.board))
-        Some(PlayerMove.TeleportTransformInto(piece, target, pieceData))
+        Some(PlayerMove.TeleportTransformIntoBat(piece, target, pieceData))
       else
         None
     }

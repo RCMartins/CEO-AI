@@ -14,10 +14,13 @@ case class Piece(
     // TODO I think this has do be done to simulate a bug of v0.52:
     // Example: Vampire transforms into bat -> Dove move triggers, but technically no piece died ...
 
-    val (updatedState, _) =
+    val (updatedState1, _) =
       DynamicRunner.foldLeft((startingState, None), this, data.afterAnyDeathRunners)
 
-    updatedState
+    val updatedState2 =
+      DynamicRunner.foldLeft(updatedState1, this, updatedState1.getPlayers.flatMap(_.extraData.globalDeathPieceRunners))
+
+    updatedState2
   }
 
   override def toString: String = s"${data.name}$pos"
