@@ -1,9 +1,9 @@
 package ceo.play
 
-import ceo.play.Util.random
-import ceo.play.Util.ValueOfStateMaxValue
-import ceo.play.PlayerTeam._
+import ceo.menu.MenuControl
+import ceo.play.Util.{ValueOfStateMaxValue, random}
 
+import scala.collection.mutable
 import scala.collection.parallel.immutable.ParSeq
 
 sealed trait Strategy {
@@ -189,26 +189,37 @@ object Strategy {
     }
   }
 
-  class AlphaBetaPruningIterativeDeepening(timeLimit: Int, maxDepthToCheck: Int = 50) extends Strategy {
-    override def chooseMove(startingState: GameState): Option[GameState] = {
-      val currentPlayer = startingState.getCurrentPlayer.team
+  class ABPruningIterativeDeepening(timeLimit: Int, maxDepthToCheck: Int = 50) extends Strategy {
+    override def chooseMove(_startingState: GameState): Option[GameState] = {
+      val startingState =
+        if (MenuControl.DEBUG_MODE) {
+          _startingState
+        } else {
+          _startingState
+        }
+      val currentPlayer = startingState.getCurrentPlayer
+      val currentPlayerColor = startingState.getCurrentPlayer.team
+      val startingStateBaseValue = valueOfState(startingState, currentPlayerColor)
 
-      val playerMoves = startingState.getCurrentPlayerMoves.sorted
+      val playerMoves = Util.random.shuffle(startingState.getCurrentPlayerMoves).sorted
       val firstLevelStates = playerMoves.map(move => startingState.playPlayerMove(move, turnUpdate = true))
       val firstLevelStatesSize = firstLevelStates.size.toDouble
-      val showAtIndex = if (firstLevelStatesSize <= 20) 1 else 2
+      val showAtIndex = Math.max(1, firstLevelStatesSize / 5).toInt
 
       val startTime = System.currentTimeMillis()
+
+      def shouldContinueCalculating: Boolean = MenuControl.inPause
 
       def createTreeFirstLevel(state: GameState, depth: Int, _alpha: Int, _beta: Int): Option[(Int, Int)] = {
         var alpha = _alpha
         var v = Int.MinValue
         var bestIndex = -1
         for (index <- firstLevelStates.indices) {
-          if (System.currentTimeMillis - startTime < timeLimit) {
+          if (System.currentTimeMillis - startTime < timeLimit || shouldContinueCalculating) {
             val state = firstLevelStates(index)
-            if (index % showAtIndex == 0)
-              printf("%.2f ", index / firstLevelStatesSize)
+            if (index < 3 || index % showAtIndex == 0)
+              if (MenuControl.SHOW_PRINTS)
+                printf(index + " ")
             val value = createTree(state, depth - 1, maximize = false, alpha, _beta)
             if (value > v) {
               v = value
@@ -226,11 +237,11 @@ object Strategy {
 
       def createTree(state: GameState, depth: Int, maximize: Boolean, _alpha: Int, _beta: Int): Int = {
         if (depth == 0 || state.winner != PlayerWinType.NotFinished) {
-          val value = valueOfState(state, currentPlayer)
-          if (value >= ValueOfStateMaxValue)
-            value + depth
+          val value = valueOfState(state, currentPlayerColor)
+          if (value >= ValueOfStateMaxValue / 2)
+            value + depth * 1000 + state.getPlayer(currentPlayer.team).morale
           else if (value <= -ValueOfStateMaxValue / 3)
-            value - depth
+            value - depth * 1000 + state.getPlayer(currentPlayer.team).morale
           else
             value
         } else {
@@ -268,7 +279,8 @@ object Strategy {
         }
       }
 
-      println("Calculating best move:")
+      if (MenuControl.SHOW_PRINTS)
+        println(s"Calculating best move [${firstLevelStatesSize.toInt}]:")
 
       var value: Int = -1
       var moveIndex: Int = -1
@@ -277,15 +289,21 @@ object Strategy {
       val softTimeLimit: Int = (timeLimit * 0.3).toInt
       try {
         var currentDepth = 1
-        while (System.currentTimeMillis - startTime < softTimeLimit && !stop && currentDepth <= maxDepthToCheck) {
-          print(s"Calculating depth $currentDepth: ")
+        while ((System.currentTimeMillis - startTime < softTimeLimit && currentDepth <= maxDepthToCheck || shouldContinueCalculating) && !stop) {
+          if (MenuControl.SHOW_PRINTS)
+            print(s"$currentDepth: ")
           createTreeFirstLevel(startingState, currentDepth, Int.MinValue, Int.MaxValue).foreach {
             case (levelBestValue, bestIndex) =>
               value = levelBestValue
               if (value >= ValueOfStateMaxValue || value <= -ValueOfStateMaxValue / 3)
                 stop = true
               moveIndex = bestIndex
-              println(" %6d   %6d   %s".format(System.currentTimeMillis - startTime, value, firstLevelStates(moveIndex).movesHistory.head))
+              if (MenuControl.SHOW_PRINTS)
+                println(" %5d %5d %s".format(
+                  System.currentTimeMillis - startTime,
+                  value - startingStateBaseValue,
+                  firstLevelStates(moveIndex).movesHistory.head)
+                )
               currentDepth += 1
           }
         }
@@ -295,7 +313,19 @@ object Strategy {
       }
 
       val endState = firstLevelStates(moveIndex)
-      println((value, endState.movesHistory.head.betterHumanString))
+      if (MenuControl.SHOW_PRINTS) {
+        println
+        println((value, endState.movesHistory.head.betterHumanString))
+      }
+
+      var waitingCounter = 0
+      while (shouldContinueCalculating) {
+        if (waitingCounter % 10 == 0)
+          println("Already finished calculating move... waiting for resume...")
+        waitingCounter += 1
+        Thread.sleep(1000 + waitingCounter * 10)
+      }
+
       Some(endState)
     }
   }
@@ -311,26 +341,43 @@ object ValueOfState {
           def value(player: Player): Int = {
             val allPieces = player.allPieces
             player.morale * 100 +
-              player.numberOfPieces * 10 +
-              (if (player.hasKing) 0 else -1000) + {
+              player.numberOfPieces * 20 +
+              (if (player.hasKing) 0 else -(1000 + Math.max(0, 60 - player.morale) * 50)) + {
               // poison heuristic:
               player.piecesAffected.map(piece => piece.effectStatus.collectFirst {
                 case EffectStatus.Poison(turnOfDeath) =>
                   val turnsLeft = gameState.currentTurn - turnOfDeath
+                  // TODO this approach doesn't work with the king piece because it usually has 0 morale ...
                   if (turnsLeft >= 1.5)
                     -40 * piece.currentMorale
-                  else if (turnsLeft >= 0.5)
-                    -80 * piece.currentMorale
                   else
-                    0
+                    -80 * piece.currentMorale
               }.getOrElse(0)).sum + {
                 val dir = player.directionForward.rowDiff
-                allPieces.map(piece => if (piece.data.canMinionPromote) piece.pos.row * dir else 0).sum
-              } + {
-                allPieces.count(_.data.isDummyPiece) * -10
-              } + {
-                allPieces.map(piece => if (piece.data.isABlockerPiece &&
-                  !piece.effectStatus.exists(_.effectType == EffectType.BlockAttacks)) piece.currentMorale * -20 else 0).sum
+                var value = 0
+                allPieces.foreach { piece =>
+                  val data = piece.data
+                  if (data.canMinionPromote)
+                    value += piece.pos.row * dir
+                  else if (data.isKing) {
+                    if (player.numberOfPieces > 5) {
+                      val row = piece.pos.row
+                      if (player.team.isBottom) {
+                        if (row < 6)
+                          value += (6 - row) * -30
+                      } else {
+                        if (row > 1)
+                          value += (row - 1) * -30
+                      }
+                    }
+                    if (data.simpleName.endsWith("s"))
+                      value -= 500
+                  } else if (data.isDummyPiece)
+                    value -= 10
+                  if (data.isABlockerPiece && !piece.effectStatus.exists(_.effectType == EffectType.BlockAttacks))
+                    value -= piece.currentMorale * 20
+                }
+                value
               }
             }
           }
@@ -338,10 +385,6 @@ object ValueOfState {
           val whitePoints = value(gameState.playerWhite)
           val blackPoints = value(gameState.playerBlack)
 
-          //          team.chooseWhiteBlack(
-          //            (1000 * whitePoints) / blackPoints,
-          //            (1000 * blackPoints) / whitePoints
-          //          )
           team.chooseWhiteBlack(
             whitePoints - blackPoints,
             blackPoints - whitePoints

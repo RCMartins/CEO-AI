@@ -33,7 +33,8 @@ class ReplayTester
     if (file.isDirectory)
       file.listFiles().foreach(loadReplayFolder)
     else if (file.getName == "replay.ceo") {
-      s"replay  '${file.getAbsolutePath}'" should {
+      val shorterName = file.getAbsolutePath.stripPrefix(replayFolder.getAbsolutePath)
+      s"replay '$shorterName'" should {
         "load and play correctly" in {
           loadReplayFile(file)
         }

@@ -23,7 +23,13 @@ object PlayGame {
     )
   }
 
-  def playSomeMatches(startingState: GameState, playerWhiteStrategy: Strategy, playerBlackStrategy: Strategy, numberOfGames: Int): Unit = {
+  def playSomeMatches(
+    startingState: GameState,
+    playerWhiteStrategy: Strategy,
+    playerBlackStrategy: Strategy,
+    numberOfGames: Int,
+    showExtraInfo: Boolean = false
+  ): (Int, Int, Int) = {
     println(startingState)
     val playSomeMatches: Seq[(GameState, PlayerWinType)] =
       (1 to numberOfGames)
@@ -33,17 +39,16 @@ object PlayGame {
         })
         .map(finalState => (finalState, finalState.winner))
 
-    val minWinState = playSomeMatches.minBy(_._1.currentTurn)._1
-    val maxWinState = playSomeMatches.maxBy(_._1.currentTurn)._1
     val whiteWins = playSomeMatches.count(_._2 == PlayerWinType.PlayerWhite)
     val blackWins = playSomeMatches.count(_._2 == PlayerWinType.PlayerBlack)
     val draws = playSomeMatches.count(_._2 == PlayerWinType.Draw)
     println(s"White: $whiteWins, Black: $blackWins, Draw: $draws")
-    println(s"Min turn game: ${minWinState.currentTurn}\n$minWinState\n${minWinState.movesHistory.mkString("\n")}\n")
-    println(s"Max turn game: ${maxWinState.currentTurn}\n$maxWinState\n${maxWinState.movesHistory.mkString("\n")}")
+    if (showExtraInfo) {
+      val minWinState = playSomeMatches.minBy(_._1.currentTurn)._1
+      println(s"Min turn game: ${minWinState.currentTurn}\n$minWinState\n")
+    }
 
-    //    println()
-    //    println(minWinState.movesHistory.reverse.scanLeft(startingState)((state, move) => state.playPlayerMove(move)).mkString("\n"))
+    (whiteWins, blackWins, draws)
   }
 
   private def showStateWithMoves(state: GameState): Unit = {
@@ -108,7 +113,7 @@ object PlayGame {
           println(stateAfter)
           println("Move made: " + stateAfter.movesHistory.head + "\n")
           if (stateAfter.winner != PlayerWinType.NotFinished) {
-            println("GAME OVER")
+            println("Game Over!")
             stateAfter
           } else {
             inputMove(stateAfter, state :: history)

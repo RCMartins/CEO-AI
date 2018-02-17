@@ -39,8 +39,13 @@ case class GameState(
   def nextTurn: GameState = copy(currentTurn = currentTurn + 0.5)
 
   override def toString: String = {
-    val nameSize = 18
-    val normalDashLine = " " + "-" * ((nameSize + 1) * 8 + 1)
+    val pieceNames =
+      board.getRows.map(_.map(_.map(piece => piece.data.officialName + "_" + piece.data.team.letter).getOrElse(""))).toVector
+
+    val columnLengths: Seq[Int] =
+      for (column <- 0 until 8) yield Math.max(8, (0 until 8).map(row => pieceNames(row)(column).length).max)
+
+    val normalDashLine = " " + "-" * (columnLengths.sum + 9)
 
     def moraleDashLine(morale: Int) = {
       val turnText = s"----- turn: $currentTurn[${getCurrentPlayer.team.letter}]"
@@ -50,14 +55,14 @@ case class GameState(
       s" $turnText${"-" * firstHalf}$textInLine${"-" * secondHalf}\n"
     }
 
-    board.getRows.zipWithIndex.map { case (line, rowN) => line.map { pieceOpt =>
-      val formatStr = s"%${nameSize}s"
+    board.getRows.zipWithIndex.map { case (line, row) => line.zipWithIndex.map { case (pieceOpt, column) =>
+      val formatStr = s"%${columnLengths(column)}s"
       formatStr.format(
         pieceOpt.map(
-          piece => piece.data.name).getOrElse(""))
-    }.mkString(s"$rowN|", "|", "|")
+          piece => piece.data.officialName + "_" + piece.data.team.letter).getOrElse(""))
+    }.mkString(s"$row|", "|", "|")
     }
-      .mkString(moraleDashLine(playerBlack.morale), "\n" + normalDashLine + "\n", "\n" + moraleDashLine(playerWhite.morale))
+      .mkString(moraleDashLine(playerBlack.morale), "\n" /*+ normalDashLine + "\n"*/ , "\n" + moraleDashLine(playerWhite.morale))
   }
 
   def getBoardPieceNames: String = {
@@ -167,6 +172,13 @@ case class GameState(
 
   def doActionIfCondition(condition: Boolean, function: GameState => GameState): GameState = {
     if (condition) function(this) else this
+  }
+
+  def changeMorale(playerColor: PlayerColor, moraleDiff: Int): GameState = {
+    if (playerColor == PlayerColor.White)
+      copy(playerWhite = playerWhite.changeMorale(moraleDiff))
+    else
+      copy(playerBlack = playerBlack.changeMorale(moraleDiff))
   }
 
   def changeMorale(playerTeam: PlayerTeam, moraleDiff: Int): GameState = {
@@ -479,7 +491,7 @@ case class GameState(
         // TODO Is it possible to trigger guardian here ?
         val (updatedState1, pieceToFreeze) = guardianSwapPiece(piece, _pieceToFreeze)
 
-        // TODO here is a good use of the "static" freezePiece using None (because the Comet is already death on magic freeze ...)
+        // TODO here is a good use of the "static" freezePiece using None (because the Comet/Aquarius is already death on magic freeze ...)
         val (_, pieceToFreezeUpdatedOption) = piece.freezePiece(updatedState1, pieceToFreeze, freezeDuration)
         val updatedState2 =
           updatedState1
@@ -859,9 +871,9 @@ case class GameState(
 
     def appendLine(line: String) = sb.append(line + "\n")
 
-    def appendSmallSeparator(): Unit = appendLine("-" * 3)
+    def appendSmallSeparator(): Unit = appendLine(GameState.replaySmallSeparator)
 
-    def appendTurnSeparator(): Unit = appendLine("-" * 20)
+    def appendTurnSeparator(): Unit = appendLine(GameState.replayTurnSeparator)
 
     movesHistory.headOption.foreach { lastMove =>
       appendLine(lastMove.toString)
@@ -885,5 +897,12 @@ case class GameState(
 
     sb.toString()
   }
+
+}
+
+object GameState {
+
+  val replaySmallSeparator: String = "-" * 3
+  val replayTurnSeparator: String = "-" * 20
 
 }

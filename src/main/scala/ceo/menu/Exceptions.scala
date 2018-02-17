@@ -8,4 +8,6 @@ object Exceptions {
 
   class AllPiecesAreKnown extends Exception
 
+  class GameIsOverByAbandonOrTimeout extends Exception
+
 }

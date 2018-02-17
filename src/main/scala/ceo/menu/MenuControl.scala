@@ -6,26 +6,38 @@ import java.text.SimpleDateFormat
 import java.util.Date
 
 import ceo.control.MainControl.{minX, minY}
-import ceo.control.{MainControl, MouseControl}
+import ceo.control.{MainControl, MouseKeyboardControl}
 import ceo.image.{ImageLoader, ImageUtils}
-import ceo.menu.Exceptions.{AllPiecesAreKnown, BoardStartsWithUnknownPieces}
+import ceo.menu.Exceptions.{AllPiecesAreKnown, BoardStartsWithUnknownPieces, GameIsOverByAbandonOrTimeout}
 import ceo.menu.OathObjective._
-import ceo.play.{PlayerColor, Util}
+import ceo.play
+import ceo.play.ValueOfState.ImprovedHeuristic
+import ceo.play.{PlayerColor, Strategy, Util}
 import ceo.ui.MainPlayUI
 
 import scala.util.{Failure, Success, Try}
 
 object MenuControl {
 
-  val USE_BEST_GUESS_IMAGES = false
+  var USE_BEST_GUESS_IMAGES = false
   val DEBUG_MODE = false
-  val StartingTurn: Double = 0.0
-  val oathObjective: OathObjective = OathObjective.PlayRankedGames
+  val SHOW_PRINTS = true
+  val StartingTurn: Double = 0.5
+  val DEBUG_STRATEGY_TIME: Int = 100000000
+  val DEBUG_STRATEGY_TURNS: Int = 1
+  val DEBUG_STRATEGY: Strategy = new play.Strategy.ABPruningIterativeDeepening(DEBUG_STRATEGY_TIME, DEBUG_STRATEGY_TURNS) with ImprovedHeuristic
+  var oathObjectiveList: List[OathObjective] = List(
+    OathObjective.PlayRankedGames,
+    OathObjective.PlayCurrentGame,
+    OathObjective.CompleteDailyChallenge,
+  )
+
+  def oathObjective: OathObjective = oathObjectiveList.head
 
   def main(args: Array[String]): Unit = {
-    if (oathObjective.involvesPlayingGamesTimed)
-      ImageLoader.initialize()
     MainPlayUI.start()
+    if (oathObjective.involvesPlayingGames)
+      ImageLoader.initialize()
     start()
   }
 
@@ -36,19 +48,38 @@ object MenuControl {
   private var settingsReady = false
   private var challengeAlreadyWon = false
 
+  var inPause: Boolean = false
+  var pauseAfterGameFinishes: Boolean = false
+
+  var debugImagesList: List[BufferedImage] = List(
+    javax.imageio.ImageIO.read(new java.io.File("Images/auto-screen/2018-02-10-22-09-44/2018-02-10-22-14-08.png")),
+  ).flatMap(image => List(image, image))
+
   def captureScreen: BufferedImage = {
-    if (DEBUG_MODE)
-      javax.imageio.ImageIO.read(new java.io.File("Images/unknown-screen/2018-01-28-22-55-35-0500.png"))
-    else
-      MouseControl.robot.createScreenCapture(new java.awt.Rectangle(minX, minY, MainControl.sizeX, MainControl.sizeY))
+    if (DEBUG_MODE) {
+      import javax.imageio.ImageIO.read
+      //      read(new java.io.File("Images/auto-screen/2018-02-05-22-26-48/2018-02-05-22-27-20.png"))
+
+      val head :: tail = debugImagesList
+      debugImagesList = tail
+      head
+    } else {
+      MouseKeyboardControl.robot.createScreenCapture(new java.awt.Rectangle(minX, minY, MainControl.sizeX, MainControl.sizeY))
+    }
   }
 
   def start(): Unit = {
+    inPauseLoop()
+
     val screen = captureScreen
 
     def controlGame(currentMenu: MenuType): Unit = {
       println(s"In '$currentMenu'")
       currentMenu match {
+        case menu @ MenuType.WelcomeContinueMenu =>
+          settingsReady = false
+          clickWait(menu.continueCoordinate, 9000)
+          clickWaitRestart(menu.skipCoordinate, 6000)
         case menu @ MenuType.MainMenuCanOpenBox =>
           clickWaitRestart(menu.boxOpenCoordinate, 5000)
         case menu @ MenuType.MainMenuNoOpenBox =>
@@ -58,9 +89,14 @@ object MenuControl {
             case CompleteDailyChallenge if !challengeAlreadyWon =>
               clickWaitRestart(menu.beginCombatCoordinate, 2500)
             case CompleteDailyChallenge =>
-              println("All done for today!\nShutting down...")
+              println("Today's challenge done! Switching mode...")
+              nextOathObjective()
+              start()
             case PlayCasualGames | PlayRankedGames =>
               clickWaitRestart(menu.beginCombatCoordinate, 2500)
+            case PlayCurrentGame =>
+              Wait(5000)
+              start()
           }
         case menu @ MenuType.OpenBoxMenu =>
           Wait(3000)
@@ -77,6 +113,9 @@ object MenuControl {
               clickWaitRestart(menu.casualButtonCoordinate, 5000)
             case PlayRankedGames =>
               clickWaitRestart(menu.rankedButtonCoordinate, 5000)
+            case PlayCurrentGame =>
+              Wait(5000)
+              start()
           }
         case menu @ MenuType.EditArmyMenu =>
           if (oathObjective == EditArmyTesting) {
@@ -88,7 +127,7 @@ object MenuControl {
             clickWaitRestart(menu.returnToTitleCoordinate, 2000)
           }
         case menu @ MenuType.PlayingTesting =>
-          if (oathObjective == EditArmyTesting) {
+          if (oathObjective == EditArmyTesting || oathObjective == PlayCurrentGame) {
             checkOptions(menu)
           } else {
             clickWaitRestart(menu.exitPlayingCoordinate, 4000)
@@ -103,7 +142,7 @@ object MenuControl {
               clickWaitRestart(menu.exitCoordinate, 2000)
             else
               clickWaitRestart(menu.playChallengeCoordinate, 10000)
-          } else {
+          } else if (oathObjective != PlayCurrentGame) {
             clickWaitRestart(menu.exitCoordinate, 2000)
           }
         case menu @ MenuType.PlayingChallenge =>
@@ -123,6 +162,15 @@ object MenuControl {
           clickWaitRestart(menu.returnToTitleCoordinate, 4000)
         case menu @ MenuType.SelectTestMethod =>
           clickWaitRestart(menu.startCoordinate, 5000)
+        case menu @ MenuType.MainMenuHasLandmarks =>
+          clickWaitRestart(menu.viewLandmarksCoordinate, 2000)
+        case menu @ MenuType.LandmarksMenu =>
+          for (index <- 0 to 3)
+            clickWait(menu.claimButtonCoordinate(index), 0)
+          Wait(1000)
+          clickWait(menu.okCoordinate, 1000)
+          clickWait(menu.okCoordinate, 1000)
+          clickWaitRestart(menu.exitCoordinate, 2000)
         case menu: OkMenu =>
           val (coordinate, time) = menu.okCoordinate
           clickWaitRestart(coordinate, time)
@@ -130,7 +178,9 @@ object MenuControl {
     }
 
     def checkOptions(menu: InGameMenuType): Unit = {
-      if (MenuType.menuMatch(screen, menu.notInSettingsTab)) {
+      if (DEBUG_MODE)
+        startPlaying(menu)
+      else if (MenuType.menuMatch(screen, menu.notInSettingsTab)) {
         println("In 'NotInSettingsTab'")
         if (settingsReady)
           startPlaying(menu)
@@ -138,17 +188,21 @@ object MenuControl {
           clickWaitRestart(menu.settingsTabCoordinate, 4000)
       } else if (MenuType.menuMatch(screen, menu.inSettingsTabColorsEnabled)) {
         println("In 'SettingsTabColorsEnabled'")
-        if (settingsReady)
+        if (settingsReady) {
+          if (!DEBUG_MODE)
+            clickWait(menu.unitsTakenTabCoordinate, 250)
           startPlaying(menu)
-        else {
+        } else {
           for (index <- 0 until 5)
-            clickWait(menu.settingCoordinate(index), 200)
+            clickWait(menu.settingCoordinate(index), 0)
           clickWait(menu.deSelectBoardCoordinate, 400)
           start()
         }
       } else if (MenuType.menuMatch(screen, menu.inSettingsTabColorsDisabled)) {
         println("In 'SettingsTabColorsDisabled'")
         settingsReady = true
+        if (!DEBUG_MODE)
+          clickWait(menu.unitsTakenTabCoordinate, 250) // TODO Create a inUnitsTakenTab
         startPlaying(menu)
       }
     }
@@ -160,11 +214,31 @@ object MenuControl {
         else
           PlayerColor.Black
 
-      clickWait(menu.unitsTakenTabCoordinate, 250)
-      Try(MainControl.start(playerColor)) match {
-        case Success(_) =>
-          println("Game existed without any error! Hurray!")
-          Wait(15000)
+      menu match {
+        case MenuType.PlayingChallenge =>
+          MainControl.strategy = MainControl.strategyChallenge
+        case m @ MenuType.PlayingInMultiplayer if MenuType.menuMatch(screen, m.inBlitzGame) =>
+          MainControl.strategy = MainControl.strategyBlitz
+        case _ =>
+          MainControl.strategy = MainControl.strategyDefault
+      }
+
+      Try(MainControl.start(menu, playerColor)) match {
+        case Success(_) | Failure(_: GameIsOverByAbandonOrTimeout) =>
+          println("Game Over!")
+          val time = System.currentTimeMillis()
+          ImageLoader.possibleNewImagesQueue.foreach(_ ())
+          ImageLoader.possibleNewImagesQueue.clear()
+          Wait(15000 - (System.currentTimeMillis() - time).toInt)
+          if (pauseAfterGameFinishes) {
+            var waitingCounter = 0
+            while (pauseAfterGameFinishes) {
+              if (waitingCounter % 10 == 0)
+                println("Game finished... Waiting for resume...")
+              waitingCounter += 1
+              Thread.sleep(1000)
+            }
+          }
           start()
         case Failure(_: BoardStartsWithUnknownPieces) =>
           oathObjective match {
@@ -176,7 +250,7 @@ object MenuControl {
                 case _ =>
                   ???
               }
-            case CompleteDailyChallenge | PlayCasualGames | PlayRankedGames =>
+            case CompleteDailyChallenge | PlayCasualGames | PlayRankedGames | PlayCurrentGame =>
               Util.Beep()
               println("Board started with unknown pieces, let's wait 5s for the images to be updated...")
               Thread.sleep(5000)
@@ -195,33 +269,11 @@ object MenuControl {
       }
     }
 
-    def Wait(waitTime: Int): Unit = {
-      Thread.sleep(waitTime)
-    }
-
-    def clickWait(mouseCoordinate: (Int, Int), waitTime: Int): Unit = {
-      val (x, y) = mouseCoordinate
-      val (beforeX, beforeY) = MouseControl.getMousePosition
-      slowMove(minX + x, minY + y)
-      Thread.sleep(50)
-      MouseControl.mouseDown()
-      Thread.sleep(50)
-      MouseControl.mouseUp()
-      slowMove(beforeX, beforeY)
-
-      Wait(waitTime)
-    }
-
-    def clickWaitRestart(mouseCoordinate: (Int, Int), waitTime: Int): Unit = {
-      clickWait(mouseCoordinate, waitTime)
-      start()
-    }
-
     MenuType.findMenu(screen) match {
       case None =>
         println("Error, can't figure out which menu it's in...")
 
-        val dateFormatter = new SimpleDateFormat("yyyy-MM-dd-HH-mm-ss-SSSS")
+        val dateFormatter = new SimpleDateFormat("yyyy-MM-dd-HH-mm-ss-SSS")
         val submittedDateConvert = new Date()
         val name = dateFormatter.format(submittedDateConvert)
         val unknownScreenFolder = new File("Images", "unknown-screen")
@@ -237,15 +289,67 @@ object MenuControl {
     }
   }
 
+  def findCurrentScreenMenu(): Option[MenuType] =
+    MenuType.findMenu(captureScreen)
+
+  def Wait(waitTime: Int): Unit = {
+    Thread.sleep(Math.max(0, waitTime))
+  }
+
+  def clickWait(mouseCoordinate: (Int, Int), waitTime: Int): Unit = {
+    val (x, y) = mouseCoordinate
+    val (beforeX, beforeY) = MouseKeyboardControl.getMousePosition
+    slowMove(minX + x, minY + y)
+    Thread.sleep(50)
+    MouseKeyboardControl.mouseDown()
+    Thread.sleep(50)
+    MouseKeyboardControl.mouseUp()
+    slowMove(beforeX, beforeY)
+
+    Wait(waitTime)
+  }
+
+  def clickWaitRestart(mouseCoordinate: (Int, Int), waitTime: Int): Unit = {
+    clickWait(mouseCoordinate, waitTime)
+    start()
+  }
+
   def slowMove(x: Int, y: Int): Unit = {
-    val (ix, iy) = MouseControl.getMousePosition
+    val (ix, iy) = MouseKeyboardControl.getMousePosition
     if (ix != x || iy != y) {
       val distX = Math.min(x - ix, Math.max(20, (x - ix) / 8))
       val distY = Math.min(y - iy, Math.max(20, (y - iy) / 8))
-      MouseControl.moveMouse(ix + distX, iy + distY)
+      MouseKeyboardControl.moveMouse(ix + distX, iy + distY)
       Thread.sleep(15)
       slowMove(x, y)
     }
   }
+
+  def inPauseLoop(): Unit = {
+    var waitingCounter = 0
+    while (inPause) {
+      if (waitingCounter % 10 == 0)
+        println("waiting for resume...")
+      waitingCounter += 1
+      Thread.sleep(1000 + waitingCounter * 10)
+    }
+  }
+
+  def nextOathObjective(): Unit = {
+    oathObjectiveList match {
+      case _ :: _ :: _ =>
+        oathObjectiveList = oathObjectiveList.tail
+      case _ => // ignore
+    }
+  }
+
+  def writeInChat(menu: InGameMenuType, string: String): Unit = {
+    menu match {
+      case inGameMenu: InGameMenuType =>
+        clickWait(inGameMenu.chatCoordinate, 500)
+        MouseKeyboardControl.typeText(string)
+      case _ => // ignore?
+    }
+  } //
 
 }

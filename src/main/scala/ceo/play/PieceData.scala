@@ -532,6 +532,32 @@ case class PieceData(
   val hash: Long = {
     PieceData.atomicInt.getAndIncrement()
   }
+
+  val canChangeStatusEffects: Boolean = {
+    moves.exists {
+      case _: Moves.RangedPetrify => true
+      case _: Moves.RangedCompel => true
+      case _: Moves.MagicFreezePiece => true
+      case _: Moves.MagicPushFreezePiece => true
+      case _: Moves.MagicDestroySelfButterfly => true
+      case _: Moves.MagicDestroySelfAquarius => true
+      case _: Moves.MagicFreezeStrikeOnEnemyChampions => true
+      case _: Moves.MagicLightning => true
+      case _: Moves.MagicMeteor => true
+      case _: Moves.MagicPoison => true
+      case _: Moves.MagicStonePillar => true
+      case _: Moves.MagicWeakEnchant => true
+      case _ => false
+    } || powers.exists {
+      case _: Powers.OnKillVampireAbility => true
+      case _: Powers.BeginsGameEnchanted => true
+      case _: Powers.DecayAfterTurn => true
+      case _: Powers.HostageCaught => true
+      case Powers.WispReflect => true
+      case _: Powers.OnDeathPhoenix => true
+      case _ => false
+    }
+  }
 }
 
 object PieceData {

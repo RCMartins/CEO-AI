@@ -4,6 +4,7 @@ import java.awt.event._
 import java.awt._
 import javax.swing._
 
+import ceo.control.MainControl
 import ceo.image.ImageLoader
 import ceo.menu.MenuControl
 
@@ -13,6 +14,10 @@ class PlayUI() extends JFrame {
 
   var readyToUpdate = false
   var component: GameComponent = _
+
+  private var pauseGameButton: JButton = _
+  private var pauseAfterGameFinishesButton: JButton = _
+  private var useBestGuessImageButton: JButton = _
 
   SwingUtilities.invokeLater(() => {
     createAndShowGUI()
@@ -29,22 +34,25 @@ class PlayUI() extends JFrame {
       while (true) {
         if (readyToUpdate) {
           component.repaint()
+          pauseGameButton.setBackground(if (MenuControl.inPause) Color.GREEN else Color.RED)
+          pauseAfterGameFinishesButton.setBackground(if (MenuControl.pauseAfterGameFinishes) Color.GREEN else Color.RED)
+          useBestGuessImageButton.setBackground(if (MenuControl.USE_BEST_GUESS_IMAGES) Color.GREEN else Color.RED)
         }
-        Thread.sleep(200)
+        Thread.sleep(250)
       }
     }
   }).start()
 
   final val GAME_TITLE = "Chess Evolved Online - Bot"
-  final val DEFAULT_WIDTH = 250
+  final val DEFAULT_WIDTH = 270
   final val DEFAULT_HEIGHT = 600
 
   def createAndShowGUI() {
     this.setSize(DEFAULT_WIDTH, DEFAULT_HEIGHT)
     setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE)
     setLocationRelativeTo(null)
-    setAlwaysOnTop(true)
-    setLocation(10, 100)
+    setAlwaysOnTop(!MenuControl.DEBUG_MODE)
+    setLocation(5, 110)
 
     setTitle(GAME_TITLE)
 
@@ -76,7 +84,7 @@ class PlayUI() extends JFrame {
         })
         buttonsPane.add(button)
       }
-      buttonsPane.add(Box.createRigidArea(new Dimension(0, 20)))
+      buttonsPane.add(Box.createRigidArea(new Dimension(0, 10)))
 
       {
         val button = new JButton("Delete!")
@@ -90,7 +98,7 @@ class PlayUI() extends JFrame {
         })
         buttonsPane.add(button)
       }
-      buttonsPane.add(Box.createRigidArea(new Dimension(0, 100)))
+      buttonsPane.add(Box.createRigidArea(new Dimension(0, 50)))
 
       {
         val button = new JButton("Write name")
@@ -113,7 +121,7 @@ class PlayUI() extends JFrame {
         })
         buttonsPane.add(button)
       }
-      buttonsPane.add(Box.createRigidArea(new Dimension(0, 20)))
+      buttonsPane.add(Box.createRigidArea(new Dimension(0, 10)))
 
       {
         val button = new JButton("Skip piece!")
@@ -129,7 +137,7 @@ class PlayUI() extends JFrame {
         })
         buttonsPane.add(button)
       }
-      buttonsPane.add(Box.createRigidArea(new Dimension(0, 30)))
+      buttonsPane.add(Box.createRigidArea(new Dimension(0, 20)))
 
       {
         val button = new JButton("Delete!")
@@ -144,6 +152,57 @@ class PlayUI() extends JFrame {
         })
         buttonsPane.add(button)
       }
+      buttonsPane.add(Box.createRigidArea(new Dimension(0, 30)))
+
+      {
+        pauseGameButton = new JButton("Pause")
+        pauseGameButton.addActionListener((_: ActionEvent) => {
+          MenuControl.inPause = !MenuControl.inPause
+        })
+        buttonsPane.add(pauseGameButton)
+      }
+
+      {
+        pauseAfterGameFinishesButton = new JButton("Pause after game")
+        pauseAfterGameFinishesButton.addActionListener((_: ActionEvent) => {
+          MenuControl.pauseAfterGameFinishes = !MenuControl.pauseAfterGameFinishes
+        })
+        buttonsPane.add(pauseAfterGameFinishesButton)
+      }
+      buttonsPane.add(Box.createRigidArea(new Dimension(0, 30)))
+
+      {
+        val button = new JButton("Set Time")
+        button.addActionListener((_: ActionEvent) => {
+          Option(JOptionPane.showInputDialog(this, "Write <Time in milliseconds> [<max moves>]")) match {
+            case Some(timeString) if timeString.nonEmpty =>
+              val splitted =
+                if (timeString.contains(" "))
+                  timeString.split(" ")
+                else
+                  timeString.split(",")
+              splitted.toList match {
+                case scala.List(time) =>
+                  MainControl.setStrategy(time.toInt)
+                case scala.List(time, maxMoves) =>
+                  MainControl.setStrategy(time.toInt, maxMoves.toInt)
+                case _ => // ignore
+              }
+            case _ => // ignore
+          }
+        })
+        buttonsPane.add(button)
+      }
+      buttonsPane.add(Box.createRigidArea(new Dimension(0, 30)))
+
+      {
+        useBestGuessImageButton = new JButton("Use Best Guess!")
+        useBestGuessImageButton.addActionListener((_: ActionEvent) => {
+          MenuControl.USE_BEST_GUESS_IMAGES = !MenuControl.USE_BEST_GUESS_IMAGES
+        })
+        buttonsPane.add(useBestGuessImageButton)
+      }
+
       mainPane.add(buttonsPane, BorderLayout.EAST)
     }
 
@@ -168,7 +227,7 @@ class GameComponent(val playUI: PlayUI) extends JComponent with ComponentListene
       g2.drawString(pieceData.name, x, y + 75)
       x += 80
     }
-    ImageLoader.imagesToConfirm.drop(1).foreach { case (pieceImage, pieceData, _) =>
+    ImageLoader.imagesToConfirm.drop(1).foreach { case (pieceImage, _, _) =>
       g2.drawImage(pieceImage.bufferedImage, x, y, null)
       x += 80
     }
@@ -176,13 +235,11 @@ class GameComponent(val playUI: PlayUI) extends JComponent with ComponentListene
     x = 20
     y = 150
     var plusY = 60
-    var plusX = 60
+    var plusX = 0
     ImageLoader.imagesUnknown.foreach { case (pieceImage, _) =>
       g2.drawImage(pieceImage.bufferedImage, x, y, null)
       y += plusY
       x += plusX
-      plusY = Math.max(10, plusY - 10)
-      plusX = Math.max(10, plusX - 50)
     }
 
     // Check all images:

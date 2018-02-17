@@ -49,6 +49,7 @@ object PlayerTeam {
     } else
       throw new Exception(s"Invalid team: $str")
 
+  val all: List[PlayerTeam] = List(WhiteTop, WhiteBottom, BlackTop, BlackBottom)
 }
 
 sealed trait PlayerWinType

@@ -27,6 +27,8 @@ sealed trait InGameMenuType extends MenuType {
 
   val unitsTakenTabCoordinate: Coordinate = (284, 587)
 
+  val chatCoordinate: Coordinate = (775, 625)
+
   /** settingIndex: [0, 6[ */
   def settingCoordinate(settingIndex: Int): Coordinate = (395 + settingIndex * 60, 610)
 
@@ -55,8 +57,9 @@ object MenuType {
 
   type Coordinate = (Int, Int)
 
-  private val allMenus: List[MenuType] = List(MainMenuNoOpenBox, BeginCombatMenu,
-    MainMenuCanOpenBox, OpenBoxMenu, OpenBoxCloseWindow,
+  private val allMenus: List[MenuType] = List(WelcomeContinueMenu, MainMenuNoOpenBox, BeginCombatMenu,
+    MainMenuCanOpenBox, OpenBoxMenu, OpenBoxConfirm,
+    MainMenuHasLandmarks, LandmarksMenu,
     EditArmyMenu, PlayingTesting, SelectTestMethod,
     TodaysChallengeWindow, PlayingChallenge, ChallengeVictoryWindow,
     FindingPracticePartner, PlayingInMultiplayer, MultiplayerGameOverScreen,
@@ -70,7 +73,13 @@ object MenuType {
   def findMenu(image: BufferedImage): Option[MenuType] = {
     val pixels: Array[Int] = image.getRGB(0, 0, MainControl.sizeX, MainControl.sizeY, null, 0, MainControl.sizeX)
 
-    allMenus.find(menu => menu.isInThisMenu(pixels))
+    val possibleMenus =
+      allMenus.collect { case menu if menu.isInThisMenu(pixels) => menu }
+    if (possibleMenus.lengthCompare(1) > 0) {
+      Console.err.println("Multiple possible menus:")
+      Console.err.println(possibleMenus)
+    }
+    possibleMenus.headOption
   }
 
   def testPixel(pixel: Int, red: Int, green: Int, blue: Int, debug: Boolean = false): Boolean = {
@@ -89,7 +98,8 @@ object MenuType {
   case object MainMenuNoOpenBox extends MenuType {
     def isInThisMenu(pixels: Array[Int]): Boolean = {
       testPixel(at(pixels, 28, 578), 82, 82, 0) &&
-        !testPixel(at(pixels, 100, 375), 255, 218, 1)
+        !testPixel(at(pixels, 100, 375), 255, 218, 1) &&
+        !testPixel(at(pixels, 389, 557), 255, 174, 45)
     }
 
     val beginCombatCoordinate: Coordinate = (413, 316)
@@ -106,14 +116,14 @@ object MenuType {
     val boxOpenCoordinate: Coordinate = (100, 375)
   }
 
-  case object OpenBoxConfirm extends MenuType {
+  case object OpenBoxConfirm extends OkMenu {
     def isInThisMenu(pixels: Array[Int]): Boolean = {
       testPixel(at(pixels, 30, 419), 122, 205, 122) &&
         testPixel(at(pixels, 537, 367), 15, 15, 15) &&
         testPixel(at(pixels, 205, 628), 170, 195, 219)
     }
 
-    val confirmCoordinate: Coordinate = (500, 398)
+    val okCoordinate: (Coordinate, Int) = ((500, 398), 2000)
   }
 
   case object BeginCombatMenu extends MenuType {
@@ -242,6 +252,10 @@ object MenuType {
     }
 
     val surrenderCoordinate: Coordinate = (803, 219)
+
+    def inBlitzGame(pixels: Array[Int]): Boolean =
+      testPixel(at(pixels, 870, 203), 20, 15, 78) &&
+        testPixel(at(pixels, 881, 233), 75, 42, 40)
   }
 
   case object MultiplayerGameOverScreen extends MenuType {
@@ -281,18 +295,6 @@ object MenuType {
     val okCoordinate: (Coordinate, Int) = ((499, 456), 2000)
   }
 
-  case object OpenBoxCloseWindow extends OkMenu {
-    override def isInThisMenu(pixels: Array[Int]): Boolean = {
-      testPixel(at(pixels, 537, 291), 31, 31, 31) &&
-        testPixel(at(pixels, 400, 224), 35, 35, 35) &&
-        testPixel(at(pixels, 603, 400), 143, 143, 143) &&
-        testPixel(at(pixels, 495, 393), 233, 233, 233) &&
-        testPixel(at(pixels, 500, 398), 200, 200, 200)
-    }
-
-    val okCoordinate: (Coordinate, Int) = ((500, 398), 2000)
-  }
-
   case object SearchingForOpponent extends MenuType {
     override def isInThisMenu(pixels: Array[Int]): Boolean = {
       testPixel(at(pixels, 414, 227), 83, 54, 103) &&
@@ -303,6 +305,47 @@ object MenuType {
     }
 
     val cancelCoordinate: Coordinate = (501, 479)
+  }
+
+  case object WelcomeContinueMenu extends MenuType {
+    override def isInThisMenu(pixels: Array[Int]): Boolean = {
+      testPixel(at(pixels, 463, 147), 51, 51, 51) &&
+        testPixel(at(pixels, 610, 167), 120, 120, 120) &&
+        testPixel(at(pixels, 484, 340), 251, 191, 173) &&
+        testPixel(at(pixels, 510, 338), 168, 164, 160)
+    }
+
+    val continueCoordinate: Coordinate = (494, 507)
+
+    val skipCoordinate: Coordinate = (990, 640)
+  }
+
+  case object MainMenuHasLandmarks extends MenuType {
+    override def isInThisMenu(pixels: Array[Int]): Boolean = {
+      testPixel(at(pixels, 356, 557), 249, 159, 159) && // has landmark
+        testPixel(at(pixels, 389, 557), 255, 174, 45) && // has landmark
+        testPixel(at(pixels, 451, 560), 199, 169, 94) && // has landmark
+        !testPixel(at(pixels, 100, 375), 255, 218, 1)
+    }
+
+    val viewLandmarksCoordinate: Coordinate = (412, 476)
+  }
+
+  case object LandmarksMenu extends MenuType {
+    override def isInThisMenu(pixels: Array[Int]): Boolean = {
+      testPixel(at(pixels, 56, 474), 255, 255, 0) &&
+        testPixel(at(pixels, 56, 505), 0, 255, 0) &&
+        testPixel(at(pixels, 56, 539), 0, 204, 255) &&
+        testPixel(at(pixels, 56, 569), 255, 0, 255) &&
+        testPixel(at(pixels, 56, 603), 255, 0, 0)
+    }
+
+    /** index between 0 and 3 */
+    def claimButtonCoordinate(index: Int): Coordinate = (717, 174 + index * 114)
+
+    val okCoordinate: Coordinate = (500, 382)
+
+    val exitCoordinate: Coordinate = (936, 609)
   }
 
 }

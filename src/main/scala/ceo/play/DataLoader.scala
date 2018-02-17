@@ -24,14 +24,16 @@ object DataLoader {
 
   def main(args: Array[String]): Unit = {
     loadPieceFiles()
-    println(initialize(boardFileName = "Data/boardTest.ceo", whitePlayerInBottom = true, showErrors = true))
+    println(initialize(boardFileName = "Data/boardTest.ceo", whitePlayerInBottom = true, showErrors = true)._1)
   }
 
   def loadPieceFiles(file: File = new File("Data/Units")): Unit = {
-    if (file.isDirectory)
-      file.listFiles().filter(_.getName.endsWith(".ceo")).foreach(loadPieceFile)
-    else
-      new RuntimeException(s"Not a directory: $file")
+    if (pieces.isEmpty) {
+      if (file.isDirectory)
+        file.listFiles().filter(_.getName.endsWith(".ceo")).foreach(loadPieceFile)
+      else
+        new RuntimeException(s"Not a directory: $file")
+    }
   }
 
   def loadPieceFile(file: File): Unit = {

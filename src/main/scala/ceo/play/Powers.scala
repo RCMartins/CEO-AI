@@ -98,6 +98,8 @@ object Powers {
 
   case class OnMeleeDeathPoisonIfMoraleLess(maxMoraleToPoison: Int, turnsToDeath: Int) extends Powers
 
+  case class OnDeathAdjacentEnemiesFreezePush(pushDistance: Int, freezeDuration: Int) extends Powers
+
   case class OnKillDecayTo(moraleLostOnKill: Int, moraleLimit: Int, pieceName: String) extends Powers
 
   case class BlockAttacksFrom(positionsToBlockAttacks: Set[Distance]) extends Powers
