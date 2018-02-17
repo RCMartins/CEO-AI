@@ -154,6 +154,10 @@ object Powers {
     override def createMove(dist: Distance): Moves = MagicTransformEnemyIntoAllyPiece(dist, moraleCost, allyPieceName)
   }
 
+  case class SummonOrTransformIntoAllyMovePower(letterOfMove: Char, moraleCost: Int, allyPieceName: String) extends MovePower {
+    override def createMove(dist: Distance): Moves = MagicSummonOrTransformIntoAllyPiece(dist, moraleCost, allyPieceName)
+  }
+
   case class JumpMinionMovePower(letterOfMove: Char) extends MovePower {
     override def createMove(dist: Distance): Moves = JumpMinion(dist)
   }

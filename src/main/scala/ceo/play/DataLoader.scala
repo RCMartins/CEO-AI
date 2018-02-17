@@ -334,6 +334,10 @@ object DataLoader {
         val List(letterStr, moraleCost, allyUnitName) = str.drop("MagicTransformIntoAlly ".length).split(" ").toList
         piecesToCheck = allyUnitName :: piecesToCheck
         Powers.TransformIntoAllyMovePower(getLetter(letterStr), moraleCost.toInt, allyUnitName)
+      case str if str.startsWith("MagicSummonOrTransformIntoAlly ") =>
+        val List(letterStr, moraleCost, allyUnitName) = str.drop("MagicSummonOrTransformIntoAlly ".length).split(" ").toList
+        piecesToCheck = allyUnitName :: piecesToCheck
+        Powers.SummonOrTransformIntoAllyMovePower(getLetter(letterStr), moraleCost.toInt, allyUnitName)
       case str if str.startsWith("JumpMinion ") =>
         Powers.JumpMinionMovePower(getLetter(str.drop("JumpMinion ".length)))
       case str if str.startsWith("MagicCharmMinion ") =>

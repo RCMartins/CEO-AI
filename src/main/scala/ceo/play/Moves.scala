@@ -190,25 +190,6 @@ object Moves {
     }
   }
 
-  private def canMagicTransformEnemyIntoAllyPiece(
-    piece: Piece,
-    target: BoardPos,
-    moraleCost: Int,
-    allyPieceData: PieceData,
-    state: GameState
-  ): Option[PlayerMove] = {
-    target.getPiece(state.board) match {
-      case Some(targetPiece) if {
-        targetPiece.team != piece.team &&
-          !targetPiece.data.isImmuneTo(EffectType.Magic) &&
-          generalCanTargetEnemy(piece, targetPiece)
-      } =>
-        Some(PlayerMove.TransformIntoAllyPiece(piece, targetPiece, moraleCost, allyPieceData))
-      case _ =>
-        None
-    }
-  }
-
   private def canRangedPush(
     piece: Piece,
     target: BoardPos,
@@ -457,7 +438,37 @@ object Moves {
 
   case class MagicTransformEnemyIntoAllyPiece(dist: Distance, moraleCost: Int, allyPieceName: String) extends SingleMove {
     def getValidMove(piece: Piece, state: GameState, currentPlayer: Player): Option[PlayerMove] = {
-      canMagicTransformEnemyIntoAllyPiece(piece, piece.pos + dist, moraleCost, DataLoader.getPieceData(allyPieceName, piece.team), state)
+      (piece.pos + dist).getPiece(state.board) match {
+        case Some(targetPiece) if {
+          targetPiece.team != piece.team &&
+            !targetPiece.data.isImmuneTo(EffectType.Magic) &&
+            generalCanTargetEnemy(piece, targetPiece)
+        } =>
+          val allyPieceData = DataLoader.getPieceData(allyPieceName, piece.team)
+          Some(PlayerMove.TransformIntoAllyPiece(piece, targetPiece, moraleCost, allyPieceData))
+        case _ =>
+          None
+      }
+    }
+  }
+
+  case class MagicSummonOrTransformIntoAllyPiece(dist: Distance, moraleCost: Int, allyPieceName: String) extends SingleMove {
+    def getValidMove(piece: Piece, state: GameState, currentPlayer: Player): Option[PlayerMove] = {
+      val target = piece.pos + dist
+      target.getPiece(state.board) match {
+        case None =>
+          val allyPieceData = DataLoader.getPieceData(allyPieceName, piece.team)
+          Some(PlayerMove.MagicSummonPiece(piece, target, moraleCost, allyPieceData))
+        case Some(targetPiece) if {
+          targetPiece.team != piece.team &&
+            !targetPiece.data.isImmuneTo(EffectType.Magic) &&
+            generalCanTargetEnemy(piece, targetPiece)
+        } =>
+          val allyPieceData = DataLoader.getPieceData(allyPieceName, piece.team)
+          Some(PlayerMove.TransformIntoAllyPiece(piece, targetPiece, moraleCost, allyPieceData))
+        case _ =>
+          None
+      }
     }
   }
 
