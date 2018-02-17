@@ -86,7 +86,7 @@ object MenuType {
     val redPart = (pixel & 0x00FF0000) >> 16
     val greenPart = (pixel & 0x0000FF00) >> 8
     val bluePart = (pixel & 0x000000FF) >> 0
-    if (debug)
+    if (!(red == redPart && green == greenPart && blue == bluePart) && debug)
       println(s"($pixel) ($red, $redPart), ($green, $greenPart), ($blue, $bluePart)")
     red == redPart && green == greenPart && blue == bluePart
   }
@@ -248,7 +248,7 @@ object MenuType {
       super.isInThisMenu(pixels) &&
         (testPixel(at(pixels, 902, 95), 116, 115, 115) || testPixel(at(pixels, 902, 96), 116, 116, 115)) &&
         testPixel(at(pixels, 880, 260), 112, 112, 112) &&
-        testPixel(at(pixels, 984, 616), 85, 136, 136)
+        (testPixel(at(pixels, 984, 616), 85, 136, 136) || testPixel(at(pixels, 971, 622), 113, 113, 113))
     }
 
     val surrenderCoordinate: Coordinate = (803, 219)
