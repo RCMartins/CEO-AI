@@ -288,8 +288,7 @@ object Moves {
   ): Option[PlayerMove] = {
     target.getPiece(state.board) match {
       case Some(targetPiece) if {
-        targetPiece.team != piece.team &&
-          !targetPiece.data.isImmuneTo(EffectType.Displacement) &&
+        !targetPiece.data.isImmuneTo(EffectType.Displacement) &&
           !targetPiece.data.isImmuneTo(EffectType.Magic) &&
           generalCanTargetEnemy(piece, targetPiece)
       } =>
