@@ -474,6 +474,7 @@ object Moves {
   case object KingCastling extends MultipleMoves {
     def getValidMoves(kingPiece: Piece, state: GameState, currentPlayer: Player): List[PlayerMove] = {
       val pos = kingPiece.pos
+      val team = kingPiece.team
       val board = state.board
       Distance.cardinalDistances.flatMap { direction =>
         val pos2 = pos + direction * 2
@@ -485,19 +486,19 @@ object Moves {
           (piece1, piece3) match {
             case (None, None) =>
               (pos + direction * 4).getPiece(board) match {
-                case Some(allyPiece) if allyPiece.data.isChampion && !allyPiece.data.isImmuneTo(EffectType.Displacement) =>
+                case Some(allyPiece) if allyPiece.team == team && allyPiece.data.isChampion && !allyPiece.data.isImmuneTo(EffectType.Displacement) =>
                   List(PlayerMove.KingCastling(kingPiece, allyPiece, pos3, pos2))
                 case _ =>
                   List.empty
               }
             case (Some(pieceInPath), None) if pieceInPath.data.isGhost =>
               (pos + direction * 4).getPiece(board) match {
-                case Some(allyPiece) if allyPiece.data.isChampion && !allyPiece.data.isImmuneTo(EffectType.Displacement) =>
+                case Some(allyPiece) if allyPiece.team == team && allyPiece.data.isChampion && !allyPiece.data.isImmuneTo(EffectType.Displacement) =>
                   List(PlayerMove.KingCastling(kingPiece, allyPiece, pos3, pos2))
                 case _ =>
                   List.empty
               }
-            case (None, Some(allyPiece)) if allyPiece.data.isChampion && !allyPiece.data.isImmuneTo(EffectType.Displacement) =>
+            case (None, Some(allyPiece)) if allyPiece.team == team && allyPiece.data.isChampion && !allyPiece.data.isImmuneTo(EffectType.Displacement) =>
               List(PlayerMove.KingCastling(kingPiece, allyPiece, pos2, pos1))
             case _ =>
               List.empty
