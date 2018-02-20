@@ -849,9 +849,10 @@ case class GameState(
               .foldLeft(initialState) {
                 (state, dovePiece) =>
                   val positionForward = dovePiece.pos + directionForward
-                  if (positionForward.isEmpty(state.board))
-                    state.updatePiece(dovePiece, dovePiece.copy(pos = positionForward))
-                  else
+                  if (positionForward.isEmpty(state.board)) {
+                    val (updatedState, updatedPiece) = dovePiece.moveTo(state, positionForward)
+                    updatedState.updatePieceIfAlive(dovePiece, updatedPiece)
+                  } else
                     state
               }
           case EndOfTurnAction.AquariusExploded(deadAquariusPiece, pushDistance, freezeDuration) =>
