@@ -837,6 +837,31 @@ object Moves {
     }
   }
 
+  case class MagicNecromancerSkeleton(dist: Distance, moraleCost: Int) extends SingleMove {
+    def getValidMove(piece: Piece, state: GameState, currentPlayer: Player): Option[PlayerMove] = {
+      val target = piece.pos + dist
+      target.getPiece(state.board) match {
+        case Some(targetPiece) if {
+          targetPiece.team != piece.team &&
+            targetPiece.data.isMinion &&
+            !targetPiece.data.isImmuneTo(EffectType.Magic) &&
+            generalCanTargetEnemy(piece, targetPiece)
+        } =>
+          val pieceData = DataLoader.getPieceData("BonePile", piece.team)
+          Some(PlayerMove.TransformIntoAllyPiece(piece, targetPiece, moraleCost, pieceData))
+        case Some(targetPiece) if {
+          targetPiece.team == piece.team &&
+            targetPiece.data.isSkeleton &&
+            targetPiece.data.tier < 3
+        } =>
+          val pieceData = DataLoader.getPieceData(targetPiece.data.officialName + "+", piece.team)
+          Some(PlayerMove.TransformIntoAllyPiece(piece, targetPiece, moraleCost, pieceData))
+        case _ =>
+          None
+      }
+    }
+  }
+
   case class MagicDestroySelfAquarius(dist: Distance, freezeDuration: Int) extends SingleMove {
     def getValidMove(piece: Piece, state: GameState, currentPlayer: Player): Option[PlayerMove] = {
       val target = piece.pos + dist

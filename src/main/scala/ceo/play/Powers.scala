@@ -102,6 +102,8 @@ object Powers {
 
   case class OnKillDecayTo(moraleLostOnKill: Int, moraleLimit: Int, pieceName: String) extends Powers
 
+  case class OnGlobalDeathGainValueUntil(moraleGainOnGlobalDeath: Int, moraleLimit: Int, pieceName: String) extends Powers
+
   case class BlockAttacksFrom(positionsToBlockAttacks: Set[Distance]) extends Powers
 
   case class OnMagicCastDecayTo(decayAmount: Int, limitToDevolve: Int, pieceName: String) extends Powers
@@ -232,6 +234,10 @@ object Powers {
 
   case class RangedCompelMovePower(letterOfMove: Char, turnsCompeled: Int) extends MovePower {
     override def createMove(dist: Distance): Moves = RangedCompel(dist, turnsCompeled)
+  }
+
+  case class MagicNecromancerSkeletonMovePower(letterOfMove: Char, moraleCost: Int) extends MovePower {
+    override def createMove(dist: Distance): Moves = MagicNecromancerSkeleton(dist, moraleCost)
   }
 
   case class MagicDestroySelfAquariusAtMovePower(letterOfMove: Char, freezeDuration: Int) extends MovePower {

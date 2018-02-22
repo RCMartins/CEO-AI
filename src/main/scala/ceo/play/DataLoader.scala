@@ -312,6 +312,10 @@ object DataLoader {
         val List(moraleLostOnKill, moraleLimit, pieceName) = str.drop("OnKillDecayTo ".length).split(" ").toList
         piecesToCheck = pieceName :: piecesToCheck
         Powers.OnKillDecayTo(moraleLostOnKill.toInt, moraleLimit.toInt, pieceName)
+      case str if str.startsWith("OnGlobalDeathGainValueUntil ") =>
+        val List(moraleGainOnGlobalDeath, moraleLimit, pieceName) = str.drop("OnGlobalDeathGainValueUntil ".length).split(" ").toList
+        piecesToCheck = pieceName :: piecesToCheck
+        Powers.OnGlobalDeathGainValueUntil(moraleGainOnGlobalDeath.toInt, moraleLimit.toInt, pieceName)
       case str if str.startsWith("OnDeathAdjacentEnemiesFreezePush ") =>
         val List(pushDistance, freezeDuration) = str.drop("OnDeathAdjacentEnemiesFreezePush ".length).split(" ").toList
         Powers.OnDeathAdjacentEnemiesFreezePush(pushDistance.toInt, freezeDuration.toInt)
@@ -390,6 +394,9 @@ object DataLoader {
       case str if str.startsWith("RangedCompel ") =>
         val List(letterStr, turnsCompelled) = str.drop("RangedCompel ".length).split(" ").toList
         Powers.RangedCompelMovePower(getLetter(letterStr), turnsCompelled.toInt)
+      case str if str.startsWith("MagicNecromancerSkeleton ") =>
+        val List(letterStr, moraleCost) = str.drop("MagicNecromancerSkeleton ".length).split(" ").toList
+        Powers.MagicNecromancerSkeletonMovePower(getLetter(letterStr), moraleCost.toInt)
       case str if str.startsWith("MagicDestroySelfAquariusAt ") =>
         val List(letterStr, freezeDuration) = str.drop("MagicDestroySelfAquariusAt ".length).split(" ").toList
         Powers.MagicDestroySelfAquariusAtMovePower(getLetter(letterStr), freezeDuration.toInt)

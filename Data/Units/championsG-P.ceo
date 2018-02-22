@@ -915,6 +915,46 @@ N         N
 OnAnyDeathPlayerChangeMorale -2
 OnMeleeDeathTriggerRevive 1 12
 --------------------
+Necromancer 5
+---
+ 1 1
+1MMM1
+ M@M
+1MMM1
+ 1 1
+---
+MagicNecromancerSkeleton 1 2
+--------------------
+Necromancer+ 8
+---
+ 1 1
+1MNM1
+ N@N
+1MNM1
+ 1 1
+---
+MagicNecromancerSkeleton 1 2
+--------------------
+Necromancer++ 11
+---
+ 1 1
+1NNN1
+ N@N
+1NNN1
+ 1 1
+---
+MagicNecromancerSkeleton 1 2
+--------------------
+Necromancer+++ 13
+---
+ 111
+1NNN1
+1N@N1
+1NNN1
+ 111
+---
+MagicNecromancerSkeleton 1 2
+--------------------
 Nexus 0
 ---
   121

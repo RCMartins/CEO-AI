@@ -524,6 +524,12 @@ case class PieceData(
     case _ => false
   }
 
+  val isNecromancer: Boolean = simpleName == "Necromancer"
+
+  val isSkeleton: Boolean = simpleName == "Skeleton"
+
+  val isBonePile: Boolean = simpleName == "BonePile"
+
   val isSamurai: Boolean = powers.exists {
     case TriggerInstantKill(_) => true
     case _ => false

@@ -158,8 +158,27 @@ object Player {
           }
         })
     }) ++ (allPieces.find(_.data.powers.exists {
-      case _: OnGlobalDeathGainValueUntil => true;
+      case _: OnGlobalDeathGainValueUntil => true
       case _ => false
+    } || allPieces.exists(_.data.isNecromancer)) match {
+      case None =>
+        List.empty
+      case Some(_) =>
+        List(new DynamicRunner[GameState, Piece] {
+          override def update(startingState: GameState, deadPiece: Piece): GameState = {
+            val myPieces = startingState.getPlayer(team).allPieces
+            myPieces.foldLeft(startingState)((state, piece) => {
+              if (piece.data.isBonePile) {
+                if (piece.currentMorale < 3)
+                  state.updatePiece(piece, piece.changeMorale(+1))
+                else
+                  state.updatePiece(piece, DataLoader.getPieceData("Skeleton", piece.team).createPiece(piece.pos))
+              } else {
+                state
+              }
+            })
+          }
+        })
     }) ++ (allPieces.find(_.data.powers.exists { case _: OnAllyDeathPieceChangeMorale => true; case _ => false }) match {
       case None =>
         List.empty
