@@ -3,7 +3,7 @@ package ceo.play
 import ceo.play.Moves.UnstoppableTeleportTransformInto
 import com.softwaremill.quicklens._
 
-case class GameState(
+final case class GameState(
   board: Board,
   playerWhite: Player,
   playerBlack: Player,

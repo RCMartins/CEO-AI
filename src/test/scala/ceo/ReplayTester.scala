@@ -81,21 +81,24 @@ class ReplayTester
       moveAndNextTurn.size mustEqual 28 withClue moveAndNextTurn
       val move :: separator :: _ = moveAndNextTurn
       separator mustEqual GameState.replaySmallSeparator
-
-      val playerMoves = currentState.getCurrentPlayerMoves
-      playerMoves.find(_.toString == move) match {
-        case None =>
-          (fail(): scalatest.Assertion) withClue s"\n${moveAndNextTurn.mkString("\n")}\nMove in replay: $move\n"
-        case Some(playerMove) =>
-          val nextState = currentState.playPlayerMove(playerMove, turnUpdate = true)
-          val nextStateReplayInfo = nextState.getReplayInfo.split("\n").toList.init
-          nextStateReplayInfo mustEqual moveAndNextTurn withClue "\n" + {
-            moveAndNextTurn.zip(nextStateReplayInfo).map {
-              case (a, b) if a == b => s"    |$a"
-              case (a, b) if a != b => s"--- |$a\n+++ |$b"
-            }.mkString("\n")
-          }
-          testFullReplay(others.tail, nextState)
+      if (currentState.winner != PlayerWinType.NotFinished) {
+        (fail(): scalatest.Assertion) withClue s"\nGame should already be over!\n${moveAndNextTurn.mkString("\n")}\n"
+      } else {
+        val playerMoves = currentState.getCurrentPlayerMoves
+        playerMoves.find(_.toString == move) match {
+          case None =>
+            (fail(): scalatest.Assertion) withClue s"\nImpossible move was done!\n${moveAndNextTurn.mkString("\n")}\nMove in replay: $move\n"
+          case Some(playerMove) =>
+            val nextState = currentState.playPlayerMove(playerMove, turnUpdate = true)
+            val nextStateReplayInfo = nextState.getReplayInfo.split("\n").toList.init
+            nextStateReplayInfo mustEqual moveAndNextTurn withClue "\n" + {
+              moveAndNextTurn.zip(nextStateReplayInfo).map {
+                case (a, b) if a == b => s"    |$a"
+                case (a, b) if a != b => s"--- |$a\n+++ |$b"
+              }.mkString("\n")
+            }
+            testFullReplay(others.tail, nextState)
+        }
       }
     }
   }

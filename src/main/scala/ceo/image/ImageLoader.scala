@@ -10,8 +10,6 @@ import scala.collection.mutable
 import scala.util.Try
 
 object ImageLoader {
-  val possibleNewImagesQueue: mutable.Queue[() => Option[ImageState]] = mutable.Queue.empty
-
   val UNKNOWN_PIECE = "?"
 
   val backgroundImages: mutable.Set[(PieceImage, Option[PlayerColor], Boolean)] = mutable.HashSet.empty
@@ -307,7 +305,7 @@ object ImageLoader {
           val result2 = getTeamPlay(pieceImage, useEqualPixels = false)
           if (result._3 > 0.94 || result2._3 < 1.0)
             ("e", 0.0)
-          else if (result._3 < 0.75 && result._1.nonEmpty)
+          else if (result._3 < 0.76 && result._1.nonEmpty)
             (name, result._3)
           else
             (UNKNOWN_PIECE, result._3)

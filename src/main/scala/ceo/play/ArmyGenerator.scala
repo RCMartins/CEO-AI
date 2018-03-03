@@ -9,7 +9,7 @@ object ArmyGenerator {
       copy(champions = champions.map(_ + "_" + playerColor), minions = minions.map(_ + "_" + playerColor))
   }
 
-  def generateRandomArmy(piecesCanChangeStatusEffects: Boolean = true): Army = {
+  def generateRandomArmy(piecesCanChangeStatusEffects: Boolean = true)(random: Random): Army = {
     val allPieces = DataLoader.getAllPieceData.filter { pieceData =>
       piecesCanChangeStatusEffects || !pieceData.canChangeStatusEffects
     }
@@ -17,10 +17,10 @@ object ArmyGenerator {
     val allMinions = allPieces.filter(piece => piece.isMinion && !piece.isExtra).toArray
     val allChampions = allPieces.filter(piece => piece.isChampion && !piece.isExtra).toArray
 
-    val minions = (1 to 8).map(_ => allMinions(Random.nextInt(allMinions.length)).officialName)
-    val championsWithoutKing = (1 to 7).map(_ => allChampions(Random.nextInt(allChampions.length)).officialName)
+    val minions = (1 to 8).map(_ => allMinions(random.nextInt(allMinions.length)).officialName)
+    val championsWithoutKing = (1 to 7).map(_ => allChampions(random.nextInt(allChampions.length)).officialName)
 
-    val champions = Random.shuffle("King" +: championsWithoutKing)
+    val champions = random.shuffle("King" +: championsWithoutKing)
 
     Army(minions.toList, champions.toList)
   }

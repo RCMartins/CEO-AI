@@ -73,7 +73,7 @@ class ImageBoardLoader(val imageIn: BufferedImage) extends SimpleImageLoader {
   }
 
   def getImageAt(row: Int, column: Int): PieceImage = {
-    PieceImage(getImageFrom(imageIn, row, column))
+    PieceImage(getImageFrom(row, column))
   }
 
   def getSquare(row: Int, column: Int): Square = {
@@ -82,7 +82,7 @@ class ImageBoardLoader(val imageIn: BufferedImage) extends SimpleImageLoader {
     new Square(x, y, x + SIZE, y + SIZE)
   }
 
-  private def getImageFrom(imageIn: BufferedImage, row: Int, column: Int): BufferedImage = {
+  private def getImageFrom(row: Int, column: Int): BufferedImage = {
     val square = getSquare(row, column)
     val imageOut = new BufferedImage(SIZE, SIZE, BufferedImage.TYPE_4BYTE_ABGR)
     val imageOutPixels = new Array[Int](SIZE * SIZE)
@@ -94,6 +94,24 @@ class ImageBoardLoader(val imageIn: BufferedImage) extends SimpleImageLoader {
       imageOutPixels(kOut) = imageInPixels(kIn)
     }
     imageOut.setRGB(0, 0, SIZE, SIZE, imageOutPixels, 0, SIZE)
+    imageOut
+  }
+
+  def getTurnImage: BufferedImage = {
+    val w = 14
+    val h = 10
+    val imageOut = new BufferedImage(w, h, BufferedImage.TYPE_4BYTE_ABGR)
+    val imageOutPixels = new Array[Int](w * h)
+    val ix = 889
+    val iy = 57
+    val fx = ix + w
+    val fy = iy + h
+    for (y <- iy until fy; x <- ix until fx) {
+      val kIn = x + y * width
+      val kOut = (x - ix) + (y - iy) * w
+      imageOutPixels(kOut) = imageInPixels(kIn)
+    }
+    imageOut.setRGB(0, 0, w, h, imageOutPixels, 0, w)
     imageOut
   }
 

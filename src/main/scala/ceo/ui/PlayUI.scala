@@ -47,7 +47,7 @@ class PlayUI() extends JFrame {
   final val DEFAULT_WIDTH = 270
   final val DEFAULT_HEIGHT = 600
 
-  def createAndShowGUI() {
+  def createAndShowGUI(): Unit = {
     this.setSize(DEFAULT_WIDTH, DEFAULT_HEIGHT)
     setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE)
     setLocationRelativeTo(null)
@@ -183,9 +183,9 @@ class PlayUI() extends JFrame {
                   timeString.split(",")
               splitted.toList match {
                 case scala.List(time) =>
-                  MainControl.setStrategy(time.toInt)
+                  MainControl.strategy = MainControl.buildStrategy(time.toInt)
                 case scala.List(time, maxMoves) =>
-                  MainControl.setStrategy(time.toInt, maxMoves.toInt)
+                  MainControl.strategy = MainControl.buildStrategy(time.toInt, maxMoves.toInt)
                 case _ => // ignore
               }
             case _ => // ignore
@@ -216,7 +216,7 @@ class PlayUI() extends JFrame {
 
 class GameComponent(val playUI: PlayUI) extends JComponent with ComponentListener {
 
-  override def paintComponent(g: Graphics) {
+  override def paintComponent(g: Graphics): Unit = {
     val g2: Graphics2D = g.asInstanceOf[Graphics2D]
 
     var x = 20
@@ -256,20 +256,20 @@ class GameComponent(val playUI: PlayUI) extends JComponent with ComponentListene
     //    }
   }
 
-  def componentHidden(e: ComponentEvent) {
+  def componentHidden(e: ComponentEvent): Unit = {
   }
 
-  def componentMoved(e: ComponentEvent) {
+  def componentMoved(e: ComponentEvent): Unit = {
   }
 
-  def componentResized(e: ComponentEvent) {
+  def componentResized(e: ComponentEvent): Unit = {
     recalculateSizes()
   }
 
-  def componentShown(e: ComponentEvent) {
+  def componentShown(e: ComponentEvent): Unit = {
   }
 
-  def recalculateSizes() {
+  def recalculateSizes(): Unit = {
     repaint()
   }
 }

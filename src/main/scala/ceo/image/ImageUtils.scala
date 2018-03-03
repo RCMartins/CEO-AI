@@ -1,23 +1,15 @@
 package ceo.image
 
+import java.awt.Image
 import java.awt.image.BufferedImage
-import java.awt.{Image, Rectangle, Robot, Toolkit}
-import java.io.{File, IOException}
+import java.io.{File, FileNotFoundException, IOException}
 import javax.imageio.ImageIO
 
-object ImageUtils {
+import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.Future
+import scala.util.{Success, Try}
 
-  def saveCurrentImagescreen: BufferedImage = {
-    val toolkit = Toolkit.getDefaultToolkit
-    val screenRect = new Rectangle(toolkit.getScreenSize)
-    val robot = new Robot
-    val image = robot.createScreenCapture(screenRect)
-    val filePath = "Images/print%d.png".format {
-      System.currentTimeMillis()
-    }
-    writeImage(image, filePath)
-    image
-  }
+object ImageUtils {
 
   def writeImage(image: BufferedImage, filePath: String): Unit = {
     try
@@ -31,16 +23,21 @@ object ImageUtils {
     }
   }
 
-  def writeImage(image: BufferedImage, file: File): Unit = {
-    try
-      ImageIO.write(image, "png", file)
-    catch {
-      case e: IOException =>
-        println("Error: " + e.getMessage)
-        Thread.sleep(50)
-        println("Trying again...")
-        writeImage(image, file)
+  def writeImage(image: BufferedImage, file: File): Unit = Future {
+    def writeImageAux(image: BufferedImage, file: File): Unit = {
+      Try {
+        file.mkdirs()
+        System.setErr(null)
+        ImageIO.write(image, "png", file)
+      } match {
+        case Success(_) =>
+        case _ =>
+          Thread.sleep(2000)
+          writeImageAux(image, file)
+      }
     }
+
+    writeImageAux(image, file)
   }
 
   /**
@@ -109,6 +106,20 @@ object ImageUtils {
         count += 1
     }
     count
+  }
+
+  def areExactlyEqual(img1: BufferedImage, img2: BufferedImage): Boolean = {
+    val width = img1.getWidth
+    val height = img1.getHeight
+    val width2 = img2.getWidth
+    val height2 = img2.getHeight
+    if (width > width2 || height > height2)
+      throw new IllegalArgumentException("Images must have the same dimensions: (%d,%d) vs. (%d,%d)".format(width, height, width2, height2))
+    for (y <- 0 until height; x <- 0 until width) {
+      if (img1.getRGB(x, y) != img2.getRGB(x, y))
+        return false
+    }
+    true
   }
 
   private def pixelDiff(rgb1: Int, rgb2: Int) = {

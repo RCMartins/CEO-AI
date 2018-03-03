@@ -1,7 +1,7 @@
 package ceo.control
 
 import java.awt.image.BufferedImage
-import java.io.{File, FileWriter}
+import java.io.{File, FileWriter, IOException}
 import java.text.SimpleDateFormat
 import java.util.Date
 
@@ -11,22 +11,26 @@ import ceo.menu.Exceptions.BoardStartsWithUnknownPieces
 import ceo.menu.{Exceptions, InGameMenuType, MenuControl, MenuType}
 import ceo.play._
 
+import scala.concurrent.Future
+
 object MainControl {
 
   val autoScreenFolder = new File("Images/auto-screen")
+  val imagesToCheckFolder = new File("Images/images-to-check")
 
   val minX: Int = 2220 + 1920 * -1
   val minY: Int = 312
   val sizeX: Int = 1000
   val sizeY: Int = 650
 
-  val strategyBlitz: Strategy = new Strategy.ABPruningIterativeDeepening(10000) with ValueOfState.ImprovedHeuristic
-  val strategyDefault: Strategy = new Strategy.ABPruningIterativeDeepening(20000) with ValueOfState.ImprovedHeuristic
-  val strategyChallenge: Strategy = new Strategy.ABPruningIterativeDeepening(15000) with ValueOfState.ImprovedHeuristic
+  val strategyBlitz: Strategy = buildStrategy(10000)
+  val strategyDefault: Strategy = buildStrategy(25000)
+  val strategyChallenge: Strategy = buildStrategy(30000)
   var strategy: Strategy = strategyDefault
 
-  def setStrategy(time: Int, maxMoves: Int = 50): Unit = {
-    strategy = new Strategy.ABPruningIterativeDeepening(time, maxMoves) with ValueOfState.ImprovedHeuristic
+  def buildStrategy(time: Int, maxMoves: Int = 50): Strategy = {
+    new Strategy.ABPruningIterativeDeepening(time, maxMoves) with ValueOfState.HeuristicPieceValues
+    //    new Strategy.ABPIDOrdered(time, maxMoves) with ValueOfState.HeuristicPieceValues
   }
 
   def start(menu: InGameMenuType, playerColor: PlayerColor): Unit = {
@@ -40,6 +44,7 @@ object MainControl {
     val gameFolder = new File(autoScreenFolder, name)
     val replayFile = new File(gameFolder, "replay.ceo")
     var lastSavedTurn: Double = -1
+    var currentTurnImage: Option[BufferedImage] = None
 
     val inMultiplayer = menu match {
       case MenuType.PlayingInMultiplayer => true
@@ -67,9 +72,16 @@ object MainControl {
                 val screenFinal = MenuControl.captureScreen
                 val loaderFinal = new ImageBoardLoader(screenFinal)
                 if (loaderFinal.isValid) {
-                  if (loaderFinal.currentTeam(playerColor) == currentPlayerTeam)
-                    screenFinal
-                  else
+                  val finalPlayerTeam = loaderFinal.currentTeam(playerColor)
+                  if (finalPlayerTeam == currentPlayerTeam) {
+                    val finalTurnImage = loaderFinal.getTurnImage
+                    if (finalPlayerTeam != playerColor || currentTurnImage.forall(!ImageUtils.areExactlyEqual(_, finalTurnImage)))
+                      screenFinal
+                    else {
+                      println("Turn check failed! trying again!")
+                      getScreenAux
+                    }
+                  } else
                     getScreenAux
                 } else {
                   println("Not in game screen anymore! waiting...")
@@ -102,7 +114,6 @@ object MainControl {
             val dateFormatter = new SimpleDateFormat("yyyy-MM-dd-HH-mm-ss")
             val submittedDateConvert = new Date()
             val name = dateFormatter.format(submittedDateConvert)
-            gameFolder.mkdirs()
             ImageUtils.writeImage(currentScreen, new File(gameFolder, s"$name.png"))
           }
         }
@@ -111,8 +122,12 @@ object MainControl {
           if (gameState.isEmpty)
             ImageLoader.getPiecesFromUnknownBoard(playerColor, currentScreen, showTime = true)
           else {
-            ImageLoader.possibleNewImagesQueue +=
-              (() => ImageLoader.getPiecesFromUnknownBoard(playerColor, currentScreen, showTime = false))
+            if (!MenuControl.DEBUG_MODE) {
+              val dateFormatter = new SimpleDateFormat("yyyy-MM-dd-HH-mm-ss-SSS")
+              val submittedDateConvert = new Date()
+              val name = dateFormatter.format(submittedDateConvert)
+              ImageUtils.writeImage(currentScreen, new File(imagesToCheckFolder, s"$name.png"))
+            }
             ImageLoader.quickCheckLastMoveCoordinates(playerColor, currentScreen)
           }
         }
@@ -121,18 +136,18 @@ object MainControl {
           case None =>
             println("Board not found!")
           case Some(ImageState(color, _, pieceNames, _)) if color != playerColor =>
-            println("Still in Black turn, waiting...")
+            println("Still in opponent turn, waiting...")
+            saveScreen(gameState.map(_.currentTurn).getOrElse(0.0))
             gameState match {
               case None =>
-                saveScreen(0.0)
                 // First turn in black side so initialize the board
                 val initialState = Some(ImageLoader.loadBoardFromPieceNamesNoFilter(pieceNames, playerColor == PlayerColor.White))
                 playTurn(initialState)
-              case Some(state) =>
-                saveScreen(state.currentTurn)
+              case _ =>
                 playTurn(gameState)
             }
           case Some(ImageState(_, loader, pieceNames, lastMoveCoordinates)) =>
+            currentTurnImage = Some(loader.getTurnImage)
             val stateOption = Some(ImageLoader.loadBoardFromPieceNamesNoFilter(pieceNames, playerColor == PlayerColor.White))
             if (gameState.isEmpty && stateOption.nonEmpty) {
               // TODO: check that we have images for all the pieces / white and black squares / possible evolutions / charm / etc
@@ -168,7 +183,7 @@ object MainControl {
               }
             }
 
-            saveScreen(stateOption.map(_.currentTurn).getOrElse(-1))
+            saveScreen(gameState.map(_.currentTurn + 0.5).getOrElse(0.0))
 
             val checkEnemy =
               checkEnemyPlay(gameState, stateOption.map(_.board), lastMoveCoordinates, loader)
@@ -182,11 +197,7 @@ object MainControl {
                   checkEnemy.getOrElse(stateOption.get)
 
               if (!MenuControl.DEBUG_MODE) {
-                val fw = new FileWriter(replayFile, true)
-                try
-                  fw.write(startingState.getReplayInfo)
-                finally
-                  fw.close()
+                saveStateToReplay(replayFile, startingState.getReplayInfo)
               }
 
               startingState.movesHistory.headOption.foreach(move => println("Enemy move: " + move))
@@ -196,6 +207,11 @@ object MainControl {
               } else {
                 MenuControl.inPauseLoop()
                 val time = System.currentTimeMillis()
+                if (startingState.currentTurn < 1.0)
+                  strategy.initialize(startingState)
+                else
+                  strategy.moveMade(startingState)
+                println("Starting to calculate turn move....")
                 val Some(stateAfter) = strategy.chooseMove(startingState)
                 println
                 val turnCalcTime = System.currentTimeMillis() - time
@@ -242,18 +258,14 @@ object MainControl {
                 MenuControl.slowMove(beforeX, beforeY)
 
                 if (!MenuControl.DEBUG_MODE) {
-                  val fw = new FileWriter(replayFile, true)
-                  try
-                    fw.write(stateAfter.getReplayInfo)
-                  finally
-                    fw.close()
+                  saveStateToReplay(replayFile, stateAfter.getReplayInfo)
                 }
 
                 if (stateAfter.winner != PlayerWinType.NotFinished) {
                   gameOver(stateAfter)
                 } else {
-                  // TODO: improve next turn check to see what turn it is currently on ... so it makes sure the turn already changed ...
-                  Thread.sleep(1000) // At least a second so no weird animation/effects ruin turn check!
+                  Thread.sleep(500)
+                  strategy.moveMade(stateAfter)
                   val stateAfterOptimized = stateAfter.optimize
                   playTurn(Some(stateAfterOptimized))
                 }
@@ -269,7 +281,6 @@ object MainControl {
               val submittedDateConvert = new Date()
               val name = dateFormatter.format(submittedDateConvert)
               val unknownScreenFolder = new File("Images", "unknown-screen")
-              unknownScreenFolder.mkdirs()
               ImageUtils.writeImage(currentScreen, new java.io.File(unknownScreenFolder, s"$name.png"))
 
               Util.Beep()
@@ -279,6 +290,26 @@ object MainControl {
         }
       }
     }
+
+    def saveStateToReplay(replayFile: File, replayText: String): Unit = Future {
+      def save(): Unit = {
+        var fw: FileWriter = null
+        try {
+          fw = new FileWriter(replayFile, true)
+          fw.write(replayText)
+          if (fw != null)
+            fw.close()
+        } catch {
+          case _: IOException =>
+            Thread.sleep(1000)
+            if (fw != null)
+              fw.close()
+            save()
+        }
+      }
+
+      save()
+    }(scala.concurrent.ExecutionContext.Implicits.global)
 
     def gameOver(state: GameState): Unit = {
       println("Game Over!")
@@ -373,7 +404,6 @@ object MainControl {
               val submittedDateConvert = new Date()
               val name = dateFormatter.format(submittedDateConvert)
               val unknownScreenFolder = new File("Images", "unknown-screen")
-              unknownScreenFolder.mkdirs()
               ImageUtils.writeImage(loader.imageIn, new java.io.File(unknownScreenFolder, s"$name.png"))
 
               //          val problematicPositions =

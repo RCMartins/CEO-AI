@@ -6,7 +6,7 @@ import scala.util.Random
 
 object Util {
 
-  final val random: Random = new Random(3)
+  final val random: Random = new Random()
 
   @inline final val ValueOfStateMaxValue = 1e9.toInt
 

@@ -41,8 +41,8 @@ object MenuControl {
     start()
   }
 
-  private val DEFAULT_TIMEOUT = 1000
-  private val MAX_TIMEOUT = 60000
+  private val DEFAULT_TIMEOUT: Long = 1000
+  private val MAX_TIMEOUT: Long = 60000
 
   private var timeOutFromNotFindingAnyMenu = DEFAULT_TIMEOUT
   private var settingsReady = false
@@ -81,7 +81,7 @@ object MenuControl {
           clickWait(menu.continueCoordinate, 9000)
           clickWaitRestart(menu.skipCoordinate, 6000)
         case menu @ MenuType.MainMenuCanOpenBox =>
-          clickWaitRestart(menu.boxOpenCoordinate, 5000)
+          clickWaitRestart(menu.boxOpenCoordinate, 4000)
         case menu @ MenuType.MainMenuNoOpenBox =>
           oathObjective match {
             case EditArmyTesting =>
@@ -227,16 +227,14 @@ object MenuControl {
         case Success(_) | Failure(_: GameIsOverByAbandonOrTimeout) =>
           println("Game Over!")
           val time = System.currentTimeMillis()
-          ImageLoader.possibleNewImagesQueue.foreach(_ ())
-          ImageLoader.possibleNewImagesQueue.clear()
-          Wait(15000 - (System.currentTimeMillis() - time).toInt)
+          Wait(15000 - (System.currentTimeMillis() - time))
           if (pauseAfterGameFinishes) {
             var waitingCounter = 0
             while (pauseAfterGameFinishes) {
               if (waitingCounter % 10 == 0)
                 println("Game finished... Waiting for resume...")
               waitingCounter += 1
-              Thread.sleep(1000)
+              Wait(1000)
             }
           }
           start()
@@ -253,7 +251,7 @@ object MenuControl {
             case CompleteDailyChallenge | PlayCasualGames | PlayRankedGames | PlayCurrentGame =>
               Util.Beep()
               println("Board started with unknown pieces, let's wait 5s for the images to be updated...")
-              Thread.sleep(5000)
+              Wait(5000)
               start()
           }
         case Failure(_: AllPiecesAreKnown) =>
@@ -277,10 +275,9 @@ object MenuControl {
         val submittedDateConvert = new Date()
         val name = dateFormatter.format(submittedDateConvert)
         val unknownScreenFolder = new File("Images", "unknown-screen")
-        unknownScreenFolder.mkdirs()
         ImageUtils.writeImage(screen, new java.io.File(unknownScreenFolder, s"$name.png"))
 
-        Thread.sleep(timeOutFromNotFindingAnyMenu)
+        Wait(timeOutFromNotFindingAnyMenu)
         timeOutFromNotFindingAnyMenu = Math.min(MAX_TIMEOUT, timeOutFromNotFindingAnyMenu + 100)
         start()
       case Some(currentMenu) =>
@@ -292,17 +289,18 @@ object MenuControl {
   def findCurrentScreenMenu(): Option[MenuType] =
     MenuType.findMenu(captureScreen)
 
-  def Wait(waitTime: Int): Unit = {
-    Thread.sleep(Math.max(0, waitTime))
+  def Wait(waitTime: Long): Unit = {
+    if (waitTime > 0)
+      Thread.sleep(waitTime)
   }
 
-  def clickWait(mouseCoordinate: (Int, Int), waitTime: Int): Unit = {
+  def clickWait(mouseCoordinate: (Int, Int), waitTime: Long): Unit = {
     val (x, y) = mouseCoordinate
     val (beforeX, beforeY) = MouseKeyboardControl.getMousePosition
     slowMove(minX + x, minY + y)
-    Thread.sleep(50)
+    Wait(50)
     MouseKeyboardControl.mouseDown()
-    Thread.sleep(50)
+    Wait(50)
     MouseKeyboardControl.mouseUp()
     slowMove(beforeX, beforeY)
 
@@ -320,7 +318,7 @@ object MenuControl {
       val distX = Math.min(x - ix, Math.max(20, (x - ix) / 8))
       val distY = Math.min(y - iy, Math.max(20, (y - iy) / 8))
       MouseKeyboardControl.moveMouse(ix + distX, iy + distY)
-      Thread.sleep(15)
+      Wait(15)
       slowMove(x, y)
     }
   }
@@ -331,7 +329,7 @@ object MenuControl {
       if (waitingCounter % 10 == 0)
         println("waiting for resume...")
       waitingCounter += 1
-      Thread.sleep(1000 + waitingCounter * 10)
+      Wait(1000 + waitingCounter * 10)
     }
   }
 

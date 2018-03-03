@@ -69,7 +69,7 @@ object BoardPos {
 
   final val List1to8: List[Int] = (1 to 8).toList
 
-  def unapply(boardPos: BoardPos): Option[(Int, Int)] = Some(boardPos.row, boardPos.column)
+  def unapply(boardPos: BoardPos): Option[(Int, Int)] = Some((boardPos.row, boardPos.column))
 
   private final val cache: Array[BoardPos] = (for {
     row <- 0 until 8
