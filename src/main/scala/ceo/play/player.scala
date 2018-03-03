@@ -168,7 +168,7 @@ object Player {
           override def update(startingState: GameState, deadPiece: Piece): GameState = {
             val myPieces = startingState.getPlayer(team).allPieces
             myPieces.foldLeft(startingState)((state, piece) => {
-              if (piece.data.isBonePile) {
+              if (piece.data.isBonePile && piece != deadPiece) {
                 if (piece.currentMorale < 3)
                   state.updatePiece(piece, piece.changeMorale(+1))
                 else

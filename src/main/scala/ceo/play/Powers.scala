@@ -70,7 +70,7 @@ object Powers {
 
   case class OnKillPlayerChangeMorale(moraleAmount: Int) extends Powers
 
-  case class OnDeathEnemyChangesMorale(moraleAmount: Int) extends Powers
+  case class OnDeathHostageChangesMorale(moraleAmount: Int) extends Powers
 
   case class OnKillTransformInto(pieceName: String) extends Powers
 

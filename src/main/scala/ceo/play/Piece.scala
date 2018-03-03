@@ -20,7 +20,7 @@ case class Piece(
     val updatedState2 =
       DynamicRunner.foldLeft(updatedState1, this, updatedState1.getPlayers.flatMap(_.extraData.globalDeathPieceRunners))
 
-    updatedState2
+    updatedState2.updatePlayer(team.color, _.pieceDied(this)) // TODO if an attacker attacks a bomber/wisp/etc what is the correct tile for "piecedied" ???
   }
 
   override def toString: String = s"${data.name}$pos"
@@ -54,8 +54,11 @@ case class Piece(
   }
 
   def afterMeleeKill(startingState: GameState, pieceToKill: Piece): (GameState, Option[Piece]) = {
+    val (updatedState0, updatedPiece0) =
+      this.moveTo(startingState, pieceToKill.pos)
+
     val (updatedState1, updatedPiece1) =
-      DynamicRunner.foldLeft((startingState, Some(this)), pieceToKill, pieceToKill.data.afterAnyDeathRunners)
+      DynamicRunner.foldLeft((updatedState0, updatedPiece0), pieceToKill, pieceToKill.data.afterAnyDeathRunners)
 
     val (updatedState2, updatedPiece2) =
       DynamicRunner.foldLeft((updatedState1, updatedPiece1), (this, pieceToKill), pieceToKill.data.afterMeleeDeathRunners)
@@ -70,8 +73,7 @@ case class Piece(
       case None =>
         (updatedState4, None)
       case Some(finalPiece) =>
-        val (updatedState5, piece) = finalPiece.moveTo(updatedState4, pieceToKill.pos)
-        (updatedState5.updatePlayer(pieceToKill.team.color, _.pieceDied(pieceToKill)), piece) // TODO VERY Hard coded .......
+        (updatedState4.updatePlayer(pieceToKill.team.color, _.pieceDied(pieceToKill)), Some(finalPiece))
     }
   }
 

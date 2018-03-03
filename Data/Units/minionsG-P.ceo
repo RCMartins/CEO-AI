@@ -114,7 +114,7 @@ M@M
 MMM
 ---
 ImmuneTo Magic Trigger
-OnDeathEnemyChangesMorale -6
+OnDeathHostageChangesMorale -8
 HostageCaught +2
 --------------------
 Hostage+ 1
@@ -126,7 +126,7 @@ M   M
 M   M
 ---
 ImmuneTo Magic Trigger
-OnDeathEnemyChangesMorale -9
+OnDeathHostageChangesMorale -12
 HostageCaught +3
 --------------------
 Hostage++ 2
@@ -138,7 +138,7 @@ MM@MM
 M M M
 ---
 ImmuneTo Magic Trigger
-OnDeathEnemyChangesMorale -12
+OnDeathHostageChangesMorale -16
 HostageCaught +4
 --------------------
 Hostage+++ 3
@@ -150,7 +150,7 @@ TM@MT
 T T T
 ---
 ImmuneTo Magic Trigger
-OnDeathEnemyChangesMorale -15
+OnDeathHostageChangesMorale -20
 HostageCaught +5
 --------------------
 Mercenary 1

@@ -73,9 +73,18 @@ case class PieceData(
         }
       }
     }
-    case OnDeathEnemyChangesMorale(moraleAmount) => new DynamicRunner[(GameState, Option[Piece]), Piece] {
+    case OnDeathHostageChangesMorale(moraleAmount) => new DynamicRunner[(GameState, Option[Piece]), Piece] {
       override def update(state: (GameState, Option[Piece]), deathPiece: Piece): (GameState, Option[Piece]) = {
-        modify(state)(_._1).using(_.changeMorale(deathPiece.team.enemy, moraleAmount))
+        modify(state)(_._1).using { gameState =>
+          // Bug simulation of v0.52:
+          // if the white player kills a hostage loses 6 morale, but if the black player kills the hostage loses 8 morale...
+
+          if (deathPiece.team.color == PlayerColor.Black) {
+            gameState.changeMorale(deathPiece.team.enemy, moraleAmount + deathPiece.data.powers.collectFirst { case HostageCaught(caughtAmount) => caughtAmount }.get)
+          } else {
+            gameState.changeMorale(deathPiece.team.enemy, moraleAmount)
+          }
+        }
       }
     }
     case TriggerFrostMephit(freezeDuration) => new DynamicRunner[(GameState, Option[Piece]), Piece] {
@@ -88,7 +97,12 @@ case class PieceData(
     }
     case WispReflect => new DynamicRunner[(GameState, Option[Piece]), Piece] {
       override def update(state: (GameState, Option[Piece]), deathPiece: Piece): (GameState, Option[Piece]) = {
-        state.copy(_2 = None)
+        state._2 match {
+          case None =>
+            state
+          case Some(attackerPiece) =>
+            (attackerPiece.onTransform(state._1), None)
+        }
       }
     }
     case OnDeathPhoenix(eggPieceName) => new DynamicRunner[(GameState, Option[Piece]), Piece] {
@@ -142,15 +156,22 @@ case class PieceData(
     (Piece /* original killer piece */ , Piece /* this piece */ )]] = powers.collect {
     case OnMeleeDeathKillAttacker | OnDeathPhoenix(_) => new DynamicRunner[(GameState, Option[Piece]), (Piece, Piece)] {
       override def update(state: (GameState, Option[Piece]), pieces: (Piece, Piece)): (GameState, Option[Piece]) = {
-        state.copy(_2 = None)
+        state._2 match {
+          case None =>
+            state
+          case Some(attackerPiece) =>
+            (attackerPiece.onTransform(state._1), None)
+        }
       }
     }
     case OnMeleeDeathKillAttackerFromPosition(distances) => new DynamicRunner[(GameState, Option[Piece]), (Piece, Piece)] {
       override def update(state: (GameState, Option[Piece]), pieces: (Piece, Piece)): (GameState, Option[Piece]) = {
-        if (distances.contains(pieces._1.pos - pieces._2.pos))
-          state.copy(_2 = None)
-        else
-          state
+        state._2 match {
+          case Some(attackerPiece) if distances.contains(pieces._1.pos - pieces._2.pos) =>
+            (attackerPiece.onTransform(state._1), None)
+          case _ =>
+            state
+        }
       }
     }
     case OnMeleeDeathSpawnSlimes(distances, pieceName) => new DynamicRunner[(GameState, Option[Piece]), (Piece, Piece)] {
@@ -201,7 +222,12 @@ case class PieceData(
     Piece /* piece to kill */ ]] = powers.collect {
     case OnAnyKillSuicides => new DynamicRunner[(GameState, Option[Piece]), Piece] {
       override def update(state: (GameState, Option[Piece]), pieceToKill: Piece): (GameState, Option[Piece]) = {
-        state.copy(_2 = None)
+        state._2 match {
+          case None =>
+            state
+          case Some(attackerPiece) =>
+            (attackerPiece.onTransform(state._1), None)
+        }
       }
     }
     case OnKillMercenary => new DynamicRunner[(GameState, Option[Piece]), Piece] {
