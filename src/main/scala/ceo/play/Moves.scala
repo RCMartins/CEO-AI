@@ -455,7 +455,7 @@ object Moves {
     def getValidMove(piece: Piece, state: GameState, currentPlayer: Player): Option[PlayerMove] = {
       val target = piece.pos + dist
       target.getPiece(state.board) match {
-        case None =>
+        case None if target.isValid =>
           val allyPieceData = DataLoader.getPieceData(allyPieceName, piece.team)
           Some(PlayerMove.MagicSummonPiece(piece, target, moraleCost, allyPieceData))
         case Some(targetPiece) if {
