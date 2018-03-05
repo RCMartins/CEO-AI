@@ -108,6 +108,8 @@ object Powers {
 
   case class OnMagicCastDecayTo(decayAmount: Int, limitToDevolve: Int, pieceName: String) extends Powers
 
+  case class GrowMoraleOnPlayerTurnUntilTransform(moraleToPromote: Int, pieceName: String) extends Powers
+
   case class GrowMoraleUntilTransform(moraleToPromote: Int, pieceName: String) extends Powers
 
   case class OnMagicCastDecayDeath(decayAmount: Int) extends Powers

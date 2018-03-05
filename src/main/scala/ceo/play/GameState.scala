@@ -569,7 +569,14 @@ final case class GameState(
             case EffectStatus.Enchanted(untilTurn) if untilTurn == currentTurn => removeEffect()
             case EffectStatus.WeakEnchanted(untilTurn) if untilTurn == currentTurn => removeEffect()
             case EffectStatus.Poison(turnOfDeath) if turnOfDeath == currentTurn => (gameState, None)
-            case EffectStatus.PieceGrow(moraleToPromote, pieceName) if playerTeam != piece.team =>
+            case EffectStatus.PieceGrowOnPlayerTurn(moraleToPromote, pieceName) if playerTeam == piece.team =>
+              val updatedPiece = currentPiece.changeMorale(+1)
+              if (updatedPiece.currentMorale >= moraleToPromote) {
+                (gameState, Some(DataLoader.getPieceData(pieceName, updatedPiece.team).createPiece(updatedPiece.pos)))
+              } else {
+                skipEffect(updatedPiece)
+              }
+            case EffectStatus.PieceGrowOnOpponentTurn(moraleToPromote, pieceName) if playerTeam != piece.team =>
               val updatedPiece = currentPiece.changeMorale(+1)
               if (updatedPiece.currentMorale >= moraleToPromote) {
                 (gameState, Some(DataLoader.getPieceData(pieceName, updatedPiece.team).createPiece(updatedPiece.pos)))

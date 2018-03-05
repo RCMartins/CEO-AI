@@ -54,8 +54,13 @@ object EffectType {
     val name = "InstantKillPositional"
   }
 
-  case object PieceGrow extends EffectType {
-    val name = "PieceGrow"
+  case object PieceGrowOnPlayerTurn extends EffectType {
+    val name = "PieceGrowOnPlayerTurn"
+  }
+
+  case object PieceGrowOnOpponentTurn extends EffectType {
+    val name = "PieceGrowOnOpponentTurn"
+  }
   }
 
   case object DecayAfterTurn extends EffectType {
@@ -124,8 +129,13 @@ object EffectStatus {
     override val effectType: EffectType = EffectType.InstantKillPositional
   }
 
-  case class PieceGrow(moraleToPromote: Int, pieceName: String) extends EffectStatus {
-    override val effectType: EffectType = EffectType.PieceGrow
+  case class PieceGrowOnPlayerTurn(moraleToPromote: Int, pieceName: String) extends EffectStatus {
+    override val effectType: EffectType = EffectType.PieceGrowOnPlayerTurn
+  }
+
+  case class PieceGrowOnOpponentTurn(moraleToPromote: Int, pieceName: String) extends EffectStatus {
+    override val effectType: EffectType = EffectType.PieceGrowOnOpponentTurn
+  }
   }
 
   case class DecayAfterTurn(turnStarts: Int, moralePerTurn: Int) extends EffectStatus {

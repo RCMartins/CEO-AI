@@ -45,11 +45,11 @@ GrowMoraleUntilTransform 20 Phoenix+++
 OnAnyDeathPlayerChangeMorale -4
 ImmuneTo Compel
 --------------------
-Sapling 1
+Sapling 0
 ---
 @
 ---
-GrowMoraleUntilTransform 3 Tree
+GrowMoraleOnPlayerTurnUntilTransform 3 Tree
 ImmuneTo Status
 Dummy
 --------------------

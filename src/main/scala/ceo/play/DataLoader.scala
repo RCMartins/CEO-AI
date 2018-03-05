@@ -301,6 +301,10 @@ object DataLoader {
         val List(decayAmount, limitToDevolve, pieceName) = str.drop("OnMagicCastDecayTo ".length).split(" ").toList
         piecesToCheck = pieceName :: piecesToCheck
         Powers.OnMagicCastDecayTo(decayAmount.toInt, limitToDevolve.toInt, pieceName)
+      case str if str.startsWith("GrowMoraleOnPlayerTurnUntilTransform ") =>
+        val List(moraleToPromote, pieceName) = str.drop("GrowMoraleOnPlayerTurnUntilTransform ".length).split(" ").toList
+        piecesToCheck = pieceName :: piecesToCheck
+        Powers.GrowMoraleOnPlayerTurnUntilTransform(moraleToPromote.toInt, pieceName)
       case str if str.startsWith("GrowMoraleUntilTransform ") =>
         val List(moraleToPromote, pieceName) = str.drop("GrowMoraleUntilTransform ".length).split(" ").toList
         piecesToCheck = pieceName :: piecesToCheck

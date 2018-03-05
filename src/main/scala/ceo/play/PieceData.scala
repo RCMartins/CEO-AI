@@ -508,8 +508,10 @@ case class PieceData(
         EffectStatus.BlocksAttacksFrom(distances)
       case TriggerInstantKill(_) =>
         EffectStatus.InstantKillPositional
+      case GrowMoraleOnPlayerTurnUntilTransform(moraleToPromote, pieceName) =>
+        EffectStatus.PieceGrowOnPlayerTurn(moraleToPromote, pieceName)
       case GrowMoraleUntilTransform(moraleToPromote, pieceName) =>
-        EffectStatus.PieceGrow(moraleToPromote, pieceName)
+        EffectStatus.PieceGrowOnOpponentTurn(moraleToPromote, pieceName)
       case DecayAfterTurn(turnStarts, moralePerTurn) =>
         EffectStatus.DecayAfterTurn(turnStarts, moralePerTurn)
     }
