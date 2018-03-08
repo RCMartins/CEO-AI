@@ -190,8 +190,8 @@ object Player {
             else {
               val player = startingState.getPlayer(deadPiece.team)
               player.allPieces.foldLeft(startingState) { (state, piece) =>
-                piece.data.powers.find { case _: OnAllyDeathPieceChangeMorale => true; case _ => false } match {
-                  case Some(OnAllyDeathPieceChangeMorale(moraleAmount)) if piece.currentMorale > 0 =>
+                piece.data.powers.find(_.isInstanceOf[OnAllyDeathPieceChangeMorale]) match {
+                  case Some(OnAllyDeathPieceChangeMorale(moraleAmount)) if piece.currentMorale > 0 && piece != deadPiece =>
                     state.updatePiece(piece, piece.changeMorale(moraleAmount))
                   case _ =>
                     state
