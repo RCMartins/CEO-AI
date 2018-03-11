@@ -67,6 +67,10 @@ object EffectType {
     val name = "DecayAfterTurn"
   }
 
+  case object ImmuneToSamuraiTrigger extends EffectType {
+    val name = "ImmuneToSamuraiTrigger"
+  }
+
   val allNormalEffects: List[EffectType] = List(Petrify, Poison, Freeze, Displacement, Magic, Ranged, Trigger, Compel)
 
   def apply(name: String): EffectType = allNormalEffects.find(_.name == name) match {
@@ -122,7 +126,7 @@ object EffectStatus {
   case class BlocksAttacksFrom(distances: Set[Distance]) extends EffectStatus {
     override val effectType: EffectType = EffectType.BlockAttacks
 
-    override def getReplayInfo = s"BlocksAttacksFrom"
+    override def getReplayInfo = "BlocksAttacksFrom"
   }
 
   case object InstantKillPositional extends EffectStatus {
@@ -140,6 +144,12 @@ object EffectStatus {
 
   case class DecayAfterTurn(turnStarts: Int, moralePerTurn: Int) extends EffectStatus {
     override val effectType: EffectType = EffectType.DecayAfterTurn
+  }
+
+  case class ImmuneToSamuraiTrigger(untilTurn: Double) extends EffectStatus {
+    override val effectType: EffectType = EffectType.ImmuneToSamuraiTrigger
+
+    override def getReplayInfo = s"ImmuneToSamuraiTrigger($untilTurn)"
   }
 
 }

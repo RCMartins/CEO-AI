@@ -569,6 +569,7 @@ final case class GameState(
             case EffectStatus.Enchanted(untilTurn) if untilTurn == currentTurn => removeEffect()
             case EffectStatus.WeakEnchanted(untilTurn) if untilTurn == currentTurn => removeEffect()
             case EffectStatus.Poison(turnOfDeath) if turnOfDeath == currentTurn => (gameState, None)
+            case EffectStatus.ImmuneToSamuraiTrigger(untilTurn) if untilTurn == currentTurn => removeEffect()
             case EffectStatus.PieceGrowOnPlayerTurn(moraleToPromote, pieceName) if playerTeam == piece.team =>
               val updatedPiece = currentPiece.changeMorale(+1)
               if (updatedPiece.currentMorale >= moraleToPromote) {
@@ -624,7 +625,8 @@ final case class GameState(
                 targetPiece.team != playerTeam &&
                   !targetPiece.isEnchanted &&
                   !targetPiece.data.isImmuneTo(EffectType.Trigger) &&
-                  Moves.generalCanTargetEnemy(piece, targetPiece)
+                  Moves.generalCanTargetEnemy(piece, targetPiece) &&
+                  !targetPiece.effectStatus.exists(_.isInstanceOf[EffectStatus.ImmuneToSamuraiTrigger])
               } =>
                 if (targetPiece.canBlockFrom(piece.pos)) {
                   val (updatedState, pieceToAttack) = gameState.guardianSwapPiece(piece, targetPiece)
@@ -744,7 +746,10 @@ final case class GameState(
                       initialState.removePiece(piece)
                     }
                   case None =>
-                    initialState.placePiece(pieceDataOnRevive.createPiece(boardPos))
+                    // simulation of a bug in v0.52 - butterfly is "immune" to samurai trigger when it revives
+                    // TODO: create a flag that checks for samurai in the game (both players) to see if it really necessary this effect status!
+                    val immuneToSamuraiEffect = EffectStatus.ImmuneToSamuraiTrigger(currentTurn + 0.5)
+                    initialState.placePiece(pieceDataOnRevive.createPiece(boardPos).addEffect(immuneToSamuraiEffect))
                   case _ =>
                     initialState
                 }
