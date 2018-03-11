@@ -169,7 +169,7 @@ object Player {
             val myPieces = startingState.getPlayer(team).allPieces
             myPieces.foldLeft(startingState)((state, piece) => {
               if (piece.data.isBonePile && piece != deadPiece) {
-                if (piece.currentMorale < 3)
+                if (piece.currentMorale < 2)
                   state.updatePiece(piece, piece.changeMorale(+1))
                 else
                   state.updatePiece(piece, DataLoader.getPieceData("Skeleton", piece.team).createPiece(piece.pos))
