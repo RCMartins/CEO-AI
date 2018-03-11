@@ -278,10 +278,10 @@ object Powers {
     val lettersOfMoves: List[Char] = List(letterFrom, letterTowards)
 
     override def createMoves(distances: Map[Char, List[Distance]]): List[Moves] = {
-      val from = distances(letterFrom).head
-      distances(letterTowards).map { distanceTowards =>
-        val maxDistance = distanceTowards - from
-        MagicPushTowards(distanceTowards, moraleCost, maxDistance)
+      val to = distances(letterTowards).head
+      distances(letterFrom).map { distanceFrom =>
+        val maxDistance = to - distanceFrom
+        MagicPushTowards(distanceFrom, moraleCost, maxDistance)
       }
     }
   }
