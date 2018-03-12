@@ -64,7 +64,11 @@ object Moves {
 
   private def canAttack(piece: Piece, target: BoardPos, state: GameState): Option[PlayerMove] = {
     canRangedReachEnemy(piece, target, state) match {
-      case Some(targetPiece) if !targetPiece.isEnchanted && generalCanTargetEnemy(piece, targetPiece) =>
+      case Some(targetPiece) if {
+        !targetPiece.isEnchanted &&
+          !targetPiece.isWeakEnchanted &&
+          generalCanTargetEnemy(piece, targetPiece)
+      } =>
         if (targetPiece.canBlockFrom(piece.pos)) {
           Some(PlayerMove.AttackCanBeBlocked(piece, targetPiece))
         } else {
@@ -80,6 +84,7 @@ object Moves {
       case Some(targetPiece) if {
         targetPiece.team != piece.team &&
           !targetPiece.isEnchanted &&
+          !targetPiece.isWeakEnchanted &&
           generalCanTargetEnemy(piece, targetPiece)
       } =>
         Some(PlayerMove.Attack(piece, targetPiece))
@@ -821,7 +826,7 @@ object Moves {
       val target = piece.pos + dist
       target.getPiece(state.board) match {
         case Some(targetPiece) if {
-            !targetPiece.data.isImmuneTo(EffectType.Displacement) &&
+          !targetPiece.data.isImmuneTo(EffectType.Displacement) &&
             !targetPiece.data.isImmuneTo(EffectType.Magic) &&
             generalCanTargetEnemy(piece, targetPiece)
         } =>
