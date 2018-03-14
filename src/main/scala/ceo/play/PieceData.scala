@@ -67,7 +67,7 @@ case class PieceData(
         modify(state)(_._1).using { startingState =>
           startingState.getPlayer(deathPiece.team).allPieces.filter(_.data.isMinion).foldLeft(startingState) {
             (currentState, minionPiece) =>
-              val (_, minionPieceUpdated) = deathPiece.enchantPiece(currentState, minionPiece, enchantDuration)
+              val (_, minionPieceUpdated) = deathPiece.enchantPiece(currentState, minionPiece, enchantDuration + 0.5)
               currentState.updatePieceIfAlive(minionPiece, minionPieceUpdated)
           }
         }
