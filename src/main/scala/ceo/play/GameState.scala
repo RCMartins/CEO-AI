@@ -454,7 +454,7 @@ final case class GameState(
         updatedState
           .updatePiece(piece, newClone)
       case MagicMeteor(piece, meteorPosition, moraleCost, durationTurns) =>
-        val meteor = BoardEffect.Meteor(meteorPosition, currentTurn + durationTurns)
+        val meteor = BoardEffect.Meteor(meteorPosition, currentTurn + durationTurns + 0.5)
         this
           .changeMorale(piece.team, -moraleCost)
           .copy(boardEffects = meteor :: boardEffects)
