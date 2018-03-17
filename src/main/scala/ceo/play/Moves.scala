@@ -133,6 +133,7 @@ object Moves {
     target.getPiece(state.board) match {
       case Some(targetPiece) if {
         targetPiece.team != piece.team &&
+          !targetPiece.data.isImmuneTo(EffectType.Magic) &&
           !targetPiece.data.isImmuneTo(EffectType.Poison) &&
           !targetPiece.isPoisoned &&
           generalCanTargetEnemy(piece, targetPiece)
