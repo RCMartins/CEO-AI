@@ -542,7 +542,7 @@ object Moves {
       val target = piece.pos + dist
       if (target.isEmpty(state.board))
         currentPlayer.allPieces.filter(piece =>
-          piece.pos.distanceTo(target) <= augmentedRange &&
+          piece.pos.distanceTo(piece.pos) <= augmentedRange &&
             !piece.data.isKing && !piece.data.isImmuneTo(EffectType.Displacement)
         ).map(pieceToTeleport =>
           PlayerMove.TeleportPiece(piece, pieceToTeleport, target, piece.pos, pieceToTeleport.pos))
